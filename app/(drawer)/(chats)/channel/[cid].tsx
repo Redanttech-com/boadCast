@@ -1,6 +1,9 @@
-import { View, ActivityIndicator } from "react-native";
-import React, { useEffect, useState } from "react";
+import { Ionicons } from "@expo/vector-icons";
+import { useStreamVideoClient } from "@stream-io/video-react-native-sdk";
 import { router, Stack, useLocalSearchParams } from "expo-router";
+import { useEffect, useState } from "react";
+import { ActivityIndicator, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Channel as ChannelType } from "stream-chat";
 import {
   Channel,
@@ -8,36 +11,32 @@ import {
   MessageList,
   useChatContext,
 } from "stream-chat-expo";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
-import { useUserInfo } from "@/providers/UserContext";
-import { useStreamVideoClient } from "@stream-io/video-react-native-sdk";
 import * as Crypto from "expo-crypto";
 
-const ChannelScreen = () => {
-  const { cid } = useLocalSearchParams<{ cid: string }>();
+export default function ChannelScreen() {
   const [channel, setChannel] = useState<ChannelType | null>(null);
-  const { userData } = useUserInfo();
+  const { cid } = useLocalSearchParams<{ cid: string }>();
   const { client } = useChatContext();
   const videoClient = useStreamVideoClient();
 
   useEffect(() => {
-    const fetchChannel = async () => {
-      if (!cid || !client) return;
+    if (!cid) return;
 
-      const channels = await client.queryChannels({ id: cid });
-      if (channels.length > 0) {
+    const fetchChannel = async () => {
+      try {
+        const channels = await client.queryChannels({ cid });
         setChannel(channels[0]);
+      } catch (error) {
+        console.error("Error fetching channel:", error);
       }
     };
-
     fetchChannel();
-  }, [cid, client]);
+  }, [cid]);
 
   const joinCall = async () => {
     if (!channel) return;
 
-    const members = Object.values(channel.data?.members || {}).map((member) => ({
+    const members = Object.values(channel.state.members).map((member) => ({
       user_id: member.user_id,
     }));
 
@@ -46,17 +45,19 @@ const ChannelScreen = () => {
       ring: true,
       data: { members },
     });
-    await call.join();
 
-    router.push(`/(drawer)/(chats)/call/${call.id}`);
+    // Uncomment to navigate to the call screen after joining
+    router.push(`/call/${call.id}`);
   };
 
-  if (!channel || !userData) {
+  if (!channel) {
     return (
       <>
         <Stack.Screen options={{ headerShown: false }} />
-        <View className="flex-1 justify-center items-center">
-          <ActivityIndicator size={"large"} />
+        <View
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+        >
+          <ActivityIndicator size="large" color="red" />
         </View>
       </>
     );
@@ -67,15 +68,9 @@ const ChannelScreen = () => {
       <Stack.Screen
         options={{
           headerShown: true,
-          title: userData.name,
+          title: "Chats",
           headerRight: () => (
-            <Ionicons
-              name="call"
-              color="gray"
-              size={24}
-              onPress={joinCall}
-              style={{ padding: 10 }}
-            />
+            <Ionicons name="call" size={20} color="gray" onPress={joinCall} />
           ),
         }}
       />
@@ -85,6 +80,4 @@ const ChannelScreen = () => {
       </SafeAreaView>
     </Channel>
   );
-};
-
-export default ChannelScreen;
+}

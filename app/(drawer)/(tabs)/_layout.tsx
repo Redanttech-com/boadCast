@@ -25,7 +25,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: "Nationals",
+          title: "National",
           tabBarIcon: ({ color }) => (
             <Ionicons name="globe-sharp" size={24} color={color} />
           ),

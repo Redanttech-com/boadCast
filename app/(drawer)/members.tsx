@@ -11,6 +11,7 @@ import {
 import { useUserInfo } from "@/providers/UserContext";
 import { db } from "@/firebase";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const Members = () => {
   const [activeTab, setActiveTab] = useState("county");
@@ -111,7 +112,7 @@ const Members = () => {
   );
 
   return (
-    <View className="flex-1 gap-5">
+    <SafeAreaView className="flex-1 gap-5">
       {/* Tab Selector */}
       <View className="flex-row justify-between p-3 px-5 bg-gray-200 items-center">
         {["county", "constituency", "ward"].map((tab) => (
@@ -135,7 +136,7 @@ const Members = () => {
         {activeTab === "constituency" && renderTabContent(constituencyMembers)}
         {activeTab === "ward" && renderTabContent(wardMembers)}
       </View>
-    </View>
+    </SafeAreaView>
   );
 };
 

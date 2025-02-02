@@ -8,6 +8,7 @@ import {
 import React, { useEffect, useState } from "react";
 import { collection, onSnapshot } from "firebase/firestore";
 import { db } from "@/firebase";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const National = () => {
   const [posts, setPosts] = useState([]); // All posts from Firestore
@@ -84,7 +85,7 @@ const National = () => {
     : [];
 
   return (
-    <View style={{ flex: 1, padding: 16 }}>
+    <SafeAreaView style={{ flex: 1, padding: 16 }}>
       {loading ? (
         <ActivityIndicator size="large" color="blue" />
       ) : (
@@ -139,7 +140,7 @@ const National = () => {
           )}
         </>
       )}
-    </View>
+    </SafeAreaView>
   );
 };
 

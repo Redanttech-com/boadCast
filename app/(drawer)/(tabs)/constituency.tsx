@@ -7,10 +7,10 @@ import { StatusBar } from 'expo-status-bar';
 
 const constituency = () => {
   return (
-    <View className="flex-1 ">
+    <SafeAreaView className="flex-1 ">
       <Header />
       <Feed />
-    </View>
+    </SafeAreaView>
   );
 }
 

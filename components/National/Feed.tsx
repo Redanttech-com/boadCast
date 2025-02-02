@@ -26,7 +26,7 @@ import {
 import { auth, db } from "@/firebase";
 import Posts from "./Posts";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
-import { Ionicons } from "@expo/vector-icons";
+import { Feather, Ionicons } from "@expo/vector-icons";
 import { useUserInfo } from "@/providers/UserContext";
 import { useRecoilState } from "recoil";
 import { modalComment } from "@/atoms/modalAtom";
@@ -47,12 +47,9 @@ const Feed = () => {
   const { user } = useUser();
   const { userData } = useUserInfo();
 
-  const snapPoints = useMemo(() => ["100%"], []);
+  const snapPoints = useMemo(() => ["70%","100%"], []);
   const openBottomSheet = useCallback(() => setIsBottomSheetOpen(true), []);
-  const closeBottomSheet = useCallback(() => {
-    setIsBottomSheetOpen(false);
-    setComments([]); // Clear comments when the sheet is closed
-  }, []);
+  const closeBottomSheet = useCallback(() => setIsBottomSheetOpen(false), []);
 
   // Fetch posts
   useEffect(() => {
@@ -173,6 +170,9 @@ const Feed = () => {
         onChange={(index) => setIsBottomSheetOpen(index >= 1)}
         enablePanDownToClose={true}
       >
+        <Pressable onPress={closeBottomSheet} className="ml-auto p-4 -mt-4">
+          <Feather name="x" size={24} color="black" />
+        </Pressable>
         <View>
           {loadingComments ? (
             <View className="w-full h-full justify-center items-center flex-1">

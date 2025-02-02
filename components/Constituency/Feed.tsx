@@ -46,7 +46,7 @@ const Feed = () => {
   const { user } = useUser();
   const { userData } = useUserInfo();
 
-  const snapPoints = useMemo(() => ["100%"], []);
+ const snapPoints = useMemo(() => ["70%","100%"], []);
   const openBottomSheet = useCallback(() => setIsBottomSheetOpen(true), []);
   const closeBottomSheet = useCallback(() => {
     setIsBottomSheetOpen(false);

@@ -70,11 +70,16 @@ function CustomDrawerContent(props) {
 // Drawer Layout
 export default function DrawerLayout() {
   return (
-    <Drawer drawerContent={(props) => <CustomDrawerContent {...props} />}>
+    <Drawer
+      screenOptions={{
+        headerShown: false,
+        headerTransparent: true,
+      }}
+      drawerContent={(props) => <CustomDrawerContent {...props} />}
+    >
       <Drawer.Screen
         name="(tabs)"
         options={{
-          headerShown: true,
           title: "Broadcast",
           drawerIcon: ({ size, color }) => (
             <Ionicons name="home" size={size} color={color} />

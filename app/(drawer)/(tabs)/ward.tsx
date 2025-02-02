@@ -6,10 +6,10 @@ import Feed from '@/components/Ward/Feed';
 
 const Ward = () => {
   return (
-    <View className="flex-1">
+    <SafeAreaView className="flex-1">
       <Header />
       <Feed />
-    </View>
+    </SafeAreaView>
   );
 }
 

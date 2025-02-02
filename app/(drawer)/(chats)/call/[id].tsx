@@ -5,7 +5,7 @@ import {
   useCalls,
   useStreamVideoClient,
 } from "@stream-io/video-react-native-sdk";
-import { Redirect, router, useLocalSearchParams } from "expo-router";
+import { Redirect, router, Stack, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator } from "react-native";
 import { View } from "react-native";
@@ -45,8 +45,12 @@ export default function CallScreen() {
   }
 
   return (
-    <StreamCall call={call}>
-      <RingingCallContent />
-    </StreamCall>
+    <><Stack.Screen
+      options={{
+        headerShown: true,
+        title: "Video Call",
+      }} /><StreamCall call={call}>
+        <RingingCallContent />
+      </StreamCall></>
   );
 }
