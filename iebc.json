@@ -1,0 +1,239 @@
+{
+  "counties": [
+    {
+      "name": "county/Narok",
+      "countyCode": 33,
+      "constituencies": [
+        {
+          "name": "constituency/Narok North",
+          "code": 3301,
+          "wards": [
+            { "name": "ward/Olokurto", "code": 330101 },
+            { "name": "ward/Olposimoru", "code": 330102 },
+            { "name": "ward/Melili", "code": 330103 },
+            { "name": "ward/Narok Town", "code": 330104 },
+            { "name": "ward/Nkareta", "code": 330105 }
+          ]
+        },
+        {
+          "name": "constituency/Narok South",
+          "code": 3302,
+          "wards": [
+            { "name": "ward/Melelo", "code": 330201 },
+            { "name": "ward/Loita", "code": 330202 },
+            { "name": "ward/Maji Moto/Naroosura", "code": 330203 },
+            { "name": "ward/Sagamian", "code": 330204 },
+            { "name": "ward/Ololulung'a", "code": 330205 }
+          ]
+        },
+        {
+          "name": "constituency/Narok East",
+          "code": 3303,
+          "wards": [
+            { "name": "ward/Suswa", "code": 330301 },
+            { "name": "ward/Emurua Dikir", "code": 330302 },
+            { "name": "ward/Keekonyokie", "code": 330303 },
+            { "name": "ward/Mosiro", "code": 330304 }
+          ]
+        },
+        {
+          "name": "constituency/Narok West",
+          "code": 3304,
+          "wards": [
+            { "name": "ward/Mara", "code": 330401 },
+            { "name": "ward/Siana", "code": 330402 },
+            { "name": "ward/Ilmotiok", "code": 330403 },
+            { "name": "ward/Naikarra", "code": 330404 }
+          ]
+        },
+        {
+          "name": "constituency/Emurua Dikirr",
+          "code": 3305,
+          "wards": [
+            { "name": "ward/Ololmasani", "code": 330501 },
+            { "name": "ward/Ilkerin", "code": 330502 },
+            { "name": "ward/Olchorro", "code": 330503 },
+            { "name": "ward/Masian", "code": 330504 }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "county/Bomet",
+      "countyCode": 35,
+      "constituencies": [
+        {
+          "name": "constituency/Bomet Central",
+          "code": 3501,
+          "wards": [
+            { "name": "ward/Silibwet", "code": 350101 },
+            { "name": "ward/Cheboin", "code": 350102 },
+            { "name": "ward/Kapletundo", "code": 350103 },
+            { "name": "ward/Singorwet", "code": 350104 }
+          ]
+        },
+        {
+          "name": "constituency/Bomet East",
+          "code": 3502,
+          "wards": [
+            { "name": "ward/Merigi", "code": 350201 },
+            { "name": "ward/Kembu", "code": 350202 },
+            { "name": "ward/Longisa", "code": 350203 },
+            { "name": "ward/Kimulot", "code": 350204 }
+          ]
+        },
+        {
+          "name": "constituency/Chepalungu",
+          "code": 3503,
+          "wards": [
+            { "name": "ward/Chepalungu", "code": 350301 },
+            { "name": "ward/Sigor", "code": 350302 },
+            { "name": "ward/Kaptebeng'wet", "code": 350303 },
+            { "name": "ward/Siongiroi", "code": 350304 }
+          ]
+        },
+        {
+          "name": "constituency/Konoin",
+          "code": 3504,
+          "wards": [
+            { "name": "ward/Boito", "code": 350401 },
+            { "name": "ward/Mogogosiek", "code": 350402 },
+            { "name": "ward/Embomos", "code": 350403 },
+            { "name": "ward/Cheptalal", "code": 350404 }
+          ]
+        },
+        {
+          "name": "constituency/Sotik",
+          "code": 3505,
+          "wards": [
+            { "name": "ward/Ndanai/Abosi", "code": 350501 },
+            { "name": "ward/Rongena/Manaret", "code": 350502 },
+            { "name": "ward/Kaplelartet", "code": 350503 },
+            { "name": "ward/Kapchepkoro", "code": 350504 }
+          ]
+        }
+      ]
+    },
+    {
+      "county": "county/Kericho",
+      "countyCode": 36,
+      "constituencies": [
+        {
+          "name": "constituency/Kipkelion East",
+          "code": 3601,
+          "wards": [
+            { "name": "ward/Kimugul", "code": 360101 },
+            { "name": "ward/Sorget", "code": 360102 },
+            { "name": "ward/Chepseon", "code": 360103 },
+            { "name": "ward/Kamasian", "code": 360104 },
+            { "name": "ward/Chilchila", "code": 360105 }
+          ]
+        },
+        {
+          "name": "constituency/Kipkelion West",
+          "code": 3602,
+          "wards": [
+            { "name": "ward/Londiani", "code": 360201 },
+            { "name": "ward/Kipchebor", "code": 360202 },
+            { "name": "ward/Kamasut", "code": 360203 },
+            { "name": "ward/Tebesonik", "code": 360204 },
+            { "name": "ward/Chemosot", "code": 360205 }
+          ]
+        },
+        {
+          "name": "constituency/Ainamoi",
+          "code": 3603,
+          "wards": [
+            { "name": "ward/Kapkugerwet", "code": 360301 },
+            { "name": "ward/Kipchebgei", "code": 360302 },
+            { "name": "ward/Kapkures", "code": 360303 },
+            { "name": "ward/Kapkatet", "code": 360304 },
+            { "name": "ward/Kapsaos", "code": 360305 }
+          ]
+        },
+        {
+          "name": "constituency/Belgut",
+          "code": 3604,
+          "wards": [
+            { "name": "ward/Kabianga", "code": 360401 },
+            { "name": "ward/Kapsuser", "code": 360402 },
+            { "name": "ward/Lelmokwo/Ngechek", "code": 360403 },
+            { "name": "ward/Cheboin", "code": 360404 },
+            { "name": "ward/Chepchabas", "code": 360405 }
+          ]
+        },
+        {
+          "name": "constituency/Soin",
+          "code": 3605,
+          "wards": [
+            { "name": "ward/Sigowet", "code": 360501 },
+            { "name": "ward/Soin", "code": 360502 },
+            { "name": "ward/Kedowa/Kimugul", "code": 360503 },
+            { "name": "ward/Chemagel", "code": 360504 }
+          ]
+        }
+      ]
+    },
+    {
+      "county": "county/Nairobi",
+      "countyCode": 47,
+      "constituencies": [
+        {
+          "name": "constituency/Westlands",
+          "code": 4701,
+          "wards": [
+            { "name": "ward/Kitisuru", "code": 470101 },
+            { "name": "ward/Parklands/Highridge", "code": 470102 },
+            { "name": "ward/Karura", "code": 470103 },
+            { "name": "ward/Kangemi", "code": 470104 },
+            { "name": "ward/Mountain View", "code": 470105 }
+          ]
+        },
+        {
+          "name": "constituency/Kasarani",
+          "code": 4702,
+          "wards": [
+            { "name": "ward/Clay City", "code": 470201 },
+            { "name": "ward/Mwiki", "code": 470202 },
+            { "name": "ward/Kasarani", "code": 470203 },
+            { "name": "ward/Njiru", "code": 470204 },
+            { "name": "ward/Ruai", "code": 470205 }
+          ]
+        },
+        {
+          "name": "constituency/Embakasi South",
+          "code": 4703,
+          "wards": [
+            { "name": "ward/Imara Daima", "code": 470301 },
+            { "name": "ward/Kwa Njenga", "code": 470302 },
+            { "name": "ward/Kwa Reuben", "code": 470303 },
+            { "name": "ward/Pipeline", "code": 470304 },
+            { "name": "ward/Kware", "code": 470305 }
+          ]
+        },
+        {
+          "name": "constituency/Embakasi East",
+          "code": 4704,
+          "wards": [
+            { "name": "ward/Utawala", "code": 470401 },
+            { "name": "ward/Mihang'o", "code": 470402 },
+            { "name": "ward/Kwa Vonza", "code": 470403 },
+            { "name": "ward/Mowlem", "code": 470404 },
+            { "name": "ward/Nyayo Highrise", "code": 470405 }
+          ]
+        },
+        {
+          "name": "constituency/Lang'ata",
+          "code": 4705,
+          "wards": [
+            { "name": "ward/Karen", "code": 470501 },
+            { "name": "ward/Nairobi West", "code": 470502 },
+            { "name": "ward/Nyayo Highrise", "code": 470503 },
+            { "name": "ward/South C", "code": 470504 },
+            { "name": "ward/Rongai", "code": 470505 }
+          ]
+        }
+      ]
+    }
+  ]
+}
