@@ -15,8 +15,8 @@ import {
   Alert,
   StyleSheet,
   TextInput,
+  ScrollView,
 } from "react-native";
-import FontAwesome from "@expo/vector-icons/FontAwesome";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import Feather from "@expo/vector-icons/Feather";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -37,7 +37,7 @@ import {
   setDoc,
   updateDoc,
 } from "firebase/firestore";
-import { useUserInfo } from "@/providers/UserContext";
+import { useUserInfo } from "@/components/UserContext";
 import { router } from "expo-router";
 import { deleteObject, ref } from "firebase/storage";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
@@ -45,45 +45,56 @@ import { useRecoilState } from "recoil";
 import Moment from "react-moment";
 import { useUser } from "@clerk/clerk-expo";
 import Popover from "react-native-popover-view";
-import { ResizeMode, Video } from "expo-av";
-import { modalCountyComment } from "@/atoms/modalAtom";
+import { Video } from "expo-av";
+import { modalConstituencyComment } from "@/atoms/modalAtom";
 import moment from "moment";
+import { Avatar } from "react-native-elements";
 
-const Posts = ({ post, id, openBottomSheet }) => {
-  const { userData, formatNumber } = useUserInfo();
-
+const Posts = ({ post, id, openBottomSheet, isPaused }) => {
+  const { userDetails, formatNumber } = useUserInfo();
   const [image, setImage] = useState<string | null>(null);
   const [likes, setLikes] = useState([]);
   const [comments, setComments] = useState([]);
   const [hasLiked, setHasLiked] = useState(false);
   const [loading, setLoading] = useState(false);
-
-  const [postID, setPostID] = useRecoilState(modalCountyComment);
-
+  const [postID, setPostID] = useRecoilState(modalConstituencyComment);
   const [citeInput, setCiteInput] = useState("");
-
-  const pickImage = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-    });
-
-    if (!result.canceled) {
-      setImage(result.assets[0].uri);
-    }
-  };
+  const { user } = useUser();
+  const videoRef = useRef(null);
 
   // like
 
   useEffect(() => {
+    if (!db || !id || !userDetails) {
+      return;
+    }
+    const unsubscribe = onSnapshot(
+      collection(
+        db,
+        "constituency",
+        userDetails?.constituency,
+        "posts",
+        id,
+        "comments"
+      ),
+      (snapshot) => setComments(snapshot.docs)
+    );
+  }, [db]);
+
+  useEffect(() => {
     try {
-      if (!db || !id || !userData) {
+      if (!db || !id || !userDetails) {
         return;
       }
       const unsubscribe = onSnapshot(
-        collection(db, "constituency", userData.constituency, id, "likes"),
+        collection(
+          db,
+          "constituency",
+          userDetails?.constituency,
+          "posts",
+          id,
+          "likes"
+        ),
         (snapshot) => setLikes(snapshot.docs)
       );
 
@@ -94,37 +105,26 @@ const Posts = ({ post, id, openBottomSheet }) => {
   }, [db]);
 
   useEffect(() => {
-    if (!db || !id || !userData) {
-      return;
-    }
-    const unsubscribe = onSnapshot(
-      collection(db, "constituency", userData.constituency, id, "comments"),
-      (snapshot) => setComments(snapshot.docs)
-    );
-  }, [db]);
-
-  const { user } = useUser();
-
-  useEffect(() => {
     if (user) {
-      setHasLiked(likes.findIndex((like) => like.id === user.id) !== -1);
+      setHasLiked(likes.findIndex((like) => like.uid === user.id) !== -1);
     }
   }, [likes]);
 
   async function likePost() {
     try {
-      // Check if userData, userData.uid, and id exist
-      if (userData && userData.id && id) {
+      // Check if userDetails, userDetails.uid, and id exist
+      if (userDetails && userDetails?.uid && id) {
         if (hasLiked) {
           // Unlike the post
           await deleteDoc(
             doc(
               db,
               "constituency",
-              userData.constituency,
+              userDetails?.constituency,
+              "posts",
               id,
               "likes",
-              userData.id
+              userDetails.uid
             )
           );
         } else {
@@ -133,13 +133,14 @@ const Posts = ({ post, id, openBottomSheet }) => {
             doc(
               db,
               "constituency",
-              userData.constituency,
+              userDetails?.constituency,
+              "posts",
               id,
               "likes",
-              userData.id
+              userDetails.uid
             ),
             {
-              username: userData.nickname || "Anonymous",
+              username: userDetails.nickname || "Anonymous",
             }
           );
         }
@@ -155,7 +156,7 @@ const Posts = ({ post, id, openBottomSheet }) => {
   // Repost
 
   const repost = async () => {
-    if (!userData?.id) {
+    if (!userDetails?.uid) {
       router.replace("/(auth)");
       return;
     }
@@ -173,19 +174,19 @@ const Posts = ({ post, id, openBottomSheet }) => {
             text: "Repost",
             style: "default",
             onPress: async () => {
-              const postData = post.data();
+              const postData = post;
               try {
                 // Construct the new post data object
                 const newPostData = {
-                  id: userData.id,
+                  uid: userDetails.uid,
                   text: postData.text,
-                  userImg: userData.userImg,
+                  userImg: userDetails.userImg,
                   timestamp: serverTimestamp(),
-                  lastname: userData.lastname,
-                  name: userData.name,
-                  nickname: userData.nickname,
+                  lastname: userDetails.lastname,
+                  name: userDetails.name,
+                  nickname: userDetails.nickname,
                   from: postData.name,
-                  fromNickname: userData.nickname,
+                  fromNickname: userDetails.nickname,
                   citeUserImg: postData.userImg,
                   ...(postData.category && { fromCategory: postData.category }),
                   ...(postData.images && { images: postData.images }),
@@ -193,7 +194,7 @@ const Posts = ({ post, id, openBottomSheet }) => {
                 };
 
                 await addDoc(
-                  collection(db, "constituency", userData.constituency),
+                  collection(db, "constituency", userDetails?.constituency, "posts"),
                   newPostData
                 );
                 console.log("Post successfully reposted.");
@@ -213,24 +214,30 @@ const Posts = ({ post, id, openBottomSheet }) => {
   // views
 
   useEffect(() => {
-    if (!id || !userData?.id) return;
+    if (!id || !userDetails?.uid) return;
 
     const fetchPost = async () => {
       try {
-        const userRef = doc(db, "userPosts", userData.id); // Reference to the user's document
+        const userRef = doc(db, "userPosts", userDetails.uid); // Reference to the user's document
         const userSnap = await getDoc(userRef);
 
         if (userSnap.exists()) {
-          const userData = userSnap.data();
+          const userDetails = userSnap.data();
 
           // Check if the post ID is already in viewedPosts
-          if (userData.viewedPosts?.includes(id)) {
+          if (userDetails.viewedPosts?.includes(id)) {
             console.log("Post already viewed.");
             return;
           }
 
           // Increment the post's view count
-          const postRef = doc(db, "constituency", userData.constituency, id);
+          const postRef = doc(
+            db,
+            "constituency",
+            userDetails?.constituency,
+            "posts",
+            id
+          );
           const postSnap = await getDoc(postRef);
 
           if (postSnap.exists()) {
@@ -251,7 +258,7 @@ const Posts = ({ post, id, openBottomSheet }) => {
     };
 
     fetchPost();
-  }, [id, userData?.id]);
+  }, [id, userDetails?.uid]);
 
   //delete post
   async function deletePost() {
@@ -276,9 +283,8 @@ const Posts = ({ post, id, openBottomSheet }) => {
               // Delete all likes associated with the post
               const likesCollectionRef = collection(
                 db,
-                "county",
-                "county",
-                userData.county,
+                "postd",
+
                 id,
                 "likes"
               );
@@ -290,11 +296,11 @@ const Posts = ({ post, id, openBottomSheet }) => {
 
               // Delete the post document
               await deleteDoc(
-                doc(db, "constituency", userData.constituency, id)
+                doc(db, "constituency", userDetails?.constituency, "posts", id)
               );
 
               // Delete the video associated with the post, if it exists
-              const vidRef = ref(storage, `county/${id}/video`);
+              const vidRef = ref(storage, `posts/${id}/video`);
               try {
                 await deleteObject(vidRef);
               } catch (videoError) {
@@ -305,7 +311,7 @@ const Posts = ({ post, id, openBottomSheet }) => {
               }
 
               // Delete the image associated with the post, if it exists
-              const imageRef = ref(storage, `county/${id}/image`);
+              const imageRef = ref(storage, `posts/${id}/image`);
               try {
                 await deleteObject(imageRef);
               } catch (imageError) {
@@ -333,10 +339,14 @@ const Posts = ({ post, id, openBottomSheet }) => {
     if (!user?.id) {
       router.replace("/(auth)");
     }
+
+    if (citeInput === "") {
+      return;
+    }
     setLoading(true);
 
     if (post && user) {
-      const postData = post.data();
+      const postData = post;
 
       // Check if postData and properties are defined and of correct type
       if (
@@ -345,26 +355,29 @@ const Posts = ({ post, id, openBottomSheet }) => {
         typeof citeInput === "string"
       ) {
         try {
-          await addDoc(collection(db, "constituency", userData.constituency), {
-            id: user.id,
-            text: postData.text,
-            citeInput: citeInput,
-            userImg: userData.userImg,
-            lastname: userData.lastname,
-            timestamp: serverTimestamp(),
-            citetimestamp: postData.timestamp.toDate(),
-            name: userData.name,
-            fromUser: postData.name,
-            nickname: userData.nickname,
-            fromNickname: postData.nickname,
-            fromlastname: postData.lastname,
-            citeUserImg: postData.userImg,
-            // Include image and video only if they are defined
+          await addDoc(
+            collection(db, "constituency", userDetails?.constituency, "posts"),
+            {
+              uid: user?.id,
+              text: postData.text,
+              citeInput: citeInput,
+              userImg: userDetails.userImg,
+              lastname: userDetails.lastname,
+              timestamp: serverTimestamp(),
+              citetimestamp: postData.timestamp.toDate(),
+              name: userDetails.name,
+              fromUser: postData.name,
+              nickname: userDetails.nickname,
+              fromNickname: postData.nickname,
+              fromlastname: postData.lastname,
+              citeUserImg: postData.userImg,
+              // Include image and video only if they are defined
 
-            ...(postData.category && { fromCategory: postData.category }),
-            ...(postData.images && { images: postData.images }),
-            ...(postData.video && { video: postData.video }),
-          });
+              ...(postData.category && { fromCategory: postData.category }),
+              ...(postData.images && { images: postData.images }),
+              ...(postData.video && { video: postData.video }),
+            }
+          );
         } catch (error) {
           console.error("Error reposting the post:", error);
         }
@@ -380,37 +393,83 @@ const Posts = ({ post, id, openBottomSheet }) => {
       console.log("No post data available to repost.");
     }
   };
+const getColorFromName = (name) => {
+  if (!name) return "#ccc"; // Default color if no name exists
 
+  // Generate a hash number from the name
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+
+  // Predefined colors for better visuals
+  const colors = [
+    "#FF5733",
+    "#33FF57",
+    "#3357FF",
+    "#F1C40F",
+    "#8E44AD",
+    "#E74C3C",
+    "#2ECC71",
+    "#1ABC9C",
+    "#3498DB",
+  ];
+
+  // Pick a color consistently based on the hash value
+  return colors[Math.abs(hash) % colors.length];
+};
   return (
-    <View
-      key={id}
-      className="mb-1 rounded-md  border-gray-200  shadow-md bg-white"
-    >
-      <View className="flex-row items-center gap-3 p-2">
-        <Image
-          source={{
-            uri: post?.data()?.userImg,
-          }}
-          className="h-10 w-10 rounded-md"
+    <View className="mb-1 rounded-md  border-gray-200  shadow-md bg-white p-2">
+      <View className="flex-row items-center gap-1">
+        <Avatar
+          size={40}
+          rounded
+          source={post?.userImg ? { uri: post?.userImg } : null}
+          title={post?.name ? post?.name[0].toUpperCase() : "?"}
+          containerStyle={{ backgroundColor: getColorFromName(post?.name) }} // Consistent color per user
         />
-        <FontAwesome name="check-circle" size={15} color="green" />
-        <View className="flex-row gap-2 items-center">
-          <Text className="text-sm">@{post?.data()?.nickname}</Text>
-          <Text className="text-sm">{post?.data()?.lastname}</Text>
+        <View className="flex-row gap-2 items-center ">
+          <Text
+            className="text-md max-w-20 min-w-12 font-bold  "
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
+            {post?.name}
+          </Text>
 
-          <View className="flex-row items-center gap-2 bg-blue-200 rounded-full p-2">
+          {/* <Text
+            className="text-md max-w-20 min-w-12 font-bold"
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
+            {post?.lastname}
+          </Text> */}
+
+          <Text
+            className="text-md max-w-20 min-w-12 text-gray-400"
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
+            @{post?.nickname}
+          </Text>
+
+          <View className="flex-row items-center gap-2  bg-gray-100 rounded-full p-2">
             <MaterialCommunityIcons
               name="clock-check-outline"
               size={14}
-              color="black"
+              color="gray"
             />
-            <Text style={{ fontSize: 12, color: "gray" }}>
-              {moment(post?.data()?.timestamp?.toDate()).fromNow()}
+            <Text
+              className="text-gray-400 max-w-18 min-w-18"
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              {moment(post?.timestamp?.toDate()).fromNow(true)}
             </Text>
           </View>
         </View>
         <View className="flex-row items-center ml-auto gap-2">
-          {userData.id === post?.data()?.id && (
+          {user?.id === post?.uid && (
             <Pressable onPress={deletePost}>
               <Feather name="trash-2" size={20} color="black" />
             </Pressable>
@@ -422,50 +481,82 @@ const Posts = ({ post, id, openBottomSheet }) => {
         </View>
       </View>
 
-      {post?.data()?.citeInput ? (
-        <View className="">
-          <Text className="ml-12">{post?.data()?.citeInput}</Text>
+      {post?.citeInput ? (
+        <View className="gap-3">
+          <Text className="ml-12">{post?.citeInput}</Text>
           <View className="bg-gray-100 ml-20 gap-3 p-2 rounded-md">
-            <View className="flex-row items-center gap-3">
-              <Image
-                source={{ uri: post?.data()?.citeUserImg }}
-                className="h-10 w-10 rounded-md"
-              />
-              <Text>
-                {post?.data()?.fromUser} {post?.data()?.fromlastname} @
-                {post?.data()?.fromNickname}
-              </Text>
+            <View className="flex-row items-center gap-1">
+              <Avatar
+                  size={40}
+                  rounded
+                  source={post?.citeUserImg ? { uri: post?.citeUserImg } : null}
+                  title={post?.name ? post?.name[0].toUpperCase() : "?"}
+                  containerStyle={{
+                    backgroundColor: getColorFromName(post?.name),
+                  }} // Consistent color per user
+                />
+              <View className="flex-row  w-full mx-auto">
+                <Text
+                  className="text-gray-800  font-bold max-w-24 min-w-12 "
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                >
+                  {post?.fromUser}
+                </Text>
+                <Text
+                  className="text-gray-800 font-bold max-w-24 min-w-12"
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                >
+                  {post?.fromlastname}
+                </Text>
+                <Text
+                  className="text-gray-600 max-w-24 min-w-12 "
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                >
+                  {" "}
+                  @{post?.fromNickname}
+                </Text>
+              </View>
             </View>
             <View className="w-full ">
-              <Text className="ml-12">{post?.data()?.text}</Text>
+              <Text className="ml-12">{post?.text}</Text>
             </View>
           </View>
         </View>
       ) : (
         <>
           <View className="ml-12 mb-4">
-            <Text>{post?.data()?.text}</Text>
-            {post?.data()?.fromNickname && (
-              <Text>Reposted by @{post?.data()?.fromNickname}</Text>
+            <Text className="text-md">{post?.text}</Text>
+            {post?.fromNickname && (
+              <Text className="text-gray-500">
+                Reposted by @{post?.fromNickname}
+              </Text>
             )}
           </View>
-          <View>
-            {post.data()?.images && (
-              <Image
-                source={{ uri: post.data().images }}
-                className="w-full h-[400px] object-cover "
-              />
-            )}
-            {post.data()?.videos && (
-              <Video
-                source={{ uri: post.data().videos }}
-                style={{ width: "100%", height: 200, borderRadius: 10 }}
-              
-                useNativeControls
-                resizeMode={ResizeMode.CONTAIN}
-              />
-            )}
-          </View>
+          {post?.videos && (
+            <Video
+              ref={videoRef}
+              source={{
+                uri: post?.videos,
+              }}
+              style={{ width: "100%", height: 400, borderRadius: 10 }}
+              useNativeControls
+              isLooping
+              shouldPlay={!isPaused}
+              resizeMode="contain"
+            />
+          )}
+          {post?.images && (
+            <Image
+              source={{
+                uri: post?.images,
+              }}
+              className="w-full h-96 rounded-md"
+              resizeMode="cover"
+            />
+          )}
         </>
       )}
 
@@ -488,7 +579,9 @@ const Posts = ({ post, id, openBottomSheet }) => {
               color="black"
             />
             <View>
-              <Text>{formatNumber(comments.length)}</Text>
+              <Text>
+                {comments.length > 0 ? formatNumber(comments.length) : ""}
+              </Text>
             </View>
           </Pressable>
         </TouchableOpacity>
@@ -506,15 +599,15 @@ const Posts = ({ post, id, openBottomSheet }) => {
             </TouchableOpacity>
           }
         >
-          <View className="p-4 w-full bg-white rounded-md shadow-md">
+          <View className="p-4  min-w-96 bg-white rounded-md shadow-md">
             <TextInput
               onChangeText={setCiteInput}
               value={citeInput}
               placeholder="Cite this post..."
-              className="w-full p-2 border border-gray-300 rounded-md"
+              className="w-full p-2 border border-gray-300 rounded-md   min-w-96"
             />
             <Pressable
-              className="mt-4 p-3 bg-blue-700 rounded-md w-full flex items-center"
+              className="mt-4 p-3 bg-blue-700 rounded-md w-full flex items-center   min-w-96"
               onPress={cite}
             >
               <Text className="text-white font-semibold">
@@ -540,7 +633,7 @@ const Posts = ({ post, id, openBottomSheet }) => {
         </TouchableOpacity>
         <View className="flex-row items-center gap-2">
           <Feather name="eye" size={20} color="black" />
-          <Text>{formatNumber(post?.data()?.views)}</Text>
+          <Text>{formatNumber(post?.views)}</Text>
         </View>
         <TouchableOpacity className="p-3">
           <AntDesign name="sharealt" size={20} color="black" />

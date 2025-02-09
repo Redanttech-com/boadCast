@@ -7,7 +7,7 @@ import Feed from '@/components/Ward/Feed';
 const Ward = () => {
   return (
     <SafeAreaView className="flex-1">
-      <Header />
+      
       <Feed />
     </SafeAreaView>
   );

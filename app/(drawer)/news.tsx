@@ -19,7 +19,7 @@ const NewsScreen = () => {
     queryFn: FetchKenyanNews,
   });
 
-  console.log(NewsData)
+  // console.log(NewsData)
 
   const renderItem = ({ item, index }) => {
     return (
@@ -72,7 +72,7 @@ const NewsScreen = () => {
   return (
     <SafeAreaView className="space-x-2 bg-white  flex-1">
       <View className="w-full flex-row justify-between items-center px-4 pb-4">
-        <View className="w-3/4 flex-row space-x-2">
+        <View className="w-3/4 flex-row space-x-2 items-center">
           <Text className="font-bold text-3xl">Trending News</Text>
         </View>
       </View>
@@ -88,6 +88,7 @@ const NewsScreen = () => {
             showsVerticalScrollIndicator={false}
             keyExtractor={(item, index) => index.toString()}
             renderItem={renderItem}
+            estimatedItemSize={10}
           />
         )}
       </View>

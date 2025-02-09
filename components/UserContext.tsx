@@ -17,7 +17,7 @@ const UserContext = createContext();
 export const useUserInfo = () => useContext(UserContext);
 
 const UserContextData = ({ children }) => {
-  const [userData, setUserData] = useState(null);
+  const [userDetails, setUserDetails] = useState(null);
   const [loading, setLoading] = useState(false);
   const [followLoading, setFollowLoading] = useState({});
   const { user } = useUser();
@@ -37,17 +37,17 @@ const UserContextData = ({ children }) => {
 
   // Fetch user data
   useEffect(() => {
-    const fetchUserData = async () => {
+    const fetchuserDetails = async () => {
       if (!user?.id) return;
       setLoading(true);
       try {
         const q = query(
           collection(db, "userPosts"),
-          where("id", "==", user.id)
+          where("uid", "==", user.id)
         );
         const querySnapshot = await getDocs(q);
         if (!querySnapshot.empty) {
-          setUserData(querySnapshot.docs[0].data());
+          setUserDetails(querySnapshot.docs[0].data());
         }
       } catch (error) {
         console.error("Error fetching user data:", error);
@@ -56,7 +56,7 @@ const UserContextData = ({ children }) => {
       }
     };
 
-    fetchUserData();
+    fetchuserDetails();
   }, [user]);
 
   // Fetch posts
@@ -82,17 +82,17 @@ const UserContextData = ({ children }) => {
 
   // Fetch follow status from Firestore on page load
   useEffect(() => {
-    if (!userData?.id || posts.length === 0) return;
+    if (!userDetails?.uid || posts.length === 0) return;
 
     const fetchFollowStatus = async () => {
       const followStatuses = {};
 
       const promises = posts.map(async (post) => {
-        const postId = post?.id;
+        const postId = post?.uid;
 
         const followQuery = query(
           collection(db, "following"),
-          where("followerId", "==", userData.id),
+          where("followerId", "==", userDetails?.uid),
           where("followingId", "==", postId)
         );
 
@@ -105,11 +105,11 @@ const UserContextData = ({ children }) => {
     };
 
     fetchFollowStatus();
-  }, [posts, userData]);
+  }, [posts, userDetails]);
 
   // Follow or unfollow a member
   const followMember = async (postId) => {
-    if (!userData?.id || !postId) return;
+    if (!userDetails?.uid || !postId) return;
 
     setFollowLoading((prev) => ({ ...prev, [postId]: true }));
 
@@ -118,7 +118,7 @@ const UserContextData = ({ children }) => {
         // **Unfollow Logic**
         const followQuery = query(
           collection(db, "following"),
-          where("followerId", "==", userData.id),
+          where("followerId", "==", userDetails?.uid),
           where("followingId", "==", postId)
         );
 
@@ -140,7 +140,7 @@ const UserContextData = ({ children }) => {
       } else {
         // **Follow Logic**
         await addDoc(collection(db, "following"), {
-          followerId: userData.id,
+          followerId: userDetails?.uid,
           followingId: postId,
           timeStamp: new Date(),
         });
@@ -161,7 +161,7 @@ const UserContextData = ({ children }) => {
   return (
     <UserContext.Provider
       value={{
-        userData,
+        userDetails,
         followLoading,
         hasFollowed,
         formatNumber,

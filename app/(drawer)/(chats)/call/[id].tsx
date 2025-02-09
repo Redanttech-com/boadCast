@@ -3,54 +3,49 @@ import {
   RingingCallContent,
   StreamCall,
   useCalls,
-  useStreamVideoClient,
 } from "@stream-io/video-react-native-sdk";
-import { Redirect, router, Stack, useLocalSearchParams } from "expo-router";
+import { router, Stack, useLocalSearchParams } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
-import { ActivityIndicator } from "react-native";
-import { View } from "react-native";
-
-const callId = "default_1ebf021c-58b7-403e-856c-dcc120b8bca8";
+import { ActivityIndicator, View } from "react-native";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
 export default function CallScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const calls = useCalls();
   const call = calls[0];
-  // const [call, setCall] = useState<Call>();
 
-  // const client = useStreamVideoClient();
-
-  // useEffect(() => {
-  //   const fetchCall = async () => {
-  //     const call = client.call("default", id);
-  //     await call.get();
-  //     setCall(call);
-  //   };
-
-  //   fetchCall();
-  //   return () => {
-  //     if (call) {
-  //       call.leave();
-  //     }
-  //   };
-  // }, [id]);
+  // ✅ Move navigation logic into useEffect
+  useEffect(() => {
+    if (!call) {
+      if (router.canGoBack()) {
+        router.back();
+      } else {
+        router.replace("/"); // ✅ Use `replace()` to avoid adding to history
+      }
+    }
+  }, [call]); // Runs only when `call` changes
 
   if (!call) {
-    if (router.canGoBack()) {
-      router.back();
-    } else {
-      router.push("/");
-    }
-    return null;
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
   }
 
   return (
-    <><Stack.Screen
-      options={{
-        headerShown: true,
-        title: "Video Call",
-      }} /><StreamCall call={call}>
+    <SafeAreaProvider>
+      <StatusBar style="auto" /> 
+      <Stack.Screen
+        options={{
+          headerShown: false,
+          title: "Video Call",
+        }}
+      />
+      <StreamCall call={call}>
         <RingingCallContent />
-      </StreamCall></>
+      </StreamCall>
+    </SafeAreaProvider>
   );
 }

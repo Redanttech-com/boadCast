@@ -19,7 +19,6 @@ const Message = () => {
                 <Pressable
                   onPress={() => {
                     router.push("/(drawer)/(chats)/users");
-                    console.log("Clicked!");
                   }}
                 >
                   <Ionicons name="people" size={24} color={"gray"} />
@@ -27,6 +26,7 @@ const Message = () => {
               ),
             }}
           />
+          
         </Stack>
       </VideoProvider>
     </ChatProvider>

@@ -15,7 +15,6 @@ const FollowersScreen = () => {
   const { followers, following, loading, currentUserId } = useFollowData();
   const [activeTab, setActiveTab] = useState("followers");
 
-  console.log("Current User ID:", currentUserId); // Debugging
 
   // Prevent operations if currentUserId is missing
   if (!currentUserId) {
@@ -52,7 +51,7 @@ const FollowersScreen = () => {
     try {
       const docRef = doc(db, "following", `${currentUserId}_${userId}`);
       await deleteDoc(docRef);
-      console.log("Unfollowed user:", userId);
+     
     } catch (error) {
       console.error("Error unfollowing user:", error);
     }
@@ -60,7 +59,7 @@ const FollowersScreen = () => {
 
   // Render List Item
   const renderItem = ({ item }) => {
-    const isFollowing = followingSet.has(item.id); // Check if already following
+    const isFollowing = followingSet.has(item.uid); // Check if already following
 
     return (
       <View className="flex-row items-center gap-3 p-3">
@@ -75,7 +74,7 @@ const FollowersScreen = () => {
         </View>
         <Pressable
           onPress={() =>
-            isFollowing ? handleUnfollow(item.id) : handleFollow(item.id)
+            isFollowing ? handleUnfollow(item.uid) : handleFollow(item.uid)
           }
           className={`px-4 py-2 rounded-md ${
             isFollowing ? "bg-red-500" : "bg-blue-500"

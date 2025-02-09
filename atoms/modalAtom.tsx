@@ -1,7 +1,7 @@
 import { atom } from "recoil";
 
 export const modalComment = atom({
-  key: "mocalComment",
+  key: "modalComment",
   default: "id",
 });
 

@@ -4,11 +4,20 @@ import {
   FlatList,
   ActivityIndicator,
   TouchableOpacity,
+  Pressable,
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import { collection, onSnapshot } from "firebase/firestore";
 import { db } from "@/firebase";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useUserInfo } from "@/components/UserContext";
+import { Image } from "react-native";
+import {
+  Feather,
+  FontAwesome,
+  MaterialCommunityIcons,
+} from "@expo/vector-icons";
+import moment from "moment";
+import { ResizeMode, Video } from "expo-av";
 
 const National = () => {
   const [posts, setPosts] = useState([]); // All posts from Firestore
@@ -16,9 +25,11 @@ const National = () => {
   const [trendingTopics, setTrendingTopics] = useState([]); // Top trending topics
   const [loading, setLoading] = useState(false);
   const [selectedTopic, setSelectedTopic] = useState(null); // Track clicked topic
+  const { userData } = useUserInfo();
+  const [status, setStatus] = useState({});
 
   useEffect(() => {
-    const unsubscribe = onSnapshot(collection(db, "posts"), (snapshot) => {
+    const unsubscribe = onSnapshot(collection(db, "national"), (snapshot) => {
       const fetchedPosts = snapshot.docs.map((doc) => doc.data());
       setTrendPosts(fetchedPosts);
       setPosts(fetchedPosts);
@@ -85,9 +96,12 @@ const National = () => {
     : [];
 
   return (
-    <SafeAreaView style={{ flex: 1, padding: 16 }}>
+    <View style={{ flex: 1, padding: 16 }}>
       {loading ? (
-        <ActivityIndicator size="large" color="blue" />
+        <View className="justify-center flex-1 items-center">
+          <ActivityIndicator size="large" color="blue" className="" />
+          <Text className="font-bold">Loading National trends....</Text>
+        </View>
       ) : (
         <>
           {/* Trending Topics List */}
@@ -123,16 +137,64 @@ const National = () => {
               <FlatList
                 data={filteredPosts}
                 keyExtractor={(item, index) => index.toString()}
+                showsVerticalScrollIndicator={false}
                 renderItem={({ item }) => (
-                  <View
-                    style={{
-                      padding: 10,
-                      marginVertical: 5,
-                      borderRadius: 5,
-                    }}
-                  >
-                    <Text>{item.name}</Text>
-                    <Text style={{ fontSize: 14 }}>{item.text}</Text>
+                  <View className="gap-3 mt-2">
+                    <View className="flex-row items-center gap-3">
+                      <Image
+                        source={{
+                          uri: item.userImg,
+                        }}
+                        className="h-10 w-10 rounded-md"
+                      />
+                      <FontAwesome
+                        name="check-circle"
+                        size={15}
+                        color="green"
+                      />
+                      <View className="flex-row gap-2 items-center">
+                        <Text className="text-sm">@{item.nickname}</Text>
+                        <Text className="text-sm">{item.lastname}</Text>
+
+                        <View className="flex-row items-center gap-2 bg-blue-200 rounded-full p-2">
+                          <MaterialCommunityIcons
+                            name="clock-check-outline"
+                            size={14}
+                            color="black"
+                          />
+                          <Text style={{ fontSize: 12, color: "gray" }}>
+                            {moment(item.timestamp?.toDate()).fromNow()}
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
+                    <View className="w-full ">
+                      <Text className="ml-12">{item.text}</Text>
+                    </View>
+                    <View>
+                      {item.images && (
+                        <Image
+                          source={{ uri: item.images }}
+                          className="w-full h-56 rounded-md"
+                        />
+                      )}
+                      {item.videos && (
+                        <Video
+                          source={{ uri: item.videos }}
+                          style={{
+                            width: "100%",
+                            height: 300,
+                            borderRadius: 10,
+                          }}
+                          useNativeControls
+                          resizeMode={ResizeMode.CONTAIN}
+                          // isLooping
+                          onPlaybackStatusUpdate={(status) =>
+                            setStatus(() => status)
+                          }
+                        />
+                      )}
+                    </View>
                   </View>
                 )}
               />
@@ -140,7 +202,7 @@ const National = () => {
           )}
         </>
       )}
-    </SafeAreaView>
+    </View>
   );
 };
 

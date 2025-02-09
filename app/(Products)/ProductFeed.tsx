@@ -1,0 +1,216 @@
+import { db } from "@/firebase";
+import {
+  collection,
+  onSnapshot,
+  orderBy,
+  query,
+  where,
+} from "firebase/firestore";
+import { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  ActivityIndicator,
+  TouchableOpacity,
+  FlatList,
+  Pressable,
+} from "react-native";
+import { Feather } from "@expo/vector-icons";
+import ProductList from "./ProductList";
+import SearchProduct from "./SearchProduct";
+import SearchCategory from "./searchCategory";
+
+function ProductFeed() {
+  const [posts, setPosts] = useState([]);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [querySearch, setQuerySearch] = useState("");
+  const [error, setError] = useState("");
+  const [categories, setCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState("");
+
+  const fetchPosts = async () => {
+    try {
+      const q = query(collection(db, "market"), orderBy("timestamp", "desc"));
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        setPosts(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
+        setLoading(false);
+      });
+      return unsubscribe;
+    } catch (error) {
+      console.error("Error fetching posts:", error);
+      setError("Failed to load products.");
+    }
+  };
+
+  useEffect(() => {
+    let unsubscribe;
+    const getPosts = async () => {
+      unsubscribe = await fetchPosts();
+    };
+
+    getPosts();
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, []);
+
+  // Search products and categories
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const productQuery = query(
+          collection(db, "market"),
+          where("productname", ">=", querySearch),
+          where("productname", "<=", querySearch + "\uf8ff")
+        );
+
+        const categoryQuery = query(
+          collection(db, "market"),
+          where("category", "==", selectedCategory || querySearch)
+        );
+
+        const unsubscribeProducts = onSnapshot(productQuery, (snapshot) => {
+          setProducts(
+            snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+          );
+        });
+
+        const unsubscribeCategories = onSnapshot(categoryQuery, (snapshot) => {
+          setCategories(
+            snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+          );
+        });
+
+        return () => {
+          unsubscribeProducts();
+          unsubscribeCategories();
+        };
+      } catch (error) {
+        console.error("Error searching Firestore:", error);
+      }
+    };
+
+    fetchData();
+  }, [querySearch, selectedCategory]);
+
+  const clearSearch = () => {
+    setQuerySearch("");
+    setSelectedCategory("");
+  };
+
+  const handleCategorySelect = (category) => {
+    setSelectedCategory(category);
+    setQuerySearch(category); // Update search input with selected category
+  };
+
+  return (
+    <View className="flex-1 bg-gray-100">
+      {loading ? (
+        <View
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+        >
+          <ActivityIndicator size="large" color="#ffffff" />
+          <Text style={{ color: "white", marginTop: 10 }}>Loading...</Text>
+        </View>
+      ) : (
+        <>
+          {/* Search Bar */}
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              marginBottom: 10,
+            }}
+          >
+            <View className="flex-row items-center justify-between px-4 border rounded-full border-gray-300">
+              <Feather name="search" size={24} color={"gray"} />
+              <TextInput
+                placeholder="Search Product..."
+                value={querySearch}
+                onChangeText={setQuerySearch}
+                className="flex-1 rounded-full p-3"
+              />
+              <Pressable onPress={clearSearch}>
+                <Feather
+                  name="x"
+                  size={24}
+                  color="gray"
+                  className={`${querySearch ? "inline" : "hidden"}`}
+                />
+              </Pressable>
+            </View>
+          </View>
+
+          {/* Category Filter */}
+          <View
+            style={{ flexDirection: "row", flexWrap: "wrap", marginBottom: 10 }}
+          >
+            {[
+              "Vehicles",
+              "Electronics",
+              "Fashion",
+              "Phones",
+              "Machineries",
+              "Buildings",
+              "Agricultural",
+              "Sports",
+            ].map((category) => (
+              <TouchableOpacity
+                key={category}
+                onPress={() => handleCategorySelect(category)}
+                style={{
+                  backgroundColor:
+                    selectedCategory === category ? "#4caf50" : "#333",
+                  padding: 8,
+                  margin: 5,
+                  borderRadius: 5,
+                }}
+              >
+                <Text style={{ color: "white" }}>{category}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {/* Products List */}
+          <FlatList
+            data={
+              querySearch
+                ? products.length > 0
+                  ? products
+                  : categories.length > 0
+                  ? categories
+                  : []
+                : posts
+            }
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => {
+              if (item.productname) {
+                return <SearchProduct id={item.id} item={item} />;
+              } else if (item.category) {
+                return <SearchCategory id={item.id} item={item} />;
+              } else {
+                return <ProductList id={item.id} item={item} />;
+              }
+            }}
+            showsVerticalScrollIndicator={false}
+            ListEmptyComponent={
+              <View
+                style={{
+                  flex: 1,
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <Text>No posts available</Text>
+              </View>
+            }
+          />
+        </>
+      )}
+    </View>
+  );
+}
+
+export default ProductFeed;

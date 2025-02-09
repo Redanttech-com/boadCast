@@ -9,7 +9,7 @@ import {
 import React, { useEffect, useState } from "react";
 import { collection, onSnapshot } from "firebase/firestore";
 import { db } from "@/firebase";
-import { useUserInfo } from "@/providers/UserContext";
+import { useUserInfo } from "@/components/UserContext";
 import { Image } from "react-native";
 import {
   Feather,
@@ -29,14 +29,11 @@ const Ward = () => {
   const [status, setStatus] = useState({});
 
   useEffect(() => {
-    const unsubscribe = onSnapshot(
-      collection(db, "ward", userData.ward),
-      (snapshot) => {
-        const fetchedPosts = snapshot.docs.map((doc) => doc.data());
-        setTrendPosts(fetchedPosts);
-        setPosts(fetchedPosts);
-      }
-    );
+    const unsubscribe = onSnapshot(collection(db, "ward"), (snapshot) => {
+      const fetchedPosts = snapshot.docs.map((doc) => doc.data());
+      setTrendPosts(fetchedPosts);
+      setPosts(fetchedPosts);
+    });
 
     return () => unsubscribe();
   }, []);
@@ -101,7 +98,10 @@ const Ward = () => {
   return (
     <View style={{ flex: 1, padding: 16 }}>
       {loading ? (
-        <ActivityIndicator size="large" color="blue" />
+        <View className="justify-center flex-1 items-center">
+          <ActivityIndicator size="large" color="blue" className="" />
+          <Text className="font-bold">Loading Ward trends....</Text>
+        </View>
       ) : (
         <>
           {/* Trending Topics List */}
@@ -167,6 +167,9 @@ const Ward = () => {
                           </Text>
                         </View>
                       </View>
+                    </View>
+                    <View className="w-full ">
+                      <Text className="ml-12">{item.text}</Text>
                     </View>
                     <View>
                       {item.images && (

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { createDrawerNavigator } from "@react-navigation/drawer";
 import { router, withLayoutContext } from "expo-router";
 import {
@@ -6,6 +6,7 @@ import {
   DrawerItemList,
 } from "@react-navigation/drawer";
 import { Image, Pressable, Text, TouchableOpacity, View } from "react-native";
+import { Avatar } from "react-native-elements";
 import {
   Feather,
   FontAwesome5,
@@ -15,7 +16,9 @@ import {
 } from "@expo/vector-icons";
 import "@/global.css";
 import { useUser } from "@clerk/clerk-expo";
-import { useUserInfo } from "@/providers/UserContext";
+import { useUserInfo } from "@/components/UserContext";
+import { collection, getDocs, query, where } from "firebase/firestore";
+import { db } from "@/firebase";
 
 // Create Drawer Navigator
 const DrawerNavigator = createDrawerNavigator().Navigator;
@@ -27,8 +30,22 @@ export const unstable_settings = {
 
 // Custom Drawer Content
 function CustomDrawerContent(props) {
+  const [userData, setUserData] = useState(null);
   const { user } = useUser();
-  const { userData, loading } = useUserInfo();
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (!user?.id) return;
+      const q = query(collection(db, "userPosts"), where("uid", "==", user.id));
+      const querySnapshot = await getDocs(q);
+      if (!querySnapshot.empty) {
+        setUserData(querySnapshot.docs[0].data());
+      }
+    };
+    fetchUserData();
+    setLoading(false);
+  }, [user]);
 
   if (loading) {
     return (
@@ -38,26 +55,62 @@ function CustomDrawerContent(props) {
     );
   }
 
+  const getColorFromName = (name) => {
+    if (!name) return "#ccc"; // Default color if no name exists
+
+    // Generate a hash number from the name
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+      hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
+
+    // Predefined colors for better visuals
+    const colors = [
+      "#FF5733",
+      "#33FF57",
+      "#3357FF",
+      "#F1C40F",
+      "#8E44AD",
+      "#E74C3C",
+      "#2ECC71",
+      "#1ABC9C",
+      "#3498DB",
+    ];
+
+    // Pick a color consistently based on the hash value
+    return colors[Math.abs(hash) % colors.length];
+  };
+
   return (
     <DrawerContentScrollView {...props}>
       <View className="flex-row items-center justify-between mb-3">
         <View className="flex-row items-center">
-          <Image
-            source={{
-              uri: userData?.userImg || "https://via.placeholder.com/150",
-            }}
-            className="h-20 w-20 rounded-full"
+          <Avatar
+            size={40}
+            rounded
+            source={userData?.userImg ? { uri: userData?.userImg } : null}
+            title={userData?.name ? userData?.name[0].toUpperCase() : "?"}
+            containerStyle={{ backgroundColor: getColorFromName(userData?.name) }} // Consistent color per user
           />
           <View>
-            <Text className="font-extrabold ml-4 text-2xl">
-              {userData?.name || "Guest"}
+            <Text
+              className="font-extrabold ml-4 text-xl  max-w-28 min-w-28"
+              numberOfLines={1}
+            >
+              {userData?.name || user?.firstName}
             </Text>
-            <Text className="font-extrabold ml-4 text-sm text-gray-400">
+            <Text
+              className="font-extrabold ml-4 text-sm text-gray-400 max-w-28 min-w-28"
+              numberOfLines={1}
+            >
               @{userData?.nickname || "Guest"}
             </Text>
           </View>
         </View>
-        <Pressable className="flex-row gap-2 items-center rounded-full p-2 bg-blue-300">
+        <Pressable
+          onPress={() => router.push("/(status)/StatusForm")}
+          className="flex-row gap-2 items-center rounded-full p-2 bg-blue-300"
+        >
           <Ionicons name="add" size={24} color="white" />
           <Text className="font-bold text-white">Add Status</Text>
         </Pressable>

@@ -3,7 +3,7 @@ import { ActivityIndicator, View } from "react-native";
 import { StreamChat } from "stream-chat";
 import { Chat, OverlayProvider } from "stream-chat-expo";
 import { useUser } from "@clerk/clerk-expo";
-import { useUserInfo } from "@/providers/UserContext";
+import { useUserInfo } from "@/components/UserContext";
 
 const client = StreamChat.getInstance(process.env.EXPO_PUBLIC_STREAM_API_KEY!);
 
@@ -19,23 +19,23 @@ export const getDevToken = (userId: string | undefined) => {
 export default function ChatProvider({ children }: PropsWithChildren) {
   const [isReady, setIsReady] = useState(false);
   const { user } = useUser();
-  const { userData } = useUserInfo();
+  const { userDetails } = useUserInfo();
 
   useEffect(() => {
     const connectUser = async () => {
-      if (!userData?.id) return;
+      if (!userDetails?.uid) return;
 
       try {
-        const devToken = getDevToken(userData.id); // Get token from function
+        const devToken = getDevToken(userDetails?.uid); // Get token from function
         // console.log("Dev Token:", devToken); // Log token
 
         if (!devToken) throw new Error("Failed to generate devToken");
 
         await client.connectUser(
           {
-            id: userData.id,
-            name: userData.name,
-            image: userData.userImg,
+            id: userDetails?.uid,
+            name: userDetails?.name,
+            image: userDetails?.userImg,
           },
           devToken
         );
@@ -52,7 +52,7 @@ export default function ChatProvider({ children }: PropsWithChildren) {
       client.disconnectUser();
       setIsReady(false);
     };
-  }, [userData]);
+  }, [userDetails]);
 
   if (!isReady) {
     return (

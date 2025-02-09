@@ -1,6 +1,6 @@
 import { View, Text, Image, Pressable, FlatList } from "react-native";
 import React, { useEffect, useState } from "react";
-import { useUserInfo } from "@/providers/UserContext";
+import { useUserInfo } from "@/components/UserContext";
 import { collection, onSnapshot, query, where } from "firebase/firestore";
 import { db } from "@/firebase";
 import {
@@ -12,63 +12,43 @@ import {
 import { router } from "expo-router";
 
 const Profile = () => {
-  const { userData, formatNumber } = useUserInfo();
+  const { userDetails, formatNumber } = useUserInfo();
   const [followingCount, setFollowingCount] = useState(0);
   const [followerCount, setFollowerCount] = useState(0);
-  const [followers, setFollowers] = useState([]);
-  const [following, setFollowing] = useState([]);
 
   // Fetch followers & following in one useEffect
   useEffect(() => {
-    if (!userData?.id) return;
+    if (!userDetails?.uid) return;
 
     const followingQuery = query(
       collection(db, "following"),
-      where("followerId", "==", userData.id)
+      where("followerId", "==", userDetails.uid)
     );
     const followerQuery = query(
       collection(db, "following"),
-      where("followingId", "==", userData.id)
+      where("followingId", "==", userDetails.uid)
     );
 
     const unsubscribeFollowing = onSnapshot(followingQuery, (snapshot) => {
       setFollowingCount(snapshot.size);
-      setFollowing(snapshot.docs.map((doc) => doc.data()));
     });
 
     const unsubscribeFollowers = onSnapshot(followerQuery, (snapshot) => {
       setFollowerCount(snapshot.size);
-      setFollowers(snapshot.docs.map((doc) => doc.data()));
     });
 
     return () => {
       unsubscribeFollowing();
       unsubscribeFollowers();
     };
-  }, [userData?.id]);
+  }, [userDetails?.uid]);
 
-  // Render each member in the list
-  const renderMember = ({ item }) => (
-    <View className="flex-row items-center justify-between m-2 gap-2">
-      <View className="flex-row items-center gap-3">
-        <Image
-          source={{ uri: item.userImg || "https://via.placeholder.com/150" }} // Fallback image
-          className="h-14 w-14 rounded-full border border-red-500 p-[1.5px]"
-        />
-        <Text>
-          <Text className="font-bold">{item.name}</Text>
-          <Text className="font-bold"> {item.lastname}</Text>
-          <Text className="text-gray-500"> @{item.nickname}</Text>
-        </Text>
-      </View>
-    </View>
-  );
-
+ 
   return (
     <View className="flex-1 relative bg-white">
       {/* Background Image */}
       <Image
-        source={require("@/assets/images/broad.jpg")}
+        source={require("@/assets/images/ky.gif")}
         className="h-1/3 w-full"
         resizeMode="cover"
       />
@@ -85,7 +65,7 @@ const Profile = () => {
         <View className="h-32 w-32 border-white border-2 rounded-full">
           <Image
             source={{
-              uri: userData?.userImg || "https://via.placeholder.com/150",
+              uri: userDetails?.userImg || "https://via.placeholder.com/150",
             }} // Fallback image
             className="h-full w-full rounded-full"
           />
@@ -104,7 +84,7 @@ const Profile = () => {
         </View>
 
         <View className="mt-4 flex-row justify-between items-center">
-          <Text className="font-bold text-slate-900">{userData?.name}</Text>
+          <Text className="font-bold text-slate-900">{userDetails?.name}</Text>
           <Pressable className="border p-2 rounded-md">
             <Text>Edit profile</Text>
           </Pressable>
@@ -143,7 +123,7 @@ const Profile = () => {
             <Text>Bookmark</Text>
           </Pressable>
         </View>
-      </View>      
+      </View>
     </View>
   );
 };

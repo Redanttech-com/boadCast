@@ -6,7 +6,7 @@ import { PropsWithChildren, useEffect, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
 import { useUser } from "@clerk/clerk-expo";
 import { StreamChat } from "stream-chat";
-import { useUserInfo } from "./UserContext";
+import { useUserInfo } from "../components/UserContext";
 
 const apiKey = process.env.EXPO_PUBLIC_STREAM_API_KEY;
 if (!apiKey) {
@@ -29,19 +29,19 @@ export default function VideoProvider({ children }: PropsWithChildren) {
   const [videoClient, setVideoClient] = useState<StreamVideoClient | null>(
     null
   );
-  const { userData } = useUserInfo();
+  const { userDetails } = useUserInfo();
 
   useEffect(() => {
-    if (!userData) return;
+    if (!userDetails) return;
 
     const initVideoClient = async () => {
-      const userDataInfo = {
-        id: userData.id,
-        name: userData.name,
-        image: userData.userImg,
+      const userDetailsInfo = {
+        id: userDetails?.uid,
+        name: userDetails?.name,
+        image: userDetails?.userImg,
       };
 
-      const token = getDevToken(userData.id);
+      const token = getDevToken(userDetails?.uid);
       if (!token) {
         console.error("Failed to generate token for user.");
         return;
@@ -49,11 +49,11 @@ export default function VideoProvider({ children }: PropsWithChildren) {
 
       const client = new StreamVideoClient({
         apiKey,
-        userDataInfo,
+        userDetailsInfo,
         token, // ✅ Pass the correct token here
       });
 
-      await client.connectUser(userDataInfo, token); // ✅ Connect user before using the client
+      await client.connectUser(userDetailsInfo, token); // ✅ Connect user before using the client
       setVideoClient(client);
     };
 
@@ -62,7 +62,7 @@ export default function VideoProvider({ children }: PropsWithChildren) {
     return () => {
       videoClient?.disconnectUser(); // Cleanup
     };
-  }, [userData?.id]);
+  }, [userDetails?.uid]);
 
   if (!videoClient) {
     return (

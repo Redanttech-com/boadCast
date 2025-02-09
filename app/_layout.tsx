@@ -1,4 +1,3 @@
-
 import { useFonts } from "expo-font";
 import { Slot, Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -8,7 +7,7 @@ import "react-native-reanimated";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { ClerkProvider, ClerkLoaded } from "@clerk/clerk-expo";
-import UserContextData from "@/providers/UserContext";
+import UserContextData from "@/components/UserContext";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "@/global.css";
 import { tokenCache } from "@/cache";
@@ -47,7 +46,7 @@ export default function RootLayout() {
     return <Slot />;
   };
 
-    const queryClient = new QueryClient();
+  const queryClient = new QueryClient();
 
   return (
     <ClerkProvider tokenCache={tokenCache} publishableKey={publishableKey}>

@@ -7,25 +7,25 @@ import {
   getDocs,
   onSnapshot,
 } from "firebase/firestore";
-import { useUserInfo } from "@/providers/UserContext";
+import { useUserInfo } from "@/components/UserContext";
 
 const useFollowData = () => {
-  const { userData } = useUserInfo();
+  const { userDetails } = useUserInfo();
   const [followers, setFollowers] = useState([]);
   const [following, setFollowing] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  console.log("useFollowData -> userData:", userData); // Debugging
+  console.log("useFollowData -> userDetails:", userDetails); // Debugging
 
   useEffect(() => {
-    if (!userData?.id) return;
+    if (!userDetails?.uid) return;
 
     setLoading(true);
 
     /** 🔹 Fetch Followers (Users who follow the current user) */
     const followersQuery = query(
       collection(db, "following"),
-      where("followingId", "==", userData.id) // Users following me
+      where("followingId", "==", userDetails.uid) // Users following me
     );
 
     const unsubscribeFollowers = onSnapshot(
@@ -56,7 +56,7 @@ const useFollowData = () => {
     /** 🔹 Fetch Following (Users I am following) */
     const followingQuery = query(
       collection(db, "following"),
-      where("followerId", "==", userData.id) // Users I am following
+      where("followerId", "==", userDetails?.uid) // Users I am following
     );
 
     const unsubscribeFollowing = onSnapshot(
@@ -69,7 +69,7 @@ const useFollowData = () => {
             // Fetch following user details
             const userQuery = query(
               collection(db, "userPosts"),
-              where("id", "==", followingData.followingId)
+              where("uid", "==", followingData.followingId)
             );
             const userSnap = await getDocs(userQuery);
 
@@ -89,9 +89,9 @@ const useFollowData = () => {
       unsubscribeFollowers();
       unsubscribeFollowing();
     };
-  }, [userData]);
+  }, [userDetails]);
 
-  return { followers, following, loading, currentUserId: userData?.id };
+  return { followers, following, loading, currentUserId: userDetails?.uid };
 };
 
 export default useFollowData;

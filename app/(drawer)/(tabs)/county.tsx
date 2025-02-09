@@ -7,7 +7,7 @@ import Feed from '@/components/County/Feed';
 const County = () => {
   return (
       <SafeAreaView className="flex-1">
-        <Header />
+        
         <Feed />
     </SafeAreaView>
   );

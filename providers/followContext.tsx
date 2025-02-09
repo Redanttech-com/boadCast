@@ -39,7 +39,7 @@ export const FollowProvider = ({ children }) => {
 
       const followStatuses = {};
       const promises = posts.map((post) => {
-        const postId = post?.id;
+        const postId = post?.uid;
         return getDocs(
           query(
             collection(db, "following"),
@@ -92,7 +92,7 @@ export const FollowProvider = ({ children }) => {
         // Follow Logic
         const followedUserQuery = query(
           collection(db, "userPosts"),
-          where("id", "==", user.id)
+          where("uid", "==", user.id)
         );
         const followedUserSnapshot = await getDocs(followedUserQuery);
 
@@ -110,7 +110,7 @@ export const FollowProvider = ({ children }) => {
 
         const followingUserQuery = query(
           collection(db, "userPosts"),
-          where("id", "==", postId)
+          where("uid", "==", postId)
         );
         const followingUserSnapshot = await getDocs(followingUserQuery);
 

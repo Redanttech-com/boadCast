@@ -23,7 +23,7 @@ const NewsDetails = () => {
       {/* Header */}
       <View className="w-full flex-row justify-between items-center px-4 bg-white">
         <Pressable
-          onPress={() => router.back()}
+          onPress={() => router.push("/news")}
           className="bg-gray-100 p-2 rounded-full"
         >
           <Text>⬅ Back</Text>

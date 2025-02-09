@@ -4,6 +4,7 @@ import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "@/firebase";
 import { Feather } from "@expo/vector-icons";
 import UserList from "@/components/usersChat/UserList";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const UsersList = () => {
   const [users, setUsers] = useState([]); // State to hold user posts
@@ -66,8 +67,8 @@ const UsersList = () => {
 
   // Render the list of users
   return (
-    <View className="bg-white">
-      <View className="flex-row items-center justify-between px-4 border rounded-full border-gray-500">
+    <SafeAreaView className="bg-white gap-3 flex-1">
+      <View className="flex-row items-center justify-between px-4 m-3 border rounded-full border-gray-300 my-2">
         <TextInput
           placeholder="Search users"
           value={querySearch}
@@ -82,11 +83,9 @@ const UsersList = () => {
         data={users}
         contentContainerStyle={{ gap: 5 }}
         keyExtractor={(item) => item.id} // Now using unique id for each item
-        renderItem={({ item }) => (
-          <UserList user={item} />
-        )} // Render each user in the list
+        renderItem={({ item }) => <UserList user={item} />} // Render each user in the list
       />
-    </View>
+    </SafeAreaView>
   );
 };
 

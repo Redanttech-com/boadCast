@@ -7,20 +7,17 @@ import {
   MessageList,
 } from "stream-chat-expo";
 import { Link, router, Stack } from "expo-router";
-import { useUserInfo } from "@/providers/UserContext";
+import { useUserInfo } from "@/components/UserContext";
 import { FontAwesome5 } from "@expo/vector-icons";
 
 const index = () => {
-  const { userData } = useUserInfo();
+  const { userDetails } = useUserInfo();
 
   return (
-    
-     
-      <ChannelList
-        filters={{ members: { $in: [userData?.id] } }}
-        onSelect={(channel) => router.push(`/channel/${channel.cid}`)}
-      />
-
+    <ChannelList
+      filters={{ members: { $in: [userDetails?.id] } }}
+      onSelect={(channel) => router.push(`/channel/${channel.cid}`)}
+    />
   );
 };
 

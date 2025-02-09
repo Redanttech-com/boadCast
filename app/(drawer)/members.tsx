@@ -8,7 +8,7 @@ import {
   Pressable,
   ActivityIndicator,
 } from "react-native";
-import { useUserInfo } from "@/providers/UserContext";
+import { useUserInfo } from "@/components/UserContext";
 import { db } from "@/firebase";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -18,11 +18,11 @@ const Members = () => {
   const [countyMembers, setCountyMembers] = useState([]);
   const [constituencyMembers, setConstituencyMembers] = useState([]);
   const [wardMembers, setWardMembers] = useState([]);
-  const { userData, followLoading, hasFollowed, followMember } = useUserInfo();
+  const { userDetails, followLoading, hasFollowed, followMember } = useUserInfo();
 
   // Fetch members based on user location
   useEffect(() => {
-    if (!userData) return;
+    if (!userDetails) return;
 
     const fetchMembers = (field, value, setter) => {
       if (!value) return;
@@ -41,22 +41,22 @@ const Members = () => {
 
     const unsubCounty = fetchMembers(
       "county",
-      userData.county,
+      userDetails.county,
       setCountyMembers
     );
     const unsubConstituency = fetchMembers(
       "constituency",
-      userData.constituency,
+      userDetails?.constituency,
       setConstituencyMembers
     );
-    const unsubWard = fetchMembers("ward", userData.ward, setWardMembers);
+    const unsubWard = fetchMembers("ward", userDetails.ward, setWardMembers);
 
     return () => {
       unsubCounty?.();
       unsubConstituency?.();
       unsubWard?.();
     };
-  }, [userData]);
+  }, [userDetails]);
 
   // Render each member
   const renderMember = ({ item }) => (
@@ -73,23 +73,23 @@ const Members = () => {
         </Text>
       </View>
       <Pressable
-        onPress={() => followMember(item.id)}
-        disabled={followLoading[item.id]}
+        onPress={() => followMember(item.uid)}
+        disabled={followLoading[item.uid]}
         className={`p-3 rounded-lg ${
-          userData.id === item.id
+          userDetails?.uid === item.uid
             ? "bg-gray-300"
-            : hasFollowed[item.id]
+            : hasFollowed[item.uid]
             ? "bg-red-500 text-white"
             : "bg-blue-500 text-white"
         }`}
       >
-        {userData.id === item.id ? (
+        {userDetails?.uid === item.uid ? (
           <Text className="font-bold">You</Text>
-        ) : followLoading[item.id] ? (
+        ) : followLoading[item.uid] ? (
           <ActivityIndicator size="small" color="#ffffff" />
         ) : (
           <Text className="font-bold text-white">
-            {hasFollowed[item.id] ? "Unfollow" : "Follow"}
+            {hasFollowed[item.uid] ? "Unfollow" : "Follow"}
           </Text>
         )}
       </Pressable>

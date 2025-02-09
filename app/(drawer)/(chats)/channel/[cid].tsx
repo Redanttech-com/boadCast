@@ -47,7 +47,7 @@ export default function ChannelScreen() {
     });
 
     // Uncomment to navigate to the call screen after joining
-    router.push(`/call/${call.id}`);
+    router.push(`/(drawer)/(chats)/call/${call.id}`);
   };
 
   if (!channel) {
@@ -68,7 +68,7 @@ export default function ChannelScreen() {
       <Stack.Screen
         options={{
           headerShown: true,
-          title: "Chats",
+          title: "Chat",
           headerRight: () => (
             <Ionicons name="call" size={20} color="gray" onPress={joinCall} />
           ),
