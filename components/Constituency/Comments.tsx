@@ -33,45 +33,54 @@ import {
   getDoc,
   getDocs,
   onSnapshot,
+  query,
   serverTimestamp,
   setDoc,
   updateDoc,
+  where,
 } from "firebase/firestore";
 import { useUserInfo } from "@/components/UserContext";
 import { router } from "expo-router";
 import { deleteObject, ref } from "firebase/storage";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { useRecoilState } from "recoil";
-import { modalConstituencyComment } from "@/atoms/modalAtom";
+import {  modalConstituencyComment } from "@/atoms/modalAtom";
 import Moment from "react-moment";
 import moment from "moment";
 import { useUser } from "@clerk/clerk-expo";
 import { Avatar } from "react-native-elements";
 
 const Comments = ({ id, comment }) => {
-  const { userDetails, formatNumber } = useUserInfo();
+  const { formatNumber } = useUserInfo();
   const [hasLiked, setHasLiked] = useState(false);
   const [likes, setLikes] = useState([]);
   const { user } = useUser();
   const [postID, setPostID] = useRecoilState(modalConstituencyComment);
   const [loading, setLoading] = useState(false);
 
+  // like
+
+  const [userData, setUserData] = useState(null);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (!user?.id) return;
+      const q = query(collection(db, "userPosts"), where("uid", "==", user.id));
+      const querySnapshot = await getDocs(q);
+      if (!querySnapshot.empty) {
+        setUserData(querySnapshot.docs[0].data());
+      }
+    };
+    fetchUserData();
+  }, [user]);
+
   useEffect(() => {
     try {
-      if (!db || !id || !postID || !userDetails) {
+      if (!id ) {
         return;
       }
       const unsubscribe = onSnapshot(
-        collection(
-          db,
-          "constituency",
-          userDetails.constituency,
-          "posts",
-          postID,
-          "comments",
-          id,
-          "likes"
-        ),
+        collection(db, "constituency", id, "likes"),
         (snapshot) => setLikes(snapshot.docs)
       );
 
@@ -79,49 +88,29 @@ const Comments = ({ id, comment }) => {
     } catch (error) {
       console.log("likes error", error);
     }
-  }, [db]);
+  }, [id]);
 
   useEffect(() => {
     if (user) {
-      setHasLiked(likes.findIndex((like) => like.uid === user.id) !== -1);
+      setHasLiked(likes.findIndex((like) => like.id === user.id) !== -1);
     }
   }, [likes]);
 
   async function likePost() {
     try {
-      // Check if userDetails, userDetails.uid, and id exist
-      if (userDetails && userDetails?.uid && id && postID) {
+      // Check if userData, userData.uid, and id exist
+      if (user?.id && id && postID) {
         if (hasLiked) {
           // Unlike the post
           await deleteDoc(
-            doc(
-              db,
-              "constituency",
-              userDetails.constituency,
-              "posts",
-              postID,
-              "comments",
-              id,
-              "likes",
-              userDetails.uid
-            )
+            doc(db, "constituency", id, "likes", user.id)
           );
         } else {
           // Like the post
           await setDoc(
-            doc(
-              db,
-              "constituency",
-              userDetails.constituency,
-              "posts",
-              postID,
-              "comments",
-              id,
-              "likes",
-              userDetails.uid
-            ),
+            doc(db, "constituency", id, "likes", user.id),
             {
-              username: userDetails.nickname || "Anonymous",
+              id: user.id || "Anonymous",
             }
           );
         }
@@ -159,10 +148,6 @@ const Comments = ({ id, comment }) => {
               const likesCollectionRef = collection(
                 db,
                 "constituency",
-                userDetails.constituency,
-                "posts",
-                postID,
-                "comments",
                 id,
                 "likes"
               );
@@ -173,17 +158,12 @@ const Comments = ({ id, comment }) => {
               await Promise.all(deleteLikesPromises);
 
               // Delete the comment document
-              await deleteDoc(
-                doc(
-                  db,
-                  "constituency",
-                  userDetails.constituency,
-                  "posts",
-                  postID,
-                  "comments",
-                  id
-                )
-              );
+              await deleteDoc(doc(db,
+                        "constituency",
+                        userData?.constituency,
+                        "posts",
+                        postID,
+                        "comments", id));
             } catch (error) {
               console.error("Error deleting comment:", error);
             } finally {
@@ -195,40 +175,48 @@ const Comments = ({ id, comment }) => {
       { cancelable: true }
     );
   }
-const getColorFromName = (name) => {
-  if (!name) return "#ccc"; // Default color if no name exists
 
-  // Generate a hash number from the name
-  let hash = 0;
-  for (let i = 0; i < name.length; i++) {
-    hash = name.charCodeAt(i) + ((hash << 5) - hash);
-  }
+  const getColorFromName = (name) => {
+    if (!name) return "#ccc"; // Default color if no name exists
 
-  // Predefined colors for better visuals
-  const colors = [
-    "#FF5733",
-    "#33FF57",
-    "#3357FF",
-    "#F1C40F",
-    "#8E44AD",
-    "#E74C3C",
-    "#2ECC71",
-    "#1ABC9C",
-    "#3498DB",
-  ];
+    // Generate a hash number from the name
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+      hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
 
-  // Pick a color consistently based on the hash value
-  return colors[Math.abs(hash) % colors.length];
-};
+    // Predefined colors for better visuals
+    const colors = [
+      "#FF5733",
+      "#33FF57",
+      "#3357FF",
+      "#F1C40F",
+      "#8E44AD",
+      "#E74C3C",
+      "#2ECC71",
+      "#1ABC9C",
+      "#3498DB",
+    ];
+
+    // Pick a color consistently based on the hash value
+    return colors[Math.abs(hash) % colors.length];
+  };
+
   return (
-    <View key={id} className="p-3 gap-3">
+    <View key={id} className="p-3 gap-1 border-b border-gray-200">
       <View className="flex-row items-center gap-3">
         <Avatar
           size={40}
           rounded
-          source={comment?.data()?.userImg ? { uri: comment?.data()?.userImg } : null}
-          title={comment?.data()?.name ? comment?.data()?.name[0].toUpperCase() : "?"}
-          containerStyle={{ backgroundColor: getColorFromName(comment?.data()?.name) }} // Consistent color per user
+          source={
+            comment?.data()?.userImg ? { uri: comment?.data()?.userImg } : null
+          }
+          title={
+            comment?.data()?.name ? comment?.data()?.name[0].toUpperCase() : "?"
+          }
+          containerStyle={{
+            backgroundColor: getColorFromName(comment?.data()?.name),
+          }} // Consistent color per user
         />
 
         <View className="flex-row gap-2 items-center ">
@@ -273,25 +261,26 @@ const getColorFromName = (name) => {
         </View>
 
         <View className="flex-row items-center ml-auto gap-1">
-          {user?.id === comment?.data()?.id && (
+          {user?.id === comment?.data()?.uid && (
             <Pressable onPress={deleteComment} className="p-3">
               <Feather name="trash-2" size={20} color="black" />
             </Pressable>
           )}
-          <View className="flex-col h-14 items-center">
-            <Pressable onPress={likePost} className="p-3 ">
-              <AntDesign
-                name="hearto"
-                size={20}
-                color={hasLiked ? "red" : "gray"}
-              />
-            </Pressable>
+          <TouchableOpacity
+            onPress={likePost}
+            className="flex-row items-center gap-2 min-w-14 max-w-14"
+          >
+            <AntDesign
+              name={hasLiked ? "heart" : "hearto"}
+              size={20}
+              color={hasLiked ? "red" : "black"}
+            />
             {likes.length > 0 && (
               <View>
                 <Text>{formatNumber(likes.length)}</Text>
               </View>
             )}
-          </View>
+          </TouchableOpacity>
         </View>
       </View>
 

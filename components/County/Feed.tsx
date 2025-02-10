@@ -34,14 +34,14 @@ import BottomSheet, {
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { useUserInfo } from "@/components/UserContext";
 import { useRecoilState } from "recoil";
-import { modalCountyComment} from "@/atoms/modalAtom";
+import { modalCountyComment } from "@/atoms/modalAtom";
 import { useUser } from "@clerk/clerk-expo";
 import Comments from "./Comments";
 import { router } from "expo-router";
 import Header from "./Header";
 
 const Feed = () => {
-  const [loadingPosts, setLoadingPosts] = useState(true);
+  const [loadingPosts, setLoadingPosts] = useState(false);
   const [loadingComments, setLoadingComments] = useState(false); // Separate loading state for comments
   const [posts, setPosts] = useState([]);
   const [input, setInput] = useState("");
@@ -56,7 +56,6 @@ const Feed = () => {
   const snapPoints = useMemo(() => ["100%", "100%"], []);
   const openBottomSheet = useCallback(() => setIsBottomSheetOpen(true), []);
   const [userData, setUserData] = useState(null);
-  
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -69,6 +68,7 @@ const Feed = () => {
     };
     fetchUserData();
   }, [user]);
+
   // Fetch posts
   useEffect(() => {
     if (!userData?.county) return;
@@ -167,7 +167,7 @@ const Feed = () => {
           name: userData.name,
           lastname: userData.lastname,
           nickname: userData.nickname,
-          userImg: userData.userImg,
+          userImg: userData.userImg || null,
         }
       );
       setInput("");
@@ -204,7 +204,7 @@ const Feed = () => {
       <FlatList
         data={posts}
         keyExtractor={(item) => item.id}
-        estimatedItemSize={100}
+        initialNumToRender={10}
         renderItem={({ item }) => (
           <Posts
             post={item}

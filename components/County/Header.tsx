@@ -83,7 +83,7 @@ const Header = () => {
   }, [user]);
 
   const sendPost = async () => {
-    if (!input.trim() || loading) {
+    if (!input.trim()) {
       Alert.alert("Error", "Post content cannot be empty.");
       return;
     }
@@ -102,7 +102,7 @@ const Header = () => {
         {
           uid: user?.id,
           text: input.trim(),
-          userImg: userData?.userImg,
+          userImg: userData?.userImg || null,
           timestamp: serverTimestamp(),
           lastname: userData?.lastname,
           name: userData?.name,
@@ -157,7 +157,7 @@ const getColorFromName = (name) => {
           size={40}
           rounded
           source={userData?.userImg ? { uri: userData?.userImg } : null}
-          title={userData?.name ? userData?.name[0].toUpperCase() : "?"}
+          title={userData?.name ? userData?.name[0].toUpperCase() : <ActivityIndicator />}
           containerStyle={{ backgroundColor: getColorFromName(userData?.name) }} // Consistent color per user
         />
       </View>

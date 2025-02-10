@@ -83,7 +83,7 @@ const Header = () => {
   }, [user]);
 
   const sendPost = async () => {
-    if (!input.trim() || loading) {
+    if (!input.trim()) {
       Alert.alert("Error", "Post content cannot be empty.");
       return;
     }
@@ -102,7 +102,7 @@ const Header = () => {
         {
           uid: user?.id,
           text: input.trim(),
-          userImg: userData?.userImg,
+          userImg: userData?.userImg || null,
           timestamp: serverTimestamp(),
           lastname: userData?.lastname,
           name: userData?.name,

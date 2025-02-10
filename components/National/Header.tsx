@@ -38,7 +38,6 @@ const Header = () => {
   const [selectedLevel, setSelectedLevel] = useState("");
   const { user } = useUser();
   const [userData, setUserData] = useState(null);
-  
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -118,7 +117,7 @@ const Header = () => {
     }
   };
   const sendNational = async () => {
-    if (!input.trim() || loading) {
+    if (!input.trim()) {
       Alert.alert("Error", "Post content cannot be empty.");
       return;
     }
@@ -179,15 +178,18 @@ const Header = () => {
       <StatusBar style="auto" />
       <View className="flex-row items-center justify-between">
         <Text className="font-extrabold text-3xl">National</Text>
-           <Avatar
-              size={40}
-              rounded
-              source={userData?.userImg ? { uri: userData?.userImg } : null}
-              title={userData?.name ? userData?.name[0].toUpperCase() : "?"}
-              containerStyle={{ backgroundColor: getColorFromName(userData?.name) }} // Consistent color per user
-            />
+        <Avatar
+          size={40}
+          rounded
+          source={userData?.userImg ? { uri: userData?.userImg } : null}
+          title={userData?.name ? userData?.name[0].toUpperCase() : "?"}
+          containerStyle={{ backgroundColor: getColorFromName(userData?.name) }} // Consistent color per user
+        />
       </View>
-      <StatusFeed />
+      <View className="mt-3 mb-3">
+        <StatusFeed />
+      </View>
+      
       <View className="w-full flex-row items-center mt-4">
         <TextInput
           placeholder="What's on your mind?"

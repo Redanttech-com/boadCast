@@ -12,44 +12,59 @@ const StatusFeed = () => {
   const { user } = useUser();
 
   //status
- useEffect(() => {
-     const fetchStatus = async () => {
-       try {
-         const q = query(
-           collection(db, "status"),
-           orderBy("timestamp", "desc")
-         );
-         const unsubscribe = onSnapshot(q, (snapshot) => {
-           const postsData = snapshot.docs;
-           setPosts(postsData);
-           setLoadingStatus(false);
-         });
-         return () => unsubscribe(); // Unsubscribe on unmount
-       } catch (error) {
-         console.error("Error fetching Status:", error);
-         setLoadingStatus(false);
-       }
-     };
- 
-     fetchStatus();
-   }, []);
+  useEffect(() => {
+    let unsubscribe; // Declare unsubscribe outside
 
-   if(loadingStatus) {
+    const fetchStatus = async () => {
+      try {
+        const q = query(collection(db, "status"), orderBy("timestamp", "desc"));
+
+        unsubscribe = onSnapshot(q, (snapshot) => {
+          const newPosts = snapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          }));
+
+          // Ensure only unique posts are added
+          const uniquePosts = Array.from(
+            new Map(newPosts.map((post) => [post.uid, post])).values()
+          );
+
+          setPosts(uniquePosts); // Use uniquePosts instead of raw snapshot data
+          setLoadingStatus(false);
+        });
+      } catch (error) {
+        console.error("Error fetching Status:", error);
+        setLoadingStatus(false);
+      }
+    };
+
+    fetchStatus();
+
+    return () => {
+      if (unsubscribe) {
+        unsubscribe(); // Unsubscribe on unmount
+      }
+    };
+  }, []); // Run only once
+
+  if (loadingStatus) {
     <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
       <ActivityIndicator size="large" color="black" />
     </View>;
-   }
+  }
 
   return (
     <FlatList
       data={posts}
       keyExtractor={(item) => item.id}
       horizontal={true} // ✅ Enables horizontal scrolling
-      renderItem={({ item }) => <StatusPost post={item} id={item.id} />}
-      estimatedItemSize={10}
+      renderItem={({ item }) => <StatusPost post={item} id={item.uid} />}
+      windowSize={5}
+      removeClippedSubviews={true}
+      initialNumToRender={10}
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={{ paddingHorizontal: 10 }} // ✅ Optional: Adds spacing
-      
     />
   );
 };

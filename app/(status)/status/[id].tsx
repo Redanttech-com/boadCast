@@ -1,198 +1,278 @@
+import React, { useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
-  ActivityIndicator,
   Image,
-  Dimensions,
-  Animated,
-  TouchableWithoutFeedback,
+  TouchableOpacity,
+  Alert,
+  ActivityIndicator,
+  StatusBar,
 } from "react-native";
-import React, { useEffect, useState, useRef } from "react";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { doc, getDoc } from "firebase/firestore";
-import { db } from "@/firebase";
-import moment from "moment";
-import { MaterialIcons } from "@expo/vector-icons";
-import { StatusBar } from "expo-status-bar";
+import { useNavigation } from "@react-navigation/native";
+import { Video } from "expo-av";
+import {
+  collection,
+  deleteDoc,
+  doc,
+  onSnapshot,
+  query,
+  where,
+} from "firebase/firestore";
+import { deleteObject, ref } from "firebase/storage";
+import { ChevronLeft, ChevronRight } from "lucide-react-native";
+import { StyleSheet } from "react-native";
+import { router, useLocalSearchParams } from "expo-router";
+import { db, storage } from "@/firebase";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const { width, height } = Dimensions.get("window"); // ✅ Get screen size
-
-const MyStatus = () => {
-  const { id } = useLocalSearchParams(); // ✅ Get status ID
-  const router = useRouter(); // ✅ Handle navigation
-  const [status, setStatus] = useState(null);
+export default function StatusPage() {
+  const { id } = useLocalSearchParams();
+  const [statuses, setStatuses] = useState([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [progress, setProgress] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [paused, setPaused] = useState(false); // ✅ Track pause state
-  const progress = useRef(new Animated.Value(0)).current; // ✅ Progress bar animation
-  const animationRef = useRef(null); // ✅ Store animation instance
-  const timeoutRef = useRef(null); // ✅ Store timeout instance
+  const [userDetails, setUserDetails] = useState(null);
+  const [isPaused, setIsPaused] = useState(false);
+  const timerRef = useRef(null);
+  const videoRef = useRef(null);
 
   useEffect(() => {
-    const fetchUserStatus = async () => {
-      if (!id) return; // Ensure ID is present
+    if (!id) return;
 
-      try {
-        const docRef = doc(db, "status", id);
-        const docSnap = await getDoc(docRef);
+    const q = query(collection(db, "status"), where("uid", "==", id));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const statusList = snapshot.docs.map((doc) => ({
+        docId: doc.id,
+        ...doc.data(),
+      }));
+      setStatuses(statusList);
+      setLoading(false);
+    });
 
-        if (docSnap.exists()) {
-          setStatus(docSnap.data());
-        } else {
-          console.warn("⚠️ No status found with this ID:", id);
-        }
-      } catch (error) {
-        console.error("❌ Error fetching status:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUserStatus();
+    return () => unsubscribe();
   }, [id]);
 
-  // ✅ Function to start progress animation and timer
-  const startAnimation = () => {
-    animationRef.current = Animated.timing(progress, {
-      toValue: 1,
-      duration: 5000, // 5 seconds duration
-      useNativeDriver: false,
-    });
-
-    animationRef.current.start(() => {
-      router.push('/(drawer)/(tabs)'); // Close status when animation completes
-    });
-
-    timeoutRef.current = setTimeout(() => {
-      router.push('/(drawer)/(tabs)');
-    }, 5000); // Auto-close after 5 seconds
+  const deleteStatus = async (docId) => {
+    if (!docId) return;
+    Alert.alert(
+      "Delete Status",
+      "Are you sure you want to delete this status?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await deleteDoc(doc(db, "status", docId));
+              await deleteObject(ref(storage, `status/${docId}/video`));
+              setStatuses((prev) =>
+                prev.filter((status) => status.docId !== docId)
+              );
+            } catch (error) {
+              console.error("Error deleting status:", error);
+            }
+          },
+        },
+      ]
+    );
   };
 
-  // ✅ Function to pause progress & timer
-  const pauseAnimation = () => {
-    if (!paused) {
-      animationRef.current?.stop();
-      clearTimeout(timeoutRef.current);
-      setPaused(true);
-    }
-  };
-
-  // ✅ Function to resume progress & timer
-  const resumeAnimation = () => {
-    if (paused) {
-      setPaused(false);
-      const remainingTime = (1 - progress._value) * 5000;
-
-      animationRef.current = Animated.timing(progress, {
-        toValue: 1,
-        duration: remainingTime,
-        useNativeDriver: false,
-      });
-
-      animationRef.current.start(() => {
-        router.push('/(drawer)/(tabs)');
-      });
-
-      timeoutRef.current = setTimeout(() => {
-        router.push('/(drawer)/(tabs)');
-      }, remainingTime);
-    }
-  };
+  const pauseOrResume = () => setIsPaused((prev) => !prev);
 
   useEffect(() => {
-    if (status) {
-      startAnimation();
+    if (!statuses.length || loading) return;
+
+    const currentStatus = statuses[currentIndex];
+
+    if (currentStatus?.video) {
+      if (videoRef.current) {
+        videoRef.current.playAsync();
+      }
+    } else {
+      // Start progress for images (5 seconds duration)
+      timerRef.current = setInterval(() => {
+        setProgress((prev) => {
+          if (prev >= 100) {
+            handleNext();
+            return 0;
+          }
+          return prev + 2; // Adjust based on total duration
+        });
+      }, 100);
     }
-  }, [status]);
+
+    return () => clearInterval(timerRef.current);
+  }, [statuses, currentIndex, loading]);
+
+  const handleNext = () => {
+    if (currentIndex < statuses.length - 1) {
+      setCurrentIndex((prev) => prev + 1);
+      setProgress(0);
+    } else {
+      router.push("/(drawer)/(tabs)");
+    }
+  };
+
+  const handlePrev = () => {
+    if (currentIndex > 0) {
+      setCurrentIndex((prev) => prev - 1);
+      setProgress(0);
+    }
+  };
 
   if (loading) {
     return (
-      <View className="flex-1 justify-center items-center bg-black">
-        <ActivityIndicator color="white" />
-        <Text className="text-white">Loading...</Text>
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" color="#0000ff" />
       </View>
     );
   }
 
+// useEffect(() => {
+//   if (!loading && statuses.length === 0) {
+//     setTimeout(() => {
+//       router.push("/(drawer)/(tabs)");
+//     }, 100); // Delay to ensure hooks complete before navigation
+//   }
+// }, [loading, statuses]);
+
+
+
   return (
-    <TouchableWithoutFeedback
-       onPressIn={pauseAnimation} // ✅ Pause when user touches
-       onPressOut={resumeAnimation} // ✅ Resume when user lifts finger
-    >
-      <SafeAreaView className="flex-1 bg-black">
-        <StatusBar style="light" />
-
-        {/* ✅ Progress Bar */}
-         <View style={{ height: 5, width: "100%", backgroundColor: "gray" }}>
-          <Animated.View
-            style={{
-              height: "100%",
-              backgroundColor: "white",
-              width: progress.interpolate({
-                inputRange: [0, 1],
-                outputRange: ["0%", "100%"],
-              }),
-            }}
-          />
-        </View> 
-
-        {/* ✅ User Info Bar */}
-        <View className="flex-row items-center p-3">
-          <MaterialIcons
-            name="arrow-back"
-            size={28}
-            color="white"
-            onPress={() => router.push('/(drawer)/(tabs)')}
-          />
-          <View className="flex-row items-center ml-3">
-            <Image
-              source={{ uri: status?.userImg }}
-              className="h-12 w-12 rounded-full"
-            />
-            <View className="ml-3">
-              <Text className="text-white font-bold">
-                {status?.name} {status?.lastname} @{status?.nickname}
-              </Text>
-              <Text className="text-gray-300 text-sm">
-                {status?.timestamp
-                  ? moment(status.timestamp.toDate()).fromNow()
-                  : "Unknown time"}
-              </Text>
-            </View>
-          </View>
-         
-        </View>
-
-        {/* ✅ Fullscreen Image */}
-        <Image
-          source={{ uri: status?.image }}
-          style={{ width, height: height * 0.9, resizeMode: "contain" }}
-        />
-
-        {/* ✅ Show "Paused" text when paused */}
-        {paused && (
-          <View className="absolute top-0 left-0 right-0 bottom-0 flex items-center justify-center">
-            <Text className="text-white text-lg font-bold">Paused</Text>
-          </View>
-        )}
-       {status?.input && (
+    <SafeAreaView style={styles.container}>
+      
+      {/* Progress Bars */}
+      <View style={styles.progressBarContainer}>
+        {statuses.map((_, index) => (
           <View
-            className="absolute bottom-5 w-full px-5 py-3"
-            style={{
-              backgroundColor: "rgba(0, 0, 0, 0.5)", // ✅ Semi-transparent background
-              alignItems: "center",
-              borderTopLeftRadius: 10,
-              borderTopRightRadius: 10,
-            }}
+            key={index}
+            style={[
+              styles.progressBar,
+              index < currentIndex ? styles.progressBarCompleted : {},
+            ]}
           >
-            <Text className="text-white text-lg text-center">
-              {status?.input}
-            </Text>
+            {index === currentIndex && (
+              <View
+                style={{ ...styles.progressIndicator, width: `${progress}%` }}
+              />
+            )}
           </View>
-        )}
-        </SafeAreaView>
-    </TouchableWithoutFeedback>
-  );
-};
+        ))}
+      </View>
 
-export default MyStatus;
+      {/* Current Status */}
+      {statuses.length > 0 &&
+        (statuses[currentIndex]?.image ? (
+          <Image
+            source={{ uri: statuses[currentIndex]?.image }}
+            style={styles.image}
+            resizeMode="contain"
+          />
+        ) : statuses[currentIndex]?.video ? (
+          <Video
+            ref={videoRef}
+            source={{ uri: statuses[currentIndex]?.video }}
+            style={styles.video}
+            useNativeControls
+            shouldPlay
+            resizeMode="contain"
+            onPlaybackStatusUpdate={(status) => {
+              if (status.didJustFinish) {
+                handleNext();
+              } else {
+                const progressPercentage =
+                  (status.positionMillis / status.durationMillis) * 100;
+                setProgress(progressPercentage);
+              }
+            }}
+          />
+        ) : null)}
+
+      {/* Status Text */}
+      {statuses[currentIndex]?.text && (
+        <View style={styles.textContainer}>
+          <Text style={styles.statusText}>{statuses[currentIndex]?.text}</Text>
+        </View>
+      )}
+
+      {/* Delete & Pause Buttons */}
+      {id === userDetails?.uid && (
+        <TouchableOpacity
+          style={styles.deleteButton}
+          onPress={() => deleteStatus(statuses[currentIndex]?.docId)}
+        >
+          <Text style={styles.deleteButtonText}>Delete</Text>
+        </TouchableOpacity>
+      )}
+      <TouchableOpacity style={styles.pauseButton} onPress={pauseOrResume}>
+        <Text style={styles.pauseButtonText}>
+          {isPaused ? "Resume" : "Pause"}
+        </Text>
+      </TouchableOpacity>
+
+      {/* Navigation Controls */}
+      <TouchableOpacity style={styles.navButtonLeft} onPress={handlePrev} className="h-screen p-10 ">
+        <ChevronLeft size={32} className="hidden"/>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.navButtonRight} onPress={handleNext} className="h-screen p-10 ">
+        <ChevronRight size={32} className="hidden"/>
+      </TouchableOpacity>
+    </SafeAreaView>
+  );
+}
+
+// Styles
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "black",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  centered: { flex: 1, justifyContent: "center", alignItems: "center" },
+  progressBarContainer: {
+    position: "absolute",
+    top: 10,
+    left: 10,
+    right: 10,
+    flexDirection: "row",
+  },
+  progressBar: {
+    flex: 1,
+    height: 2,
+    backgroundColor: "gray",
+    marginHorizontal: 2,
+  },
+  progressBarCompleted: { backgroundColor: "white" },
+  progressIndicator: { height: 2, backgroundColor: "white" },
+  image: { width: "100%", height: "80%" },
+  video: { width: "100%", height: "80%" },
+  textContainer: {
+    position: "absolute",
+    bottom: 40,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    padding: 10,
+    borderRadius: 5,
+  },
+  statusText: { color: "white", fontSize: 18 },
+  deleteButton: {
+    position: "absolute",
+    top: 40,
+    right: 20,
+    backgroundColor: "red",
+    padding: 10,
+    borderRadius: 5,
+  },
+  deleteButtonText: { color: "white", fontWeight: "bold" },
+  pauseButton: {
+    position: "absolute",
+    bottom: 80,
+    padding: 10,
+    backgroundColor: "gray",
+    borderRadius: 5,
+  },
+  pauseButtonText: { color: "white" },
+  navButtonLeft: { position: "absolute", left: 10, top: "50%" },
+  navButtonRight: { position: "absolute", right: 10, top: "50%" },
+});

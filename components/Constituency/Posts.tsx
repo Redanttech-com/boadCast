@@ -33,9 +33,11 @@ import {
   getDoc,
   getDocs,
   onSnapshot,
+  query,
   serverTimestamp,
   setDoc,
   updateDoc,
+  where,
 } from "firebase/firestore";
 import { useUserInfo } from "@/components/UserContext";
 import { router } from "expo-router";
@@ -51,7 +53,7 @@ import moment from "moment";
 import { Avatar } from "react-native-elements";
 
 const Posts = ({ post, id, openBottomSheet, isPaused }) => {
-  const { userDetails, formatNumber } = useUserInfo();
+  const { formatNumber } = useUserInfo();
   const [image, setImage] = useState<string | null>(null);
   const [likes, setLikes] = useState([]);
   const [comments, setComments] = useState([]);
@@ -61,37 +63,47 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
   const [citeInput, setCiteInput] = useState("");
   const { user } = useUser();
   const videoRef = useRef(null);
+  
+    // like
+  
+      const [userData, setUserData] = useState(null);
+      
+    
+      useEffect(() => {
+        const fetchUserData = async () => {
+          if (!user?.id) return;
+          const q = query(collection(db, "userPosts"), where("uid", "==", user.id));
+          const querySnapshot = await getDocs(q);
+          if (!querySnapshot.empty) {
+            setUserData(querySnapshot.docs[0].data());
+          }
+        };
+        fetchUserData();
+      }, [user]);
 
   // like
 
   useEffect(() => {
-    if (!db || !id || !userDetails) {
+    if (!id || !userData?.constituency) {
       return;
     }
     const unsubscribe = onSnapshot(
-      collection(
-        db,
-        "constituency",
-        userDetails?.constituency,
-        "posts",
-        id,
-        "comments"
-      ),
+      collection(db, "constituency", userData?.constituency, "posts", id, "comments"),
       (snapshot) => setComments(snapshot.docs)
     );
-  }, [db]);
+
+    return () => unsubscribe();
+  }, [id || userData?.constituency]);
 
   useEffect(() => {
     try {
-      if (!db || !id || !userDetails) {
+      if ( !id ) {
         return;
       }
       const unsubscribe = onSnapshot(
         collection(
           db,
           "constituency",
-          userDetails?.constituency,
-          "posts",
           id,
           "likes"
         ),
@@ -102,29 +114,27 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
     } catch (error) {
       console.log("likes error", error);
     }
-  }, [db]);
+  }, [id]);
 
   useEffect(() => {
-    if (user) {
-      setHasLiked(likes.findIndex((like) => like.uid === user.id) !== -1);
+    if (user?.id) {
+      setHasLiked(likes.findIndex((like) => like.id === user.id) !== -1);
     }
   }, [likes]);
 
   async function likePost() {
     try {
-      // Check if userDetails, userDetails.uid, and id exist
-      if (userDetails && userDetails?.uid && id) {
+      // Check if userData, userData.uid, and id exist
+      if (userData && user?.id && id) {
         if (hasLiked) {
           // Unlike the post
           await deleteDoc(
             doc(
               db,
               "constituency",
-              userDetails?.constituency,
-              "posts",
               id,
               "likes",
-              userDetails.uid
+              user.id
             )
           );
         } else {
@@ -133,14 +143,12 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
             doc(
               db,
               "constituency",
-              userDetails?.constituency,
-              "posts",
               id,
               "likes",
-              userDetails.uid
+              user.id
             ),
             {
-              username: userDetails.nickname || "Anonymous",
+              id: user.id || "Anonymous",
             }
           );
         }
@@ -156,37 +164,37 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
   // Repost
 
   const repost = async () => {
-    if (!userDetails?.uid) {
+    if (!userData?.uid) {
       router.replace("/(auth)");
       return;
     }
 
     if (post) {
       Alert.alert(
-        "Repost Confirmation",
-        "Are you sure you want to repost this? It will appear on your profile.",
+        "Recast Confirmation",
+        "Are you sure you want to recast this?...",
         [
           {
             text: "Cancel",
             style: "cancel",
           },
           {
-            text: "Repost",
+            text: "Recast",
             style: "default",
             onPress: async () => {
               const postData = post;
               try {
                 // Construct the new post data object
                 const newPostData = {
-                  uid: userDetails.uid,
+                  uid: userData.uid,
                   text: postData.text,
-                  userImg: userDetails.userImg,
+                  userImg: userData.userImg || null,
                   timestamp: serverTimestamp(),
-                  lastname: userDetails.lastname,
-                  name: userDetails.name,
-                  nickname: userDetails.nickname,
+                  lastname: userData.lastname,
+                  name: userData.name,
+                  nickname: userData.nickname,
                   from: postData.name,
-                  fromNickname: userDetails.nickname,
+                  fromNickname: userData.nickname,
                   citeUserImg: postData.userImg,
                   ...(postData.category && { fromCategory: postData.category }),
                   ...(postData.images && { images: postData.images }),
@@ -194,7 +202,7 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
                 };
 
                 await addDoc(
-                  collection(db, "constituency", userDetails?.constituency, "posts"),
+                  collection(db, "constituency", userData?.constituency, "posts"),
                   newPostData
                 );
                 console.log("Post successfully reposted.");
@@ -214,18 +222,18 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
   // views
 
   useEffect(() => {
-    if (!id || !userDetails?.uid) return;
+    if (!id || !userData?.uid) return;
 
     const fetchPost = async () => {
       try {
-        const userRef = doc(db, "userPosts", userDetails.uid); // Reference to the user's document
+        const userRef = doc(db, "userPosts", userData.uid); // Reference to the user's document
         const userSnap = await getDoc(userRef);
 
         if (userSnap.exists()) {
-          const userDetails = userSnap.data();
+          const userData = userSnap.data();
 
           // Check if the post ID is already in viewedPosts
-          if (userDetails.viewedPosts?.includes(id)) {
+          if (userData.viewedPosts?.includes(id)) {
             console.log("Post already viewed.");
             return;
           }
@@ -234,7 +242,7 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
           const postRef = doc(
             db,
             "constituency",
-            userDetails?.constituency,
+            userData?.constituency,
             "posts",
             id
           );
@@ -258,7 +266,7 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
     };
 
     fetchPost();
-  }, [id, userDetails?.uid]);
+  }, [id, userData?.uid]);
 
   //delete post
   async function deletePost() {
@@ -283,8 +291,7 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
               // Delete all likes associated with the post
               const likesCollectionRef = collection(
                 db,
-                "postd",
-
+                "constituency",
                 id,
                 "likes"
               );
@@ -296,7 +303,7 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
 
               // Delete the post document
               await deleteDoc(
-                doc(db, "constituency", userDetails?.constituency, "posts", id)
+                doc(db, "constituency", userData?.constituency, "posts", id)
               );
 
               // Delete the video associated with the post, if it exists
@@ -356,18 +363,18 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
       ) {
         try {
           await addDoc(
-            collection(db, "constituency", userDetails?.constituency, "posts"),
+            collection(db, "constituency", userData?.constituency, "posts"),
             {
               uid: user?.id,
               text: postData.text,
               citeInput: citeInput,
-              userImg: userDetails.userImg,
-              lastname: userDetails.lastname,
+              userImg: userData.userImg || null,
+              lastname: userData.lastname,
               timestamp: serverTimestamp(),
               citetimestamp: postData.timestamp.toDate(),
-              name: userDetails.name,
+              name: userData.name,
               fromUser: postData.name,
-              nickname: userDetails.nickname,
+              nickname: userData.nickname,
               fromNickname: postData.nickname,
               fromlastname: postData.lastname,
               citeUserImg: postData.userImg,
@@ -487,14 +494,14 @@ const getColorFromName = (name) => {
           <View className="bg-gray-100 ml-20 gap-3 p-2 rounded-md">
             <View className="flex-row items-center gap-1">
               <Avatar
-                  size={40}
-                  rounded
-                  source={post?.citeUserImg ? { uri: post?.citeUserImg } : null}
-                  title={post?.name ? post?.name[0].toUpperCase() : "?"}
-                  containerStyle={{
-                    backgroundColor: getColorFromName(post?.name),
-                  }} // Consistent color per user
-                />
+                size={40}
+                rounded
+                source={post?.citeUserImg ? { uri: post?.citeUserImg } : null}
+                title={post?.name ? post?.name[0].toUpperCase() : "?"}
+                containerStyle={{
+                  backgroundColor: getColorFromName(post?.name),
+                }} // Consistent color per user
+              />
               <View className="flex-row  w-full mx-auto">
                 <Text
                   className="text-gray-800  font-bold max-w-24 min-w-12 "
@@ -617,14 +624,15 @@ const getColorFromName = (name) => {
           </View>
         </Popover>
 
-        <TouchableOpacity className="flex-row items-center">
-          <Pressable onPress={likePost} className="p-3 ">
-            <AntDesign
-              name="hearto"
-              size={20}
-              color={hasLiked ? "red" : "gray"}
-            />
-          </Pressable>
+        <TouchableOpacity
+          onPress={likePost}
+          className="flex-row items-center gap-2"
+        >
+          <AntDesign
+            name={hasLiked ? "heart" : "hearto"}
+            size={20}
+            color={hasLiked ? "red" : "black"}
+          />
           {likes.length > 0 && (
             <View>
               <Text>{formatNumber(likes.length)}</Text>

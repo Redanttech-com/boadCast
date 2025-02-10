@@ -144,14 +144,14 @@ const Feed = () => {
     setLoadingComments(true); // Show loader when sending comment
     try {
       await addDoc(collection(db, "national", postID, "comments"), {
-        id: user.id,
+        uid: user.id,
         comment: input.trim(),
         timestamp: serverTimestamp(),
         email: user?.primaryEmailAddress?.emailAddress,
         name: userData.name,
         lastname: userData.lastname,
         nickname: userData.nickname,
-        userImg: userData.userImg,
+        userImg: userData.userImg || null,
       });
       setInput("");
       // Clear the input
@@ -195,7 +195,7 @@ const Feed = () => {
             isPaused={!visiblePostIds.has(item.id)}
           />
         )}
-        estimatedItemSize={100}
+        initialNumToRender={10}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
           <View

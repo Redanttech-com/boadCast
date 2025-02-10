@@ -168,7 +168,7 @@ const Feed = () => {
           name: userData.name,
           lastname: userData.lastname,
           nickname: userData.nickname,
-          userImg: userData.userImg,
+          userImg: userData.userImg || null,
         }
       );
       setInput("");
@@ -205,7 +205,7 @@ const Feed = () => {
       <FlatList
         data={posts}
         keyExtractor={(item) => item.id}
-        estimatedItemSize={100}
+        initialNumToRender={10}
         renderItem={({ item }) => (
           <Posts
             post={item}

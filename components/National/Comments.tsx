@@ -33,9 +33,11 @@ import {
   getDoc,
   getDocs,
   onSnapshot,
+  query,
   serverTimestamp,
   setDoc,
   updateDoc,
+  where,
 } from "firebase/firestore";
 import { useUserInfo } from "@/components/UserContext";
 import { router } from "expo-router";
@@ -49,12 +51,28 @@ import { useUser } from "@clerk/clerk-expo";
 import { Avatar } from "react-native-elements";
 
 const Comments = ({ id, comment }) => {
-  const { userDetails, formatNumber } = useUserInfo();
+  const { formatNumber } = useUserInfo();
   const [hasLiked, setHasLiked] = useState(false);
   const [likes, setLikes] = useState([]);
   const { user } = useUser();
   const [postID, setPostID] = useRecoilState(modalComment);
   const [loading, setLoading] = useState(false);
+
+  // like
+
+  const [userData, setUserData] = useState(null);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (!user?.id) return;
+      const q = query(collection(db, "userPosts"), where("uid", "==", user.id));
+      const querySnapshot = await getDocs(q);
+      if (!querySnapshot.empty) {
+        setUserData(querySnapshot.docs[0].data());
+      }
+    };
+    fetchUserData();
+  }, [user]);
 
   useEffect(() => {
     try {
@@ -74,25 +92,25 @@ const Comments = ({ id, comment }) => {
 
   useEffect(() => {
     if (user) {
-      setHasLiked(likes.findIndex((like) => like.uid === user.id) !== -1);
+      setHasLiked(likes.findIndex((like) => like.id === user.id) !== -1);
     }
   }, [likes]);
 
   async function likePost() {
     try {
-      // Check if userDetails, userDetails.uid, and id exist
-      if (userDetails && userDetails?.uid && id && postID) {
+      // Check if userData, userData.uid, and id exist
+      if (user?.id && id && postID) {
         if (hasLiked) {
           // Unlike the post
           await deleteDoc(
-            doc(db, "national", postID, "comments", id, "likes", userDetails.uid)
+            doc(db, "national", postID, "comments", id, "likes", user.id)
           );
         } else {
           // Like the post
           await setDoc(
-            doc(db, "national", postID, "comments", id, "likes", userDetails.uid),
+            doc(db, "national", postID, "comments", id, "likes", user.id),
             {
-              username: userDetails.nickname || "Anonymous",
+              id: user.id || "Anonymous",
             }
           );
         }
@@ -105,91 +123,97 @@ const Comments = ({ id, comment }) => {
     }
   }
 
- async function deleteComment() {
-   if (!id) {
-     console.log("No post document reference available to delete.");
-     return;
-   }
+  async function deleteComment() {
+    if (!id) {
+      console.log("No post document reference available to delete.");
+      return;
+    }
 
-   Alert.alert(
-     "Delete Comment",
-     "Are you sure you want to delete this comment? This action cannot be undone.",
-     [
-       {
-         text: "Cancel",
-         style: "cancel",
-       },
-       {
-         text: "Delete",
-         style: "destructive",
-         onPress: async () => {
-           setLoading(true); // Set loading *inside* onPress to avoid early state change
+    Alert.alert(
+      "Delete Comment",
+      "Are you sure you want to delete this comment? This action cannot be undone.",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            setLoading(true); // Set loading *inside* onPress to avoid early state change
 
-           try {
-             // Delete all likes associated with the comment
-             const likesCollectionRef = collection(
-               db,
-               "national",
-               postID,
-               "comments",
-               id,
-               "likes"
-             );
-             const likesSnapshot = await getDocs(likesCollectionRef);
-             const deleteLikesPromises = likesSnapshot.docs.map((likeDoc) =>
-               deleteDoc(likeDoc.ref)
-             );
-             await Promise.all(deleteLikesPromises);
+            try {
+              // Delete all likes associated with the comment
+              const likesCollectionRef = collection(
+                db,
+                "national",
+                postID,
+                "comments",
+                id,
+                "likes"
+              );
+              const likesSnapshot = await getDocs(likesCollectionRef);
+              const deleteLikesPromises = likesSnapshot.docs.map((likeDoc) =>
+                deleteDoc(likeDoc.ref)
+              );
+              await Promise.all(deleteLikesPromises);
 
-             // Delete the comment document
-             await deleteDoc(doc(db, "national", postID, "comments", id));
-           } catch (error) {
-             console.error("Error deleting comment:", error);
-           } finally {
-             setLoading(false); // Ensure loading is disabled after deletion (or error)
-           }
-         },
-       },
-     ],
-     { cancelable: true }
-   );
- }
-
-const getColorFromName = (name) => {
-  if (!name) return "#ccc"; // Default color if no name exists
-
-  // Generate a hash number from the name
-  let hash = 0;
-  for (let i = 0; i < name.length; i++) {
-    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+              // Delete the comment document
+              await deleteDoc(doc(db, "national", postID, "comments", id));
+            } catch (error) {
+              console.error("Error deleting comment:", error);
+            } finally {
+              setLoading(false); // Ensure loading is disabled after deletion (or error)
+            }
+          },
+        },
+      ],
+      { cancelable: true }
+    );
   }
 
-  // Predefined colors for better visuals
-  const colors = [
-    "#FF5733",
-    "#33FF57",
-    "#3357FF",
-    "#F1C40F",
-    "#8E44AD",
-    "#E74C3C",
-    "#2ECC71",
-    "#1ABC9C",
-    "#3498DB",
-  ];
+  const getColorFromName = (name) => {
+    if (!name) return "#ccc"; // Default color if no name exists
 
-  // Pick a color consistently based on the hash value
-  return colors[Math.abs(hash) % colors.length];
-};
+    // Generate a hash number from the name
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+      hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
+
+    // Predefined colors for better visuals
+    const colors = [
+      "#FF5733",
+      "#33FF57",
+      "#3357FF",
+      "#F1C40F",
+      "#8E44AD",
+      "#E74C3C",
+      "#2ECC71",
+      "#1ABC9C",
+      "#3498DB",
+    ];
+
+    // Pick a color consistently based on the hash value
+    return colors[Math.abs(hash) % colors.length];
+  };
 
   return (
-    <View key={id} className="p-3 gap-3">
+    <View key={id} className="p-3 gap-1 border-b border-gray-200">
       <View className="flex-row items-center gap-3">
         <Avatar
           size={40}
           rounded
-          source={comment?.data()?.userImg ? { uri: comment?.data()?.userImg } : null}
-          title={comment?.data()?.name ? comment?.data()?.name[0].toUpperCase() : "?"}
-          containerStyle={{ backgroundColor: getColorFromName(comment?.data()?.name) }} // Consistent color per user
+          source={
+            comment?.data()?.userImg ? { uri: comment?.data()?.userImg } : null
+          }
+          title={
+            comment?.data()?.name ? comment?.data()?.name[0].toUpperCase() : "?"
+          }
+          containerStyle={{
+            backgroundColor: getColorFromName(comment?.data()?.name),
+          }} // Consistent color per user
         />
 
         <View className="flex-row gap-2 items-center ">
@@ -239,20 +263,21 @@ const getColorFromName = (name) => {
               <Feather name="trash-2" size={20} color="black" />
             </Pressable>
           )}
-          <View className="flex-col h-14 items-center">
-            <Pressable onPress={likePost} className="p-3 ">
-              <AntDesign
-                name="hearto"
-                size={20}
-                color={hasLiked ? "red" : "gray"}
-              />
-            </Pressable>
+          <TouchableOpacity
+            onPress={likePost}
+            className="flex-row items-center gap-2 min-w-14 max-w-14"
+          >
+            <AntDesign
+              name={hasLiked ? "heart" : "hearto"}
+              size={20}
+              color={hasLiked ? "red" : "black"}
+            />
             {likes.length > 0 && (
               <View>
                 <Text>{formatNumber(likes.length)}</Text>
               </View>
             )}
-          </View>
+          </TouchableOpacity>
         </View>
       </View>
 

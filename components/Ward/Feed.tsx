@@ -56,7 +56,6 @@ const Feed = () => {
   const snapPoints = useMemo(() => ["100%", "100%"], []);
   const openBottomSheet = useCallback(() => setIsBottomSheetOpen(true), []);
   const [userData, setUserData] = useState(null);
-  
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -69,7 +68,6 @@ const Feed = () => {
     };
     fetchUserData();
   }, [user]);
-
 
   // Fetch posts
   useEffect(() => {
@@ -152,10 +150,10 @@ const Feed = () => {
           comment: input.trim(),
           timestamp: serverTimestamp(),
           email: user?.primaryEmailAddress?.emailAddress,
-          name: userData?.name,
-          lastname: userData?.lastname,
-          nickname: userData?.nickname,
-          userImg: userData?.userImg,
+          name: userData.name,
+          lastname: userData.lastname,
+          nickname: userData.nickname,
+          userImg: userData.userImg || null,
         }
       );
       setInput("");
@@ -192,7 +190,7 @@ const Feed = () => {
       <FlatList
         data={posts}
         keyExtractor={(item) => item.id}
-        estimatedItemSize={100}
+        initialNumToRender={10}
         renderItem={({ item }) => (
           <Posts
             post={item}

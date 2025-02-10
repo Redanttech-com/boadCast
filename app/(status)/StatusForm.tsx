@@ -30,13 +30,9 @@ import { useUser } from "@clerk/clerk-expo";
 import { StatusBar } from "expo-status-bar";
 
 const Status = () => {
-  // const { userData } = useUserInfo();
-  // const [selectData, setSelectData] = useState(null);
+
   const [loading, setLoading] = useState(false);
-  // const [cost, setCost] = useState("");
-  // const [productname, setProductName] = useState("");
   const [image, setImage] = useState<string | null>(null);
-  // const [description, setDescription] = useState("");
   const [input, setInput] = useState("");
 
   const [userData, setUserData] = useState(null);
@@ -78,7 +74,7 @@ const Status = () => {
         input: input,
         timestamp: serverTimestamp(),
         name: userData?.name,
-        userImg: userData?.userImg,
+        userImg: userData?.userImg || null,
         lastname: userData?.lastname,
         nickname: userData?.nickname,
       });
