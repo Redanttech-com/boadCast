@@ -19,7 +19,7 @@ const NewsScreen = () => {
     queryFn: FetchKenyanNews,
   });
 
-  // console.log(NewsData)
+  console.log(NewsData)
 
   const renderItem = ({ item, index }) => {
     return (
@@ -28,9 +28,9 @@ const NewsScreen = () => {
         key={index}
         onPress={() =>
           router.push(
-            `/(news)/newsdetails?id=${
-              item.id
-            }&url=${encodeURIComponent(item.url)}`
+            `/(news)/newsdetails?id=${item.id}&url=${encodeURIComponent(
+              item.url
+            )}`
           )
         }
       >
@@ -46,19 +46,21 @@ const NewsScreen = () => {
             />
           </View>
           <View className="w-[90%] pl-4 justify-center space-y-1">
-            <Text className="text-xs font-bold text-gray-900">
+            <Text className="text-xs font-bold text-gray-900 dark:text-white">
               {item.description?.length > 20
                 ? item.description.slice(0, 20) + "..."
                 : item.description}
             </Text>
 
-            <Text className="text-neutral-800 capitalize max-w-[90%]">
+            <Text className="text-neutral-800 capitalize max-w-[90%] dark:text-white">
               {item.title?.length > 50
                 ? item.title.slice(0, 50) + "..."
                 : item.title}
             </Text>
 
-            <Text className="text-xs text-gray-700">{item.publisedAt}</Text>
+            <Text className="text-xs text-gray-700 dark:text-white">
+              {item.publisedAt}
+            </Text>
           </View>
 
           <View className="w-[10%] justify-center"></View>
@@ -70,10 +72,10 @@ const NewsScreen = () => {
   // console.log({ NewsData });
 
   return (
-    <SafeAreaView className="space-x-2 bg-white  flex-1">
+    <SafeAreaView className="space-x-2 bg-white dark:bg-gray-800  flex-1">
       <View className="w-full flex-row justify-between items-center px-4 pb-4">
         <View className="w-3/4 flex-row space-x-2 items-center">
-          <Text className="font-bold text-3xl">Trending News</Text>
+          <Text className="font-bold text-3xl dark:text-white">Trending News</Text>
         </View>
       </View>
 

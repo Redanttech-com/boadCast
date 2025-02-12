@@ -45,6 +45,7 @@ import { Video } from "expo-av";
 import { modalComment } from "@/atoms/modalAtom";
 import moment from "moment";
 import { Avatar } from "react-native-elements";
+import { useColorScheme } from "@/hooks/useColorScheme.web";
 
 const Posts = ({ post, id, openBottomSheet, isPaused }) => {
   const { formatNumber } = useUserInfo();
@@ -61,6 +62,7 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
   // like
 
   const [userData, setUserData] = useState(null);
+  const colorScheme = useColorScheme();
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -104,24 +106,23 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
   }, [likes]);
 
   async function likePost() {
-    
-      // Check if userData, userData.uid, and id exist
-      if (userData && user?.id && id) {
-        if (hasLiked) {
-          // Unlike the post
-          await deleteDoc(doc(db, "national", id, "likes", user.id));
-          console.log("Post unliked successfully.");
-        } else {
-          // Like the post
-          await setDoc(doc(db, "national", id, "likes", user.id), {
-            id: user.id || "Anonymous",
-          });
-          console.log("Post liked successfully.");
-        }
+    // Check if userData, userData.uid, and id exist
+    if (userData && user?.id && id) {
+      if (hasLiked) {
+        // Unlike the post
+        await deleteDoc(doc(db, "national", id, "likes", user.id));
+        console.log("Post unliked successfully.");
       } else {
-        // Redirect to the authentication page if any required data is missing
-        router.push("/(auth)");
+        // Like the post
+        await setDoc(doc(db, "national", id, "likes", user.id), {
+          id: user.id || "Anonymous",
+        });
+        console.log("Post liked successfully.");
       }
+    } else {
+      // Redirect to the authentication page if any required data is missing
+      router.push("/(auth)");
+    }
   }
 
   // Repost
@@ -382,7 +383,7 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
   };
 
   return (
-    <View className="mb-1 rounded-md  border-gray-200  shadow-md bg-white p-2">
+    <View className="mb-1 rounded-md  border-gray-200  shadow-md bg-white p-2 dark:bg-gray-800">
       <View className="flex-row items-center gap-1">
         <Avatar
           size={40}
@@ -393,7 +394,7 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
         />
         <View className="flex-row gap-2 items-center ">
           <Text
-            className="text-md max-w-20 min-w-12 font-bold  "
+            className="text-md max-w-20 min-w-12 font-bold dark:text-white  "
             numberOfLines={1}
             ellipsizeMode="tail"
           >
@@ -409,21 +410,21 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
           </Text> */}
 
           <Text
-            className="text-md max-w-20 min-w-12 text-gray-400"
+            className="text-md max-w-20 min-w-12 text-gray-400 dark:text-white "
             numberOfLines={1}
             ellipsizeMode="tail"
           >
             @{post?.nickname}
           </Text>
 
-          <View className="flex-row items-center gap-2  bg-gray-100 rounded-full p-2">
+          <View className="flex-row items-center gap-2  bg-gray-100 rounded-full p-2 dark:bg-gray-600">
             <MaterialCommunityIcons
               name="clock-check-outline"
               size={14}
               color="gray"
             />
             <Text
-              className="text-gray-400 max-w-18 min-w-18"
+              className="text-gray-400 max-w-18 min-w-18 "
               numberOfLines={1}
               ellipsizeMode="tail"
             >
@@ -434,20 +435,28 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
         <View className="flex-row items-center ml-auto gap-2">
           {user?.id === post?.uid && (
             <Pressable onPress={deletePost}>
-              <Feather name="trash-2" size={20} color="black" />
+              <Feather
+                name="trash-2"
+                size={20}
+                color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
+              />
             </Pressable>
           )}
 
           <TouchableOpacity>
-            <Feather name="more-horizontal" size={20} color="black" />
+            <Feather
+              name="more-horizontal"
+              size={20}
+              color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
+            />
           </TouchableOpacity>
         </View>
       </View>
 
       {post?.citeInput ? (
         <View className="gap-3">
-          <Text className="ml-12">{post?.citeInput}</Text>
-          <View className="bg-gray-100 ml-20 gap-3 p-2 rounded-md">
+          <Text className="ml-12 dark:text-white">{post?.citeInput}</Text>
+          <View className="bg-gray-100 ml-20 gap-3 p-2 rounded-md dark:bg-gray-600">
             <View className="flex-row items-center gap-1">
               <Avatar
                 size={40}
@@ -460,21 +469,21 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
               />
               <View className="flex-row  w-full mx-auto">
                 <Text
-                  className="text-gray-800  font-bold max-w-24 min-w-12 "
+                  className="text-gray-800  font-bold max-w-24 min-w-12 dark:text-white"
                   numberOfLines={1}
                   ellipsizeMode="tail"
                 >
                   {post?.fromUser}
                 </Text>
                 <Text
-                  className="text-gray-800 font-bold max-w-24 min-w-12"
+                  className="text-gray-800 font-bold max-w-24 min-w-12 dark:text-white"
                   numberOfLines={1}
                   ellipsizeMode="tail"
                 >
                   {post?.fromlastname}
                 </Text>
                 <Text
-                  className="text-gray-600 max-w-24 min-w-12 "
+                  className="text-gray-600 max-w-24 min-w-12 dark:text-white "
                   numberOfLines={1}
                   ellipsizeMode="tail"
                 >
@@ -484,16 +493,16 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
               </View>
             </View>
             <View className="w-full ">
-              <Text className="ml-12">{post?.text}</Text>
+              <Text className="ml-12 dark:text-white ">{post?.text}</Text>
             </View>
           </View>
         </View>
       ) : (
         <>
           <View className="ml-12 mb-4">
-            <Text className="text-md">{post?.text}</Text>
+            <Text className="text-md dark:text-white ">{post?.text}</Text>
             {post?.fromNickname && (
-              <Text className="text-gray-500">
+              <Text className="text-gray-500 ">
                 Reposted by @{post?.fromNickname}
               </Text>
             )}
@@ -541,10 +550,10 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
             <Ionicons
               name="chatbubble-ellipses-outline"
               size={24}
-              color="black"
+              color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
             />
             <View>
-              <Text>
+              <Text className="dark:text-white">
                 {comments.length > 0 ? formatNumber(comments.length) : ""}
               </Text>
             </View>
@@ -556,7 +565,11 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
             <ActivityIndicator color="blue" />
           ) : (
             <Pressable onPress={repost} className="p-3">
-              <Feather name="corner-up-left" size={20} color="black" />
+              <Feather
+                name="corner-up-left"
+                size={20}
+                color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
+              />
             </Pressable>
           )}
         </View>
@@ -564,22 +577,30 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
         <Popover
           from={
             <TouchableOpacity className="p-3">
-              <Feather name="edit" size={20} color="black" />
+              <Feather
+                name="edit"
+                size={20}
+                color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
+              />
             </TouchableOpacity>
           }
         >
-          <View className="p-4  min-w-96 bg-white rounded-md shadow-md">
+          <View className="p-4  min-w-96 bg-white dark:bg-slate-900 rounded-md shadow-md">
             <TextInput
               onChangeText={setCiteInput}
               value={citeInput}
               placeholder="Cite this post..."
+              placeholderTextColor={
+                colorScheme === "dark" ? "#FFFFFF" : "#808080"
+              }
               className="w-full p-2 border border-gray-300 rounded-md   min-w-96"
+              style={{ color: colorScheme === "dark" ? "#FFFFFF" : "#000000" }}
             />
             <Pressable
               className="mt-4 p-3 bg-blue-700 rounded-md w-full flex items-center   min-w-96"
               onPress={cite}
             >
-              <Text className="text-white font-semibold">
+              <Text className="text-white font-semibold dark:text-white">
                 {loading ? "Citing..." : "Cite"}
               </Text>
             </Pressable>
@@ -593,20 +614,32 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
           <AntDesign
             name={hasLiked ? "heart" : "hearto"}
             size={20}
-            color={hasLiked ? "red" : "black"}
+            color={
+              hasLiked ? "red" : colorScheme === "dark" ? "white" : "black"
+            }
           />
           {likes.length > 0 && (
             <View>
-              <Text>{formatNumber(likes.length)}</Text>
+              <Text className="dark:text-white">
+                {formatNumber(likes.length)}
+              </Text>
             </View>
           )}
         </TouchableOpacity>
         <View className="flex-row items-center gap-2">
-          <Feather name="eye" size={20} color="black" />
+          <Feather
+            name="eye"
+            size={20}
+            color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
+          />
           <Text>{formatNumber(post?.views)}</Text>
         </View>
         <TouchableOpacity className="p-3">
-          <AntDesign name="sharealt" size={20} color="black" />
+          <AntDesign
+            name="sharealt"
+            size={20}
+            color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
+          />
         </TouchableOpacity>
       </View>
     </View>

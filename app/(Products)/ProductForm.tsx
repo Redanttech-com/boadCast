@@ -153,7 +153,7 @@ const ProductForm = () => {
             <Text className="text-gray-600 m-3">Product Name</Text>
             <TextInput
               placeholder="Product Name"
-              className="border border-gray-300 rounded-md p-3"
+              className="border border-gray-300 rounded-md p-3 outline-none"
               value={productname}
               onChangeText={setProductName}
             />

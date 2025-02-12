@@ -11,15 +11,17 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: "#031a8c",
+        tabBarActiveTintColor: colorScheme === "dark" ? "#fff" : "#1F2937",
         headerShown: false,
-        tabBarStyle: Platform.select({
-          ios: {
-            // Use a transparent background on iOS to show the blur effect
-            position: "absolute",
-          },
-          default: {},
-        }),
+        tabBarStyle: {
+          backgroundColor: colorScheme === "dark" ? "#1F2937" : "#fff",
+          ...Platform.select({
+            ios: {
+              position: "absolute",
+            },
+            default: {},
+          }),
+        },
       }}
     >
       <Tabs.Screen
@@ -54,7 +56,7 @@ export default function TabLayout() {
         options={{
           title: "Ward",
           tabBarIcon: ({ color }) => (
-            <FontAwesome5 name="map-pin" size={24} color={color}/>
+            <FontAwesome5 name="map-pin" size={24} color={color} />
           ),
         }}
       />

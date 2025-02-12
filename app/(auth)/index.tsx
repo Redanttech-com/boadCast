@@ -20,6 +20,7 @@ import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "@/firebase";
 import { StatusBar } from "expo-status-bar";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { useColorScheme } from "@/hooks/useColorScheme.web";
 
 export const useWarmUpBrowser = () => {
   React.useEffect(() => {
@@ -43,6 +44,7 @@ export default function GooglePage() {
   const [pendingVerification, setPendingVerification] = React.useState(false);
 
   const { user } = useUser();
+  const colorScheme = useColorScheme();
 
   useWarmUpBrowser();
 
@@ -202,7 +204,7 @@ export default function GooglePage() {
   };
 
   return (
-    <View className="flex-1 m-2 ">
+    <View className="flex-1 p-2 dark:bg-gray-800">
       <StatusBar style="auto" />
 
       <View className="flex-1 justify-center gap-3 items-center">
@@ -213,20 +215,20 @@ export default function GooglePage() {
           />
           <Animated.View
             style={{ transform: [{ scale: scale2 }] }}
-            className="border-gray-900 h-32 w-32 rounded-full border absolute"
+            className="border-gray-900 h-32 w-32 rounded-full border absolute dark:border-white"
           />
           <Animated.View
             style={{ transform: [{ scale: scale3 }] }}
             className="border-red-600 h-28 w-28 rounded-full border absolute"
           />
           <View>
-            <Text className="text-base">KENYA</Text>
+            <Text className="text-base dark:text-white">KENYA</Text>
           </View>
         </View>
         {/*  */}
 
         <View className="flex-row items-center mt-20">
-          <Text className="font-bold text-2xl items-center">
+          <Text className="font-bold text-2xl items-center dark:text-white">
             Sign Up to Broadcast
           </Text>
           <Image
@@ -241,8 +243,11 @@ export default function GooglePage() {
               autoCapitalize="none"
               value={emailAddress}
               placeholder="Enter email"
+              placeholderTextColor={
+                colorScheme === "dark" ? "#FFFFFF" : "#808080"
+              } // Light gray for light mode, white for dark mode
               onChangeText={(email) => setEmailAddress(email)}
-              className=" flex-1 h-full"
+              className=" flex-1 h-full dark:text-white"
             />
           </View>
 
@@ -253,7 +258,10 @@ export default function GooglePage() {
               placeholder="Enter password"
               secureTextEntry={true}
               onChangeText={(password) => setPassword(password)}
-              className=" flex-1 h-full"
+              placeholderTextColor={
+                colorScheme === "dark" ? "#FFFFFF" : "#808080"
+              } // Light gray for light mode, white for dark mode
+              className=" flex-1 h-full dark:text-white"
             />
           </View>
 
@@ -265,7 +273,7 @@ export default function GooglePage() {
           </Pressable>
         </View>
         <View className="mt-4">
-          <Text className="text-gray-500">OR</Text>
+          <Text className="text-gray-500 dark:text-white">OR</Text>
         </View>
 
         <View className="flex-col mt-4 gap-6 w-full">
@@ -278,7 +286,7 @@ export default function GooglePage() {
                 source={require("@/assets/images/google.png")}
                 className="rounded-full h-8 w-8"
               />
-              <Text>Sign in with Google</Text>
+              <Text className="dark:text-white">Sign in with Google</Text>
             </Pressable>
           </View>
           <View>
@@ -290,7 +298,7 @@ export default function GooglePage() {
                 source={require("@/assets/images/fbb.png")}
                 className="rounded-full h-8 w-8"
               />
-              <Text>Sign in with Facebook</Text>
+              <Text className="dark:text-white">Sign in with Facebook</Text>
             </Pressable>
           </View>
           <View>
@@ -302,7 +310,7 @@ export default function GooglePage() {
                 source={require("@/assets/images/apple.png")}
                 className="rounded-full h-12 w-12"
               />
-              <Text>Sign in with Apple</Text>
+              <Text className="dark:text-white">Sign in with Apple</Text>
             </Pressable>
           </View>
         </View>

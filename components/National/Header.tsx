@@ -7,7 +7,7 @@ import {
   ActivityIndicator,
   Pressable,
   Modal,
-  Alert,
+  Alert
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import {
@@ -20,6 +20,7 @@ import {
   where,
   doc,
 } from "firebase/firestore";
+import { useColorScheme } from "@/hooks/useColorScheme";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { db, storage } from "@/firebase";
 import { useUser } from "@clerk/clerk-expo";
@@ -38,7 +39,8 @@ const Header = () => {
   const [selectedLevel, setSelectedLevel] = useState("");
   const { user } = useUser();
   const [userData, setUserData] = useState(null);
-
+ const colorScheme = useColorScheme();
+ 
   useEffect(() => {
     const fetchUserData = async () => {
       if (!user?.id) return;
@@ -173,26 +175,30 @@ const Header = () => {
     return colors[Math.abs(hash) % colors.length];
   };
 
+ 
+
   return (
-    <View className="shadow-md p-4">
-      <StatusBar style="auto" />
+    <View className="shadow-md p-4  dark:bg-gray-800">
       <View className="flex-row items-center justify-between">
-        <Text className="font-extrabold text-3xl">National</Text>
+        <Text className="font-extrabold text-3xl dark:text-white">
+          National
+        </Text>
         <Avatar
           size={40}
           rounded
           source={userData?.userImg ? { uri: userData?.userImg } : null}
-          title={userData?.name ? userData?.name[0].toUpperCase() : "?"}
+          title={userData?.name && userData?.name[0].toUpperCase()}
           containerStyle={{ backgroundColor: getColorFromName(userData?.name) }} // Consistent color per user
         />
       </View>
       <View className="mt-3 mb-3">
         <StatusFeed />
       </View>
-      
+
       <View className="w-full flex-row items-center mt-4">
         <TextInput
           placeholder="What's on your mind?"
+          placeholderTextColor={colorScheme === "dark" ? "#FFFFFF" : "#808080"} // Light gray for light mode, white for dark mode
           value={input}
           onChangeText={setInput}
           multiline
@@ -202,14 +208,20 @@ const Header = () => {
             padding: 8,
             borderBottomWidth: 1,
             borderBottomColor: "gray",
+            color: colorScheme === "dark" ? "#FFFFFF" : "#000000", // Text color
           }}
         />
-        <Pressable
-          onPress={sendNational}
-          className="ml-2 bg-blue-500 p-2 rounded-full"
-        >
-          <Text className="text-white">Cast</Text>
-        </Pressable>
+        {loading ? (
+          <ActivityIndicator size="small" color="#0000ff" />
+        ) : (
+          <Pressable
+            onPress={sendNational}
+            className="ml-2 bg-blue-500 p-2 rounded-full"
+          >
+            <Text className="text-white">Cast</Text>
+          </Pressable>
+        )}
+        
       </View>
       {media?.uri &&
         (media.type === "video" ? (
@@ -232,11 +244,11 @@ const Header = () => {
       <View className="flex-row mt-4 gap-2 justify-between w-full items-center">
         <View className="flex-row  justify-center gap-3">
           <Pressable onPress={() => pickMedia("Images")}>
-            <Ionicons name="image-outline" size={24} color="black" />
+            <Ionicons name="image-outline" size={24}  color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}/>
           </Pressable>
 
           <Pressable onPress={() => pickMedia("Videos")}>
-            <Ionicons name="videocam-outline" size={24} color="black" />
+            <Ionicons name="videocam-outline" size={24}  color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}/>
           </Pressable>
         </View>
 
@@ -286,7 +298,7 @@ const Header = () => {
                 onPress={handleConfirm}
                 className="flex-1 bg-blue-500 py-2 rounded-lg ml-2"
               >
-                <Text className="text-center text-white font-semibold">
+                <Text className="text-center text-white font-semibold ">
                   Confirm
                 </Text>
               </Pressable>

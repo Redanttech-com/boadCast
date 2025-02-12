@@ -29,6 +29,7 @@ import { useUserInfo } from "@/components/UserContext";
 import * as ImagePicker from "expo-image-picker";
 import { Video } from "expo-av";
 import { Avatar } from "react-native-elements";
+import { useColorScheme } from "@/hooks/useColorScheme.web";
 
 const Header = () => {
   const [input, setInput] = useState("");
@@ -36,6 +37,7 @@ const Header = () => {
   const [media, setMedia] = useState({ uri: null, type: null });
   const [userData, setUserData] = useState(null);
   const { user } = useUser();
+  const colorScheme = useColorScheme();
 
   const pickMedia = useCallback(async (type: "Images" | "Videos") => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -119,35 +121,37 @@ const Header = () => {
       setLoading(false);
     }
   };
-const getColorFromName = (name) => {
-  if (!name) return "#ccc"; // Default color if no name exists
+  const getColorFromName = (name) => {
+    if (!name) return "#ccc"; // Default color if no name exists
 
-  // Generate a hash number from the name
-  let hash = 0;
-  for (let i = 0; i < name.length; i++) {
-    hash = name.charCodeAt(i) + ((hash << 5) - hash);
-  }
+    // Generate a hash number from the name
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+      hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
 
-  // Predefined colors for better visuals
-  const colors = [
-    "#FF5733",
-    "#33FF57",
-    "#3357FF",
-    "#F1C40F",
-    "#8E44AD",
-    "#E74C3C",
-    "#2ECC71",
-    "#1ABC9C",
-    "#3498DB",
-  ];
+    // Predefined colors for better visuals
+    const colors = [
+      "#FF5733",
+      "#33FF57",
+      "#3357FF",
+      "#F1C40F",
+      "#8E44AD",
+      "#E74C3C",
+      "#2ECC71",
+      "#1ABC9C",
+      "#3498DB",
+    ];
 
-  // Pick a color consistently based on the hash value
-  return colors[Math.abs(hash) % colors.length];
-};
+    // Pick a color consistently based on the hash value
+    return colors[Math.abs(hash) % colors.length];
+  };
   return (
     <View className="shadow-md p-4">
       <View className="flex-row items-center justify-between">
-        <Text className="font-extrabold text-2xl">{userData?.ward} Ward</Text>
+        <Text className="font-extrabold text-2xl dark:text-white">
+          {userData?.ward} Ward
+        </Text>
         <Avatar
           size={40}
           rounded
@@ -157,9 +161,10 @@ const getColorFromName = (name) => {
         />
       </View>
 
-      <View className="flex-row items-center mt-4">
+      <View className="w-full flex-row items-center mt-4">
         <TextInput
           placeholder="What's on your mind?"
+          placeholderTextColor={colorScheme === "dark" ? "#FFFFFF" : "#808080"} // Light gray for light mode, white for dark mode
           value={input}
           onChangeText={setInput}
           multiline
@@ -169,6 +174,7 @@ const getColorFromName = (name) => {
             padding: 8,
             borderBottomWidth: 1,
             borderBottomColor: "gray",
+            color: colorScheme === "dark" ? "#FFFFFF" : "#000000", // Text color
           }}
         />
         {loading ? (
@@ -202,10 +208,18 @@ const getColorFromName = (name) => {
 
       <View className="flex-row mt-4 justify-center gap-3">
         <Pressable onPress={() => pickMedia("Images")}>
-          <Ionicons name="image-outline" size={24} color="black" />
+          <Ionicons
+            name="image-outline"
+            size={24}
+            color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
+          />
         </Pressable>
         <Pressable onPress={() => pickMedia("Videos")}>
-          <Ionicons name="videocam-outline" size={24} color="black" />
+          <Ionicons
+            name="videocam-outline"
+            size={24}
+            color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
+          />
         </Pressable>
       </View>
     </View>

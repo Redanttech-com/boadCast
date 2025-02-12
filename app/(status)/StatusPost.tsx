@@ -65,7 +65,7 @@ const StatusPost = ({ id, post }) => {
         )}
       </Animated.View>
       <Text
-        className="min-w-14 max-w-14 text-sm text-center font-bold"
+        className="min-w-14 max-w-14 text-sm text-center font-bold dark:text-white"
         numberOfLines={1}
         ellipsizeMode="tail"
       >

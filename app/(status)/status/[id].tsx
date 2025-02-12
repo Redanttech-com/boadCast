@@ -110,7 +110,7 @@ export default function StatusPage() {
       setCurrentIndex((prev) => prev + 1);
       setProgress(0);
     } else {
-      router.push("/(drawer)/(tabs)");
+       router.push("/(drawer)/(tabs)");
     }
   };
 

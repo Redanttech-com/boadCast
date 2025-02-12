@@ -198,7 +198,10 @@ const Comments = ({ id, comment }) => {
   };
 
   return (
-    <View key={id} className="p-3 gap-1 border-b border-gray-200">
+    <View
+      key={id}
+      className="p-3 gap-1 border-b border-gray-200 dark:text-white"
+    >
       <View className="flex-row items-center gap-3">
         <Avatar
           size={40}
@@ -268,11 +271,15 @@ const Comments = ({ id, comment }) => {
             <AntDesign
               name={hasLiked ? "heart" : "hearto"}
               size={20}
-              color={hasLiked ? "red" : "black"}
+              color={
+                hasLiked ? "red" : colorScheme === "dark" ? "white" : "black"
+              }
             />
             {likes.length > 0 && (
               <View>
-                <Text>{formatNumber(likes.length)}</Text>
+                <Text className="dark:text-white">
+                  {formatNumber(likes.length)}
+                </Text>
               </View>
             )}
           </TouchableOpacity>

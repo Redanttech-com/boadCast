@@ -237,7 +237,7 @@ const Feed = () => {
         </Pressable> */}
         </View>
 
-        <View className="flex-1 bg-gray-50  z-50">
+        <View className="flex-1 bg-gray-50  z-50 dark:bg-white">
           {loadingComments ? (
             <View className="w-full h-full justify-center items-center flex-1">
               <ActivityIndicator size="large" color="#0000ff" />

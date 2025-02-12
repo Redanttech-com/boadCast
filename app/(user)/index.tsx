@@ -275,11 +275,11 @@ const Form = () => {
   }, [nName]); // ✅ Only re-run when nickname input changes
 
   return (
-    <SafeAreaView className="flex-1 m-5 justify-center">
+    <SafeAreaView className="flex-1 m-5 justify-center dark:bg-gray-800">
       <View className="h-32 mb-4">
         <TypeWriter
           typing={1}
-          className="m-5 text-2xl font-bold"
+          className="m-5 text-2xl font-bold dark:text-white"
           numberOfLines={2}
         >
           'Welcome to BroadCast', 'In pursuit of a perfect nation"
@@ -287,7 +287,7 @@ const Form = () => {
       </View>
 
       <ScrollView>
-        <View className="flex-row items-center bg-white rounded-full border border-gray-300 px-4 py-4 mb-3">
+        <View className="flex-row dark:bg-gray-800 items-center bg-white rounded-full border border-gray-300 px-4 py-4 mb-3">
           <MaterialIcons
             name="person"
             size={24}
@@ -298,13 +298,13 @@ const Form = () => {
             value={name}
             onChangeText={setName}
             placeholder="Enter Name"
-            className="flex-1 text-base"
+            className="flex-1 text-base dark:bg-gray-800"
           />
         </View>
         {error && <Text className="text-red-500 mb-3">{error}</Text>}
 
         {/* Last Name Input */}
-        <View className="flex-row items-center bg-white rounded-full border border-gray-300 px-4 py-4 mb-3">
+        <View className="flex-row dark:bg-gray-800 items-center bg-white rounded-full border border-gray-300 px-4 py-4 mb-3">
           <MaterialIcons
             name="person-outline"
             size={24}
@@ -321,7 +321,7 @@ const Form = () => {
         {error && <Text className="text-red-500 mb-3">{error}</Text>}
 
         {/* Nick Name Input */}
-        <View className="flex-row items-center bg-white rounded-full border border-gray-300 px-4 py-4 mb-3">
+        <View className="flex-row dark:bg-gray-800 items-center bg-white rounded-full border border-gray-300 px-4 py-4 mb-3">
           <MaterialIcons
             name="person-pin"
             size={24}

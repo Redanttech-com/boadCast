@@ -67,8 +67,8 @@ const Members = () => {
           className="h-14 w-14 rounded-full border border-red-500 p-[1.5px]"
         />
         <Text>
-          <Text className="font-bold">{item.name}</Text>
-          <Text className="font-bold"> {item.lastname}</Text>
+          <Text className="font-bold dark:text-white">{item.name}</Text>
+          <Text className="font-bold dark:text-white"> {item.lastname}</Text>
           <Text className="text-gray-500"> @{item.nickname}</Text>
         </Text>
       </View>
@@ -105,22 +105,22 @@ const Members = () => {
       showsVerticalScrollIndicator={false}
       ListEmptyComponent={
         <View className="flex-1 items-center justify-center">
-          <Text>No Users</Text>
+          <Text className="dark:text-white">No Users</Text>
         </View>
       }
     />
   );
 
   return (
-    <SafeAreaView className="flex-1 gap-5">
+    <SafeAreaView className="flex-1 gap-5 dark:bg-gray-800">
       {/* Tab Selector */}
-      <View className="flex-row justify-between p-3 px-5 bg-gray-200 items-center">
+      <View className="flex-row justify-between p-3 px-5 bg-gray-200 dark:bg-gray-600 items-center">
         {["county", "constituency", "ward"].map((tab) => (
           <TouchableOpacity key={tab} onPress={() => setActiveTab(tab)}>
             <Text
               className={`${
                 activeTab === tab
-                  ? "underline font-bold text-2xl text-blue-950"
+                  ? "underline font-bold text-2xl text-blue-950 dark:text-white"
                   : "text-xl"
               }`}
             >

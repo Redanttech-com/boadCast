@@ -16,7 +16,7 @@ import {
 } from "@expo/vector-icons";
 import "@/global.css";
 import { useUser } from "@clerk/clerk-expo";
-import { useUserInfo } from "@/components/UserContext";
+import { useColorScheme } from "@/hooks/useColorScheme";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "@/firebase";
 
@@ -33,7 +33,8 @@ function CustomDrawerContent(props) {
   const [userData, setUserData] = useState(null);
   const { user } = useUser();
   const [loading, setLoading] = useState(true);
-
+  // Detect system theme
+const colorScheme = useColorScheme(); 
   useEffect(() => {
     const fetchUserData = async () => {
       if (!user?.id) return;
@@ -82,7 +83,12 @@ function CustomDrawerContent(props) {
   };
 
   return (
-    <DrawerContentScrollView {...props}>
+    <DrawerContentScrollView
+      {...props}
+      style={{
+        backgroundColor: colorScheme === "dark" ? "#1F2937" : "#FFFFFF",
+      }}
+    >
       <View className="flex-row items-center justify-between mb-3">
         <View className="flex-row items-center">
           <Avatar
@@ -90,11 +96,13 @@ function CustomDrawerContent(props) {
             rounded
             source={userData?.userImg ? { uri: userData?.userImg } : null}
             title={userData?.name ? userData?.name[0].toUpperCase() : "?"}
-            containerStyle={{ backgroundColor: getColorFromName(userData?.name) }} // Consistent color per user
+            containerStyle={{
+              backgroundColor: getColorFromName(userData?.name),
+            }} // Consistent color per user
           />
           <View>
             <Text
-              className="font-extrabold ml-4 text-xl  max-w-28 min-w-28"
+              className="font-extrabold ml-4 text-xl  max-w-28 min-w-28 dark:text-white"
               numberOfLines={1}
             >
               {userData?.name || user?.firstName}
@@ -122,11 +130,18 @@ function CustomDrawerContent(props) {
 
 // Drawer Layout
 export default function DrawerLayout() {
+  const colorScheme = useColorScheme(); 
   return (
     <Drawer
       screenOptions={{
         headerShown: false,
         headerTransparent: true,
+        drawerStyle: {
+          backgroundColor: colorScheme === "dark" ? "#1F2937" : "#FFFFFF", // Dark mode background
+        },
+        drawerActiveTintColor: colorScheme === "dark" ? "#FFFFFF" : "#000000", // Active item text
+        drawerInactiveTintColor: colorScheme === "dark" ? "#D1D5DB" : "#4B5563", // Inactive item text
+      
       }}
       drawerContent={(props) => <CustomDrawerContent {...props} />}
     >

@@ -38,6 +38,8 @@ import { useUser } from "@clerk/clerk-expo";
 import Comments from "./Comments";
 import { router } from "expo-router";
 import Header from "./Header";
+import { StatusBar } from "expo-status-bar";
+import { useColorScheme } from "@/hooks/useColorScheme.web";
 
 const Feed = () => {
   const [loadingPosts, setLoadingPosts] = useState(true);
@@ -53,7 +55,7 @@ const Feed = () => {
   const snapPoints = useMemo(() => ["100%", "100%"], []);
   const openBottomSheet = useCallback(() => setIsBottomSheetOpen(true), []);
   const [userData, setUserData] = useState(null);
-  
+  const colorScheme = useColorScheme();
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -74,10 +76,7 @@ const Feed = () => {
 
     setLoadingPosts(true);
 
-    const q = query(
-      collection(db, "national"),
-      orderBy("timestamp", "desc")
-    );
+    const q = query(collection(db, "national"), orderBy("timestamp", "desc"));
 
     const unsubscribe = onSnapshot(
       q,
@@ -93,7 +92,6 @@ const Feed = () => {
 
     return () => unsubscribe(); // ✅ Cleanup on unmount
   }, []); // ✅ Only runs when `userData.ward` changes
-
 
   // Fetch comments for a specific post
   const fetchComments = useCallback(async () => {
@@ -182,7 +180,8 @@ const Feed = () => {
   }
 
   return (
-    <View className="flex-1 px-2">
+    <View className="flex-1 px-2 dark:bg-gray-800">
+      <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
       <Header />
       <FlatList
         data={posts}
@@ -224,7 +223,7 @@ const Feed = () => {
           }`}
         >
           {/* <View></View> */}
-          <Text className="text-lg font-bold text-center">
+          <Text className="text-lg font-bold text-center ">
             Comments ({formatNumber(comments.length)})
           </Text>
           {/* <Pressable
@@ -234,7 +233,7 @@ const Feed = () => {
         </Pressable> */}
         </View>
 
-        <View className="flex-1 bg-gray-50  z-50">
+        <View className="flex-1 bg-gray-50 dark:bg-gray-800  z-50 dark:text-white">
           {loadingComments ? (
             <View className="w-full h-full justify-center items-center flex-1">
               <ActivityIndicator size="large" color="#0000ff" />
@@ -250,32 +249,28 @@ const Feed = () => {
               showsVerticalScrollIndicator={false}
               ListEmptyComponent={
                 <View className="flex-1 justify-center items-center">
-                  <Text>No comments available</Text>
+                  <Text className="dark:text-white">No comments available</Text>
                 </View>
               }
             />
           )}
         </View>
 
-        <BottomSheetView className="px-4 z-50  bg-white bottom-0 fixed">
-          <View className="flex-row items-center justify-between px-4 border rounded-full border-gray-500 ">
-            {loadingComments ? (
-              <View className="flex-1 justify-center items-center">
-                <ActivityIndicator size={"large"} color={"blue"} />
-              </View>
-            ) : (
-              <>
-                <TextInput
-                  placeholder="Comment"
-                  value={input}
-                  onChangeText={setInput}
-                  className="flex-1 rounded-full p-3 "
-                />
-                <Pressable onPress={sendComment}>
-                  <Ionicons name="send" color="gray" size={24} />
-                </Pressable>
-              </>
-            )}
+        <BottomSheetView className="px-4 z-50  bg-white   fixed dark:bg-gray-800">
+          <View className="flex-row items-center justify-between px-4 mb-1 border rounded-full border-gray-500 ">
+            <TextInput
+              placeholder="Comment"
+              placeholderTextColor={
+                colorScheme === "dark" ? "#FFFFFF" : "#808080"
+              } // Light gray for light mode, white for dark mode
+              value={input}
+              onChangeText={setInput}
+              className="flex-1 rounded-full p-3 dark:text-white "
+            />
+          
+            <Pressable onPress={sendComment}>
+              <Ionicons name="send" color="gray" size={24} />
+            </Pressable>
           </View>
         </BottomSheetView>
       </BottomSheet>

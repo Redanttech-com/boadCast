@@ -67,7 +67,7 @@ const Media = () => {
 
   // ✅ Render each post
   const renderPost = ({ item }) => (
-    <View className="flex-row items-center justify-between m-2 gap-2">
+    <View className="flex-row items-center justify-between m-2 gap-2 dark:bg-gray-600">
       <View className="flex-row items-center gap-3">
         {item.images && (
           <Image
@@ -106,9 +106,9 @@ const Media = () => {
   );
 
   return (
-    <SafeAreaView className="flex-1 gap-5">
+    <SafeAreaView className="flex-1 gap-5 dark:bg-gray-800">
       {/* 🔥 Tab Selector */}
-      <View className="flex-row justify-between p-3 px-5 bg-gray-200 items-center">
+      <View className="flex-row justify-between p-3 px-5 bg-gray-200 dark:bg-gray-700  items-center">
         {["county", "constituency", "ward"].map((tab) => (
           <TouchableOpacity key={tab} onPress={() => setActiveTab(tab)}>
             <Text
