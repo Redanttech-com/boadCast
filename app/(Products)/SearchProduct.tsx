@@ -3,20 +3,16 @@ import React from "react";
 import { router } from "expo-router";
 
 const SearchProduct = ({ id, item, product }) => {
-     const handlePress = () => {
-          console.log("Navigating to product:", id);
-          router.push(`/(Products)/product/${id}`); // ✅ Navigate programmatically
-        };
+  const handlePress = () => {
+    console.log("Navigating to product:", id);
+    router.push(`/(Products)/product/${id}`); // ✅ Navigate programmatically
+  };
 
   return (
     <ScrollView>
       <TouchableOpacity
-      onPress={handlePress}
-        style={{
-          backgroundColor: "#fff",
-          marginVertical: 5,
-          borderRadius: 10,
-        }}
+        onPress={handlePress}
+        className="dark:bg-gray-600 rounded-md"
       >
         <View className="gap-1">
           <Image
@@ -30,10 +26,10 @@ const SearchProduct = ({ id, item, product }) => {
           />
 
           <View className="m-3">
-            <Text style={{ marginTop: 10, fontSize: 16 }}>
+            <Text className="dark:text-white font-bold">
               {item.productname || "Unknown"}
             </Text>
-            <Text style={{ fontSize: 14, color: "#555" }}>
+            <Text className="dark:text-white text-xl">
               Price: KES {Number(item.cost).toLocaleString("en-KE")}
             </Text>
           </View>

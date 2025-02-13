@@ -6,7 +6,7 @@ import Feed from '@/components/Ward/Feed';
 
 const Ward = () => {
   return (
-    <SafeAreaView className="flex-1 mt-10 dark:bg-gray-800 bg-white">
+    <SafeAreaView className="flex-1  dark:bg-gray-800 bg-white">
       <Feed />
     </SafeAreaView>
   );

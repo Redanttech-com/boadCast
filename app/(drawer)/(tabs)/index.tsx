@@ -9,9 +9,10 @@ import { useColorScheme } from "@/hooks/useColorScheme.web";
 const HomeScreen = () => {
   const colorScheme = useColorScheme();
   return (
-    <View className="flex-1 mt-10 dark:bg-gray-800 bg-white ">
+    <SafeAreaView className="flex-1  dark:bg-gray-800 ">
+      <StatusBar style="auto" />
       <Feed />
-    </View>
+    </SafeAreaView>
   );
 };
 

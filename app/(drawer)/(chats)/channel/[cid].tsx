@@ -55,9 +55,9 @@ export default function ChannelScreen() {
       <>
         <Stack.Screen options={{ headerShown: false }} />
         <View
-          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+        className="flex-1 justify-center items-center dark:bg-gray-800"
         >
-          <ActivityIndicator size="large" color="red" />
+          <ActivityIndicator size="large" color="blue" />
         </View>
       </>
     );

@@ -205,7 +205,7 @@ const Comments = ({ id, comment }) => {
   return (
     <View
       key={id}
-      className="p-3 gap-1 border-b  dark:border-gray-400 dark:bg-gray-800"
+      className="p-3 gap-1  dark:bg-gray-800"
     >
       <View className="flex-row items-center gap-3">
         <Avatar

@@ -16,7 +16,7 @@ const Message = () => {
           <Stack.Screen
             name="index"
             options={{
-              headerShown: true,
+              headerShown: false,
               title: "Messages",
               headerStyle: {
                 backgroundColor: isDarkMode ? "#1E293B" : "#FFFFFF", // Dark: gray-800, Light: white

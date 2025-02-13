@@ -6,8 +6,10 @@ import {
   Image,
   ActivityIndicator,
   Pressable,
+  Alert,
+  Dimensions,
   Modal,
-  Alert
+  Platform,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import {
@@ -39,8 +41,9 @@ const Header = () => {
   const [selectedLevel, setSelectedLevel] = useState("");
   const { user } = useUser();
   const [userData, setUserData] = useState(null);
- const colorScheme = useColorScheme();
- 
+  const colorScheme = useColorScheme();
+  const [isModalVisible, setISModalVisible] = useState(true);
+
   useEffect(() => {
     const fetchUserData = async () => {
       if (!user?.id) return;
@@ -175,10 +178,8 @@ const Header = () => {
     return colors[Math.abs(hash) % colors.length];
   };
 
- 
-
   return (
-    <View className="shadow-md p-4  dark:bg-gray-800">
+    <View className="shadow-md p-2  dark:bg-gray-800">
       <View className="flex-row items-center justify-between">
         <Text className="font-extrabold text-3xl dark:text-white">
           National
@@ -186,16 +187,16 @@ const Header = () => {
         <Avatar
           size={40}
           rounded
-          source={userData?.userImg ? { uri: userData?.userImg } : null}
+          source={userData?.userImg && { uri: userData?.userImg }}
           title={userData?.name && userData?.name[0].toUpperCase()}
           containerStyle={{ backgroundColor: getColorFromName(userData?.name) }} // Consistent color per user
         />
       </View>
-      <View className="mt-3 mb-3">
+      <View className="mt-3 mb-3 h-15">
         <StatusFeed />
       </View>
 
-      <View className="w-full flex-row items-center mt-4">
+      <View className="w-full flex-row items-center mt-2">
         <TextInput
           placeholder="What's on your mind?"
           placeholderTextColor={colorScheme === "dark" ? "#FFFFFF" : "#808080"} // Light gray for light mode, white for dark mode
@@ -221,7 +222,6 @@ const Header = () => {
             <Text className="text-white">Cast</Text>
           </Pressable>
         )}
-        
       </View>
       {media?.uri &&
         (media.type === "video" ? (
@@ -236,19 +236,27 @@ const Header = () => {
         ) : (
           <Image
             source={{ uri: media.uri }}
-            className="w-full h-96 rounded-md"
-            resizeMode="cover"
+            style={{ width: "100%", height: 400, borderRadius: 10 }}
+            resizeMode="contain"
           />
         ))}
 
       <View className="flex-row mt-4 gap-2 justify-between w-full items-center">
         <View className="flex-row  justify-center gap-3">
           <Pressable onPress={() => pickMedia("Images")}>
-            <Ionicons name="image-outline" size={24}  color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}/>
+            <Ionicons
+              name="image-outline"
+              size={24}
+              color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
+            />
           </Pressable>
 
           <Pressable onPress={() => pickMedia("Videos")}>
-            <Ionicons name="videocam-outline" size={24}  color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}/>
+            <Ionicons
+              name="videocam-outline"
+              size={24}
+              color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
+            />
           </Pressable>
         </View>
 

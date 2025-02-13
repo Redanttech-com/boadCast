@@ -37,6 +37,8 @@ import {
 import { router } from "expo-router";
 import { ScrollView } from "react-native-gesture-handler";
 import { MaterialIcons } from "@expo/vector-icons";
+import { StatusBar } from "expo-status-bar";
+import { useColorScheme } from "@/hooks/useColorScheme.web";
 
 const Form = () => {
   const [image, setImage] = useState<string | null>(null);
@@ -64,6 +66,7 @@ const Form = () => {
   const [nName, setnName] = useState("");
   const [error, setError] = useState("");
   const [userDetails, setUserDetails] = useState(null);
+  const colorScheme = useColorScheme();
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -275,7 +278,8 @@ const Form = () => {
   }, [nName]); // ✅ Only re-run when nickname input changes
 
   return (
-    <SafeAreaView className="flex-1 m-5 justify-center dark:bg-gray-800">
+    <SafeAreaView className="flex-1 p-5 justify-center dark:bg-gray-800">
+      <StatusBar style="auto" />
       <View className="h-32 mb-4">
         <TypeWriter
           typing={1}
@@ -298,7 +302,10 @@ const Form = () => {
             value={name}
             onChangeText={setName}
             placeholder="Enter Name"
-            className="flex-1 text-base dark:bg-gray-800"
+            placeholderTextColor={
+              colorScheme === "dark" ? "#FFFFFF" : "#808080"
+            } // Light gray for light mode, white for dark mode
+            className="flex-1 text-base dark:text-white"
           />
         </View>
         {error && <Text className="text-red-500 mb-3">{error}</Text>}
@@ -315,7 +322,10 @@ const Form = () => {
             value={lname}
             onChangeText={setlName}
             placeholder="Enter Last Name"
-            className="flex-1 text-base"
+            placeholderTextColor={
+              colorScheme === "dark" ? "#FFFFFF" : "#808080"
+            } // Light gray for light mode, white for dark mode
+            className="flex-1 text-base dark:text-white"
           />
         </View>
         {error && <Text className="text-red-500 mb-3">{error}</Text>}
@@ -332,14 +342,17 @@ const Form = () => {
             value={nName}
             onChangeText={setnName}
             placeholder="Enter Nick Name"
-            className="flex-1 text-base"
+            placeholderTextColor={
+              colorScheme === "dark" ? "#FFFFFF" : "#808080"
+            } // Light gray for light mode, white for dark mode
+            className="flex-1 text-base dark:text-white"
           />
         </View>
         {error && <Text className="text-red-500 mb-3">{error}</Text>}
         <View className="items-center">
           <Pressable
             onPress={pickImage}
-            className="border-2 bg-blue-950  rounded-full p-4"
+            className="bg-blue-950  rounded-full p-4"
           >
             <Text className="text-white">Choose profile</Text>
           </Pressable>

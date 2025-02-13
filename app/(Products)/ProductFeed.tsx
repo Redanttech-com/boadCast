@@ -20,6 +20,7 @@ import { Feather } from "@expo/vector-icons";
 import ProductList from "./ProductList";
 import SearchProduct from "./SearchProduct";
 import SearchCategory from "./searchCategory";
+import { useColorScheme } from "@/hooks/useColorScheme.web";
 
 function ProductFeed() {
   const [posts, setPosts] = useState([]);
@@ -29,6 +30,8 @@ function ProductFeed() {
   const [error, setError] = useState("");
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("");
+    const colorScheme = useColorScheme();
+  
 
   const fetchPosts = async () => {
     try {
@@ -106,7 +109,7 @@ function ProductFeed() {
   };
 
   return (
-    <View className="flex-1 bg-gray-100">
+    <View className="flex-1 bg-gray-100 dark:bg-gray-800">
       {loading ? (
         <View
           style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
@@ -128,15 +131,18 @@ function ProductFeed() {
               <Feather name="search" size={24} color={"gray"} />
               <TextInput
                 placeholder="Search Product..."
+                placeholderTextColor={
+                  colorScheme === "dark" ? "#FFFFFF" : "#808080"
+                } // Light gray for light mode, white for dark mode
                 value={querySearch}
                 onChangeText={setQuerySearch}
-                className="flex-1 rounded-full p-3"
+                className="flex-1 rounded-full p-3 dark:text-white"
               />
               <Pressable onPress={clearSearch}>
                 <Feather
                   name="x"
                   size={24}
-                  color="gray"
+                  color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
                   className={`${querySearch ? "inline" : "hidden"}`}
                 />
               </Pressable>
@@ -203,7 +209,7 @@ function ProductFeed() {
                   alignItems: "center",
                 }}
               >
-                <Text>No posts available</Text>
+                <Text className="dark:text-white">No posts available</Text>
               </View>
             }
           />

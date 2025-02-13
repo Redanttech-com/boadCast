@@ -48,11 +48,11 @@ const StatusFeed = () => {
     };
   }, []); // Run only once
 
-  if (loadingStatus) {
-    <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-      <ActivityIndicator size="large" color="black" />
-    </View>;
-  }
+  // if (loadingStatus) {
+  //   <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+  //     <ActivityIndicator size="large" color="black" />
+  //   </View>;
+  // }
 
   return (
     <FlatList
@@ -60,8 +60,6 @@ const StatusFeed = () => {
       keyExtractor={(item) => item.id}
       horizontal={true} // ✅ Enables horizontal scrolling
       renderItem={({ item }) => <StatusPost post={item} id={item.uid} />}
-      windowSize={5}
-      removeClippedSubviews={true}
       initialNumToRender={10}
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={{ paddingHorizontal: 10 }} // ✅ Optional: Adds spacing

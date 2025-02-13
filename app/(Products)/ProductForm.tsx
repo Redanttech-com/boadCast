@@ -7,7 +7,7 @@ import {
   ActivityIndicator,
   ScrollView,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AntDesign, Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
@@ -17,21 +17,42 @@ import {
   addDoc,
   collection,
   doc,
+  getDocs,
+  query,
   serverTimestamp,
   updateDoc,
+  where,
 } from "firebase/firestore";
 import { db, storage } from "@/firebase";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import * as ImagePicker from "expo-image-picker";
+import { StatusBar } from "expo-status-bar";
+import { useColorScheme } from "@/hooks/useColorScheme.web";
+import { useUser } from "@clerk/clerk-expo";
 
 const ProductForm = () => {
-  const { userDetails } = useUserInfo();
   const [selectData, setSelectData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [cost, setCost] = useState("");
   const [productname, setProductName] = useState("");
   const [image, setImage] = useState<string | null>(null);
   const [description, setDescription] = useState("");
+  const [userData, setUserData] = useState(null);
+  const colorScheme = useColorScheme();
+  const { user } = useUser();
+
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (!user?.id) return;
+      const q = query(collection(db, "userPosts"), where("uid", "==", user.id));
+      const querySnapshot = await getDocs(q);
+      if (!querySnapshot.empty) {
+        setUserData(querySnapshot.docs[0].data());
+      }
+    };
+    fetchUserData();
+  }, [user]);
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -69,22 +90,21 @@ const ProductForm = () => {
     </View>
   );
 
-  
   const submit = async () => {
     if (loading) return;
     setLoading(true);
 
     try {
       const docRef = await addDoc(collection(db, "market"), {
-        uid: userDetails?.id,
-        email: userDetails?.email,
+        uid: user?.id,
+        email: userData?.email,
         productname: productname,
         cost: cost,
         timestamp: serverTimestamp(),
-        name: userDetails?.name,
-        userImg: userDetails?.userImg,
-        lastname: userDetails?.lastname,
-        nickname: userDetails?.nickname,
+        name: userData?.name,
+        userImg: userData?.userImg || null,
+        lastname: userData?.lastname,
+        nickname: userData?.nickname,
         category: selectData,
         description: description,
       });
@@ -110,7 +130,6 @@ const ProductForm = () => {
         }
       };
 
-
       if (image) {
         await uploadImage(image, docRef);
       }
@@ -131,17 +150,20 @@ const ProductForm = () => {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView className="flex-1 bg-white dark:bg-gray-800">
+      <StatusBar style="auto" />
       <View className="flex-row items-center justify-between px-3">
         <Pressable onPress={() => router.replace("/(drawer)/market")}>
           <Feather name="arrow-left" size={28} color="gray" />
         </Pressable>
 
-        <Text className="text-center font-bold text-2xl">ProductForm</Text>
+        <Text className="text-center font-bold text-2xl dark:text-white">
+          ProductForm
+        </Text>
         <View className="border p-1 rounded-full">
-          {userDetails?.userImg && (
+          {userData?.userImg && (
             <Image
-              source={{ uri: userDetails?.userImg }}
+              source={{ uri: userData?.userImg }}
               className="h-10 w-10 rounded-full"
             />
           )}
@@ -150,19 +172,27 @@ const ProductForm = () => {
       <ScrollView>
         <View className="gap-5 m-3">
           <View>
-            <Text className="text-gray-600 m-3">Product Name</Text>
+            <Text className="text-gray-600 m-3 dark:text-white">
+              Product Name
+            </Text>
             <TextInput
               placeholder="Product Name"
-              className="border border-gray-300 rounded-md p-3 outline-none"
+              className="border border-gray-300 rounded-md p-3 outline-none dark:text-white"
+              placeholderTextColor={
+                colorScheme === "dark" ? "#FFFFFF" : "#808080"
+              } // Light gray for light mode, white for dark mode
               value={productname}
               onChangeText={setProductName}
             />
           </View>
           <View>
-            <Text className="text-gray-600 m-3">Cost</Text>
+            <Text className="text-gray-600 m-3 dark:text-white">Cost</Text>
             <TextInput
               placeholder="Cost"
-              className="border border-gray-300 rounded-md p-3"
+              placeholderTextColor={
+                colorScheme === "dark" ? "#FFFFFF" : "#808080"
+              } // Light gray for light mode, white for dark mode
+              className="border border-gray-300 rounded-md p-3 dark:text-white"
               keyboardType="numeric"
               inputMode="numeric"
               value={cost}
@@ -170,17 +200,22 @@ const ProductForm = () => {
             />
           </View>
           <View>
-            <Text className="text-gray-600 m-3">Description</Text>
+            <Text className="text-gray-600 m-3 dark:text-white">
+              Description
+            </Text>
             <TextInput
               placeholder="Description"
-              className="border border-gray-300 rounded-md p-3"
+              placeholderTextColor={
+                colorScheme === "dark" ? "#FFFFFF" : "#808080"
+              } // Light gray for light mode, white for dark mode
+              className="border border-gray-300 rounded-md p-3 dark:text-white"
               multiline
               value={description}
               onChangeText={setDescription}
             />
           </View>
           <View>
-            <Text className="text-gray-600 m-3">Category</Text>
+            <Text className="text-gray-600 m-3 dark:text-white">Category</Text>
             <Dropdown
               style={{
                 margin: 8,
@@ -203,15 +238,15 @@ const ProductForm = () => {
           <View>
             <Pressable
               onPress={pickImage}
-              className="border-2 bg-blue-950 rounded-full p-4"
+              className=" bg-blue-950 rounded-full p-4 dark:bg-blue-600"
             >
               <Text className="text-white text-center">Choose Image</Text>
             </Pressable>
             {image && (
-              <View className="mt-4 items-center">
+              <View className=" items-center">
                 <Image
                   source={{ uri: image }}
-                  style={{ width: 200, height: 200, borderRadius: 10 }}
+                  style={{ width: 400, height: 400, borderRadius: 10 }}
                   resizeMode="contain"
                 />
               </View>
@@ -219,7 +254,7 @@ const ProductForm = () => {
           </View>
           <Pressable
             onPress={submit}
-            className="bg-green-600 p-4 rounded-full mt-4"
+            className="bg-green-600 p-4 rounded-full mb-2"
           >
             {loading ? (
               <ActivityIndicator color="white" />

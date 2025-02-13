@@ -65,6 +65,7 @@
     "react-native-gesture-handler": "~2.20.2",
     "react-native-incall-manager": "^4.2.0",
     "react-native-marquee": "^0.5.0",
+    "react-native-modal": "^13.0.1",
     "react-native-popover-view": "^6.1.0",
     "react-native-reanimated": "~3.16.1",
     "react-native-reanimated-carousel": "^3.5.1",

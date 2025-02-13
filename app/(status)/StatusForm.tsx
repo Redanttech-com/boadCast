@@ -28,6 +28,8 @@ import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import * as ImagePicker from "expo-image-picker";
 import { useUser } from "@clerk/clerk-expo";
 import { StatusBar } from "expo-status-bar";
+import { useColorScheme } from "@/hooks/useColorScheme.web";
+import { Avatar } from "react-native-elements";
 
 const Status = () => {
 
@@ -37,6 +39,9 @@ const Status = () => {
 
   const [userData, setUserData] = useState(null);
   const { user } = useUser();
+   const colorScheme = useColorScheme();
+    
+  
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -116,20 +121,53 @@ const Status = () => {
     }
   };
 
+   const getColorFromName = (name) => {
+     if (!name) return "#ccc"; // Default color if no name exists
+
+     // Generate a hash number from the name
+     let hash = 0;
+     for (let i = 0; i < name.length; i++) {
+       hash = name.charCodeAt(i) + ((hash << 5) - hash);
+     }
+
+     // Predefined colors for better visuals
+     const colors = [
+       "#FF5733",
+       "#33FF57",
+       "#3357FF",
+       "#F1C40F",
+       "#8E44AD",
+       "#E74C3C",
+       "#2ECC71",
+       "#1ABC9C",
+       "#3498DB",
+     ];
+
+     // Pick a color consistently based on the hash value
+     return colors[Math.abs(hash) % colors.length];
+   };
+
   return (
-    <SafeAreaView className="flex-1  w-full bg-white">
+    <SafeAreaView className="flex-1  w-full bg-white dark:bg-gray-800">
       <StatusBar style="auto" />
       <View className="flex-row items-center justify-between px-3">
         <Pressable onPress={() => router.replace("/(drawer)/(tabs)")}>
           <Feather name="arrow-left" size={28} color="gray" />
         </Pressable>
 
-        <Text className="text-center font-bold text-2xl">Add Status</Text>
-        <View className="border p-1 rounded-full">
+        <Text className="text-center font-bold text-2xl dark:text-white">
+          Add Status
+        </Text>
+        <View className="border h-10 w-10 p-1 rounded-full">
           {userData?.userImg && (
-            <Image
-              source={{ uri: userData?.userImg }}
-              className="h-10 w-10 rounded-full"
+            <Avatar
+              size={40}
+              rounded
+              source={userData?.userImg && { uri: userData?.userImg }}
+              title={userData?.name && userData?.name[0].toUpperCase()}
+              containerStyle={{
+                backgroundColor: getColorFromName(userData?.name),
+              }} // Consistent color per user
             />
           )}
         </View>
@@ -137,10 +175,13 @@ const Status = () => {
 
       <View className="gap-5 mt-40 m-6 justify-center">
         <View>
-          <Text className="text-gray-600 m-3">Add status</Text>
+          <Text className="text-gray-600 m-3 dark:text-white">Add status</Text>
           <TextInput
             placeholder="Status...."
-            className="border border-gray-300 rounded-md p-3"
+            placeholderTextColor={
+              colorScheme === "dark" ? "#FFFFFF" : "#808080"
+            }
+            className="border border-gray-300 rounded-md p-3 dark:text-white"
             value={input}
             onChangeText={setInput}
             multiline
@@ -151,15 +192,15 @@ const Status = () => {
         <View>
           <Pressable
             onPress={pickImage}
-            className="border-2 bg-blue-950 rounded-full p-4"
+            className=" bg-blue-950 rounded-full p-4 dark:bg-blue-700"
           >
             <Text className="text-white text-center">Choose Image</Text>
           </Pressable>
           {image && (
-            <View className="mt-4 items-center">
+            <View className="mt-2 items-center">
               <Image
                 source={{ uri: image }}
-                style={{ width: 200, height: 200, borderRadius: 10 }}
+                style={{width: '100%', height: 300}}
                 resizeMode="contain"
               />
             </View>
@@ -167,7 +208,7 @@ const Status = () => {
         </View>
         <Pressable
           onPress={submit}
-          className="bg-green-600 p-4 rounded-full mt-4"
+          className="bg-green-600 p-4 rounded-full mt-2"
         >
           {loading ? (
             <ActivityIndicator color="white" />

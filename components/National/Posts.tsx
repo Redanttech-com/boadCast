@@ -14,6 +14,7 @@ import {
   Alert,
   TextInput,
   ActivityIndicator,
+  Button,
 } from "react-native";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import Feather from "@expo/vector-icons/Feather";
@@ -46,6 +47,9 @@ import { modalComment } from "@/atoms/modalAtom";
 import moment from "moment";
 import { Avatar } from "react-native-elements";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { StatusBar } from "expo-status-bar";
+import { FontAwesome5 } from "@expo/vector-icons";
 
 const Posts = ({ post, id, openBottomSheet, isPaused }) => {
   const { formatNumber } = useUserInfo();
@@ -58,6 +62,7 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
   const [citeInput, setCiteInput] = useState("");
   const videoRef = useRef(null);
   const { user } = useUser();
+  const [isMuted, setIsMuted] = useState(true);
 
   // like
 
@@ -383,13 +388,13 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
   };
 
   return (
-    <View className="mb-1 rounded-md  border-gray-200  shadow-md bg-white p-2 dark:bg-gray-800">
+    <View className="mb-1 rounded-md  border-gray-200  shadow-md bg-white  dark:bg-gray-800">
       <View className="flex-row items-center gap-1">
         <Avatar
           size={40}
           rounded
           source={post?.userImg ? { uri: post?.userImg } : null}
-          title={post?.name ? post?.name[0].toUpperCase() : "?"}
+          title={post?.name && post?.name[0].toUpperCase()}
           containerStyle={{ backgroundColor: getColorFromName(post?.name) }} // Consistent color per user
         />
         <View className="flex-row gap-2 items-center ">
@@ -462,7 +467,7 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
                 size={40}
                 rounded
                 source={post?.citeUserImg ? { uri: post?.citeUserImg } : null}
-                title={post?.name ? post?.name[0].toUpperCase() : "?"}
+                title={post?.name && post?.name[0].toUpperCase()}
                 containerStyle={{
                   backgroundColor: getColorFromName(post?.name),
                 }} // Consistent color per user
@@ -507,26 +512,49 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
               </Text>
             )}
           </View>
-          <View className="bg-gray-100 rounded-md ">
+          <View className="bg-gray-100 rounded-md dark:bg-gray-800 w-full">
             {post?.videos && (
-              <Video
-                ref={videoRef}
-                source={{
-                  uri: post?.videos,
-                }}
-                style={{ width: "100%", height: 400, borderRadius: 10 }}
-                useNativeControls
-                isLooping
-                shouldPlay={!isPaused}
-                resizeMode="contain"
-              />
+              <>
+                <Video
+                  ref={videoRef}
+                  source={{ uri: post?.videos }}
+                  style={{ width: "100%", height: 500 }}
+                  isLooping
+                  shouldPlay={!isPaused}
+                  resizeMode="contain"
+                  isMuted={isMuted} // Controlled by state
+                  className="relative"
+                />
+                <Pressable
+                  onPress={() => setIsMuted(!isMuted)}
+                  className="absolute flex-1 w-full h-full"
+                >
+                  {isMuted ? (
+                    <View className=" ml-auto mt-auto m-2">
+                      <FontAwesome5
+                        name="volume-mute"
+                        size={24}
+                        color={colorScheme === "dark" ? "#FFFFFF" : "#1F2937"}
+                      />
+                    </View>
+                  ) : (
+                    <View className=" ml-auto mt-auto m-2">
+                      <FontAwesome5
+                        name="volume-down"
+                        size={24}
+                        color={colorScheme === "dark" ? "#FFFFFF" : "#1F2937"}
+                      />
+                    </View>
+                  )}
+                </Pressable>
+              </>
             )}
             {post?.images && (
               <Image
                 source={{
                   uri: post?.images,
                 }}
-                className="w-full h-96 rounded-md"
+                style={{ width: "100%", height: 500 }}
                 resizeMode="contain"
               />
             )}

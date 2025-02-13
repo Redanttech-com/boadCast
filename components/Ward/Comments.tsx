@@ -49,6 +49,7 @@ import Moment from "react-moment";
 import moment from "moment";
 import { useUser } from "@clerk/clerk-expo";
 import { Avatar } from "react-native-elements";
+import { useColorScheme } from "@/hooks/useColorScheme.web";
 
 const Comments = ({ id, comment }) => {
   const { formatNumber } = useUserInfo();
@@ -61,6 +62,8 @@ const Comments = ({ id, comment }) => {
   // like
 
   const [userData, setUserData] = useState(null);
+      const colorScheme = useColorScheme();
+  
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -198,10 +201,7 @@ const Comments = ({ id, comment }) => {
   };
 
   return (
-    <View
-      key={id}
-      className="p-3 gap-1 border-b border-gray-200 dark:text-white"
-    >
+    <View key={id} className="p-3 gap-1  dark:bg-gray-800">
       <View className="flex-row items-center gap-3">
         <Avatar
           size={40}
@@ -219,7 +219,7 @@ const Comments = ({ id, comment }) => {
 
         <View className="flex-row gap-2 items-center ">
           <Text
-            className="text-md max-w-20 min-w-16 font-bold"
+            className="text-md max-w-20 min-w-16 font-bold dark:text-white"
             numberOfLines={1}
             ellipsizeMode="tail"
           >
@@ -261,7 +261,11 @@ const Comments = ({ id, comment }) => {
         <View className="flex-row items-center ml-auto gap-1">
           {user?.id === comment?.data()?.uid && (
             <Pressable onPress={deleteComment} className="p-3">
-              <Feather name="trash-2" size={20} color="black" />
+              <Feather
+                name="trash-2"
+                size={20}
+                color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
+              />
             </Pressable>
           )}
           <TouchableOpacity
@@ -287,7 +291,7 @@ const Comments = ({ id, comment }) => {
       </View>
 
       <View className="ml-12">
-        <Text>{comment?.data()?.comment}</Text>
+        <Text className="dark:text-white">{comment?.data()?.comment}</Text>
       </View>
       <View>
         <Image source={{ uri: comment?.data()?.image }} />

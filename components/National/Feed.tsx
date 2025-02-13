@@ -40,6 +40,7 @@ import { router } from "expo-router";
 import Header from "./Header";
 import { StatusBar } from "expo-status-bar";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const Feed = () => {
   const [loadingPosts, setLoadingPosts] = useState(true);
@@ -174,14 +175,15 @@ const Feed = () => {
   if (loadingPosts) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" color="#0000ff" />
+        <ActivityIndicator
+          color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
+        />
       </View>
     );
   }
 
   return (
     <View className="flex-1 px-2 dark:bg-gray-800">
-      <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
       <Header />
       <FlatList
         data={posts}
@@ -197,10 +199,8 @@ const Feed = () => {
         initialNumToRender={10}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
-          <View
-            style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
-          >
-            <Text>No posts available</Text>
+          <View className="flex-1 justify-center items-center">
+            <Text className="dark:text-white">No posts available</Text>
           </View>
         }
         onViewableItemsChanged={onViewableItemsChanged}
@@ -219,11 +219,11 @@ const Feed = () => {
           className={`${
             loadingComments
               ? "hidden"
-              : "p-4 border-b border-gray-300 flex-row items-center justify-center"
+              : "p-4 border-b border-hairline dark:border-gray-700 border-gray-300 flex-row items-center justify-center dark:bg-gray-800"
           }`}
         >
           {/* <View></View> */}
-          <Text className="text-lg font-bold text-center ">
+          <Text className="text-lg font-bold text-center dark:text-white ">
             Comments ({formatNumber(comments.length)})
           </Text>
           {/* <Pressable
@@ -235,7 +235,7 @@ const Feed = () => {
 
         <View className="flex-1 bg-gray-50 dark:bg-gray-800  z-50 dark:text-white">
           {loadingComments ? (
-            <View className="w-full h-full justify-center items-center flex-1">
+            <View className="hidden w-full h-full justify-center items-center flex-1">
               <ActivityIndicator size="large" color="#0000ff" />
             </View>
           ) : (
@@ -267,7 +267,7 @@ const Feed = () => {
               onChangeText={setInput}
               className="flex-1 rounded-full p-3 dark:text-white "
             />
-          
+
             <Pressable onPress={sendComment}>
               <Ionicons name="send" color="gray" size={24} />
             </Pressable>

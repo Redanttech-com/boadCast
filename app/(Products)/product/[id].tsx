@@ -25,6 +25,8 @@ import { AntDesign, Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import moment from "moment";
 import { useUserInfo } from "@/components/UserContext";
 import { useUser } from "@clerk/clerk-expo";
+import { StatusBar } from "expo-status-bar";
+import { useColorScheme } from "@/hooks/useColorScheme.web";
 
 export default function ProductDetail() {
   const { id } = useLocalSearchParams(); // ✅ Get the correct ID
@@ -34,6 +36,8 @@ export default function ProductDetail() {
   const [likes, setLikes] = useState([]);
   const [hasLiked, setHasLiked] = useState(false);
   const { user } = useUser();
+   const colorScheme = useColorScheme();
+  
 
   // ✅ Fetch Product Data
   useEffect(() => {
@@ -72,7 +76,8 @@ export default function ProductDetail() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView className="flex-1 bg-white dark:bg-gray-800">
+      <StatusBar style="auto" />
       <View className="flex-row items-center justify-between px-4">
         <Pressable
           onPress={() => router.replace("/(drawer)/market")}
@@ -80,7 +85,9 @@ export default function ProductDetail() {
         >
           <Feather name="arrow-left" size={28} color="gray" />
         </Pressable>
-        <Text className="text-2xl font-bold">{product?.productname}</Text>
+        <Text className="text-2xl font-bold dark:text-white">
+          {product?.productname}
+        </Text>
         {/* <View className="flex-col h-16 items-center">
           <Pressable onPress={likePost} className="p-3">
             <AntDesign
@@ -106,13 +113,13 @@ export default function ProductDetail() {
               <MaterialCommunityIcons
                 name="clock-check-outline"
                 size={14}
-                color="black"
+                color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
               />{" "}
               {product?.timestamp
                 ? moment(product.timestamp.toDate()).fromNow()
                 : "Unknown time"}
             </Text>
-            <Text className="text-2xl">
+            <Text className="text-2xl dark:text-white">
               KES {Number(product?.cost).toLocaleString("en-KE")}
             </Text>
           </View>
@@ -123,23 +130,23 @@ export default function ProductDetail() {
               className="rounded-full h-20 w-20"
             />
             <View>
-              <Text className="font-bold">
+              <Text className="font-bold dark:text-white">
                 {product?.name} {product?.lastname}
               </Text>
-              <Text>@{product?.nickname}</Text>
+              <Text className="dark:text-gray-400">@{product?.nickname}</Text>
             </View>
           </View>
         </View>
 
         <View className="m-5">
-          <Text>{product?.description}</Text>
+          <Text className="dark:text-white">{product?.description}</Text>
         </View>
       </View>
 
       <View className="w-full mt-5 p-5">
         <Pressable
           onPress={onPress}
-          className="p-3 rounded-md items-center bg-slate-800"
+          className="p-3 rounded-md items-center bg-slate-800 dark:bg-slate-600"
         >
           <Text className="text-white">Chat</Text>
         </Pressable>

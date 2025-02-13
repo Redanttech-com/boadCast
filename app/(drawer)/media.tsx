@@ -67,8 +67,8 @@ const Media = () => {
 
   // ✅ Render each post
   const renderPost = ({ item }) => (
-    <View className="flex-row items-center justify-between m-2 gap-2 dark:bg-gray-600">
-      <View className="flex-row items-center gap-3">
+    <View className="flex-row  items-center justify-between m-2 gap-2 dark:bg-gray-600">
+      <View className="flex-row gap-3 dark:bg-red-500">
         {item.images && (
           <Image
             source={{ uri: item.images }}
