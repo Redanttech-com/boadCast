@@ -52,15 +52,12 @@ const Feed = () => {
 
   const [postID] = useRecoilState(modalConstituencyComment);
   const { user } = useUser();
-  const {formatNumber } = useUserInfo();
-  
+  const { formatNumber } = useUserInfo();
 
   const snapPoints = useMemo(() => ["100%", "100%"], []);
   const openBottomSheet = useCallback(() => setIsBottomSheetOpen(true), []);
   const [userData, setUserData] = useState(null);
-      const colorScheme = useColorScheme();
-  
-  
+  const colorScheme = useColorScheme();
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -197,8 +194,10 @@ const Feed = () => {
 
   if (loadingPosts) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" color="#0000ff" />
+      <View className="flex-1 justify-center items-center dark:bg-gray-800">
+        <ActivityIndicator
+          color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
+        />
       </View>
     );
   }
@@ -290,7 +289,11 @@ const Feed = () => {
             />
 
             <Pressable onPress={sendComment}>
-              <Ionicons name="send" color="gray" size={24} />
+              <Ionicons
+                name="send"
+                color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
+                size={24}
+              />
             </Pressable>
           </View>
         </BottomSheetView>

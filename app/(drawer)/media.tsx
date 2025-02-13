@@ -68,7 +68,7 @@ const Media = () => {
   // ✅ Render each post
   const renderPost = ({ item }) => (
     <View className="flex-row  items-center justify-between m-2 gap-2 dark:bg-gray-600">
-      <View className="flex-row gap-3 dark:bg-red-500">
+      <View className="flex-row gap-3">
         {item.images && (
           <Image
             source={{ uri: item.images }}
@@ -99,7 +99,7 @@ const Media = () => {
       showsVerticalScrollIndicator={false}
       ListEmptyComponent={
         <View className="flex-1 items-center justify-center">
-          <Text>No Posts</Text>
+          <Text className="dark:text-white">No Posts</Text>
         </View>
       }
     />

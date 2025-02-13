@@ -1,3 +1,4 @@
+import { useColorScheme } from "@/hooks/useColorScheme.web";
 import {
   CallContent,
   RingingCallContent,
@@ -14,6 +15,7 @@ export default function CallScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const calls = useCalls();
   const call = calls[0];
+  const colorScheme = useColorScheme();
 
   // ✅ Move navigation logic into useEffect
   useEffect(() => {
@@ -28,15 +30,17 @@ export default function CallScreen() {
 
   if (!call) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" color="#0000ff" />
+      <View className="flex-1 justify-center items-center dark:bg-gray-800">
+        <ActivityIndicator
+          color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
+        />
       </View>
     );
   }
 
   return (
     <SafeAreaProvider>
-      <StatusBar style="auto" /> 
+      <StatusBar style="auto" />
       <Stack.Screen
         options={{
           headerShown: false,

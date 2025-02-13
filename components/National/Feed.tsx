@@ -174,7 +174,7 @@ const Feed = () => {
 
   if (loadingPosts) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+      <View className="flex-1 justify-center items-center dark:bg-gray-800">
         <ActivityIndicator
           color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
         />
@@ -269,7 +269,11 @@ const Feed = () => {
             />
 
             <Pressable onPress={sendComment}>
-              <Ionicons name="send" color="gray" size={24} />
+              <Ionicons
+                name="send"
+                color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
+                size={24}
+              />
             </Pressable>
           </View>
         </BottomSheetView>

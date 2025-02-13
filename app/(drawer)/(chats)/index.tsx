@@ -34,7 +34,6 @@ const index = () => {
             color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
           />
         </View>
-
         <ChannelList
           filters={{ members: { $in: [String(userDetails?.id)] } }}
           onSelect={(channel) => router.push(`/channel/${channel.cid}`)}

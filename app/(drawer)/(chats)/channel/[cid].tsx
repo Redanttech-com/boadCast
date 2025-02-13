@@ -12,12 +12,16 @@ import {
   useChatContext,
 } from "stream-chat-expo";
 import * as Crypto from "expo-crypto";
+import { StatusBar } from "expo-status-bar";
+import { useColorScheme } from "@/hooks/useColorScheme.web";
 
 export default function ChannelScreen() {
   const [channel, setChannel] = useState<ChannelType | null>(null);
   const { cid } = useLocalSearchParams<{ cid: string }>();
   const { client } = useChatContext();
   const videoClient = useStreamVideoClient();
+    const colorScheme = useColorScheme();
+  
 
   useEffect(() => {
     if (!cid) return;
@@ -54,10 +58,10 @@ export default function ChannelScreen() {
     return (
       <>
         <Stack.Screen options={{ headerShown: false }} />
-        <View
-        className="flex-1 justify-center items-center dark:bg-gray-800"
-        >
-          <ActivityIndicator size="large" color="blue" />
+        <View className="flex-1 justify-center items-center dark:bg-gray-800">
+          <ActivityIndicator
+            color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
+          />
         </View>
       </>
     );
@@ -76,6 +80,7 @@ export default function ChannelScreen() {
       />
       <MessageList />
       <SafeAreaView edges={["bottom"]}>
+        <StatusBar style="auto" />
         <MessageInput />
       </SafeAreaView>
     </Channel>
