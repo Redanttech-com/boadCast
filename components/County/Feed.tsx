@@ -57,8 +57,7 @@ const Feed = () => {
   const snapPoints = useMemo(() => ["100%", "100%"], []);
   const openBottomSheet = useCallback(() => setIsBottomSheetOpen(true), []);
   const [userData, setUserData] = useState(null);
-    const colorScheme = useColorScheme();
-  
+  const colorScheme = useColorScheme();
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -105,14 +104,7 @@ const Feed = () => {
     setLoadingComments(true); // Set loading state for comments
     try {
       const q = query(
-        collection(
-          db,
-          "county",
-          userData?.county,
-          "posts",
-          postID,
-          "comments"
-        ),
+        collection(db, "county", userData?.county, "posts", postID, "comments"),
         orderBy("timestamp", "desc")
       );
       const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -154,14 +146,7 @@ const Feed = () => {
     setLoadingComments(true); // Show loader when sending comment
     try {
       await addDoc(
-        collection(
-          db,
-          "county",
-          userData?.county,
-          "posts",
-          postID,
-          "comments"
-        ),
+        collection(db, "county", userData?.county, "posts", postID, "comments"),
         {
           uid: user?.id,
           comment: input.trim(),
@@ -195,11 +180,11 @@ const Feed = () => {
 
   if (loadingPosts) {
     return (
-     <View className="flex-1 justify-center items-center dark:bg-gray-800">
-             <ActivityIndicator
-               color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
-             />
-           </View>
+      <View className="flex-1 justify-center items-center dark:bg-gray-800">
+        <ActivityIndicator
+          color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
+        />
+      </View>
     );
   }
 

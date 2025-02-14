@@ -11,7 +11,6 @@ import React, { useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AntDesign, Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { useUserInfo } from "@/components/UserContext";
 import { Dropdown } from "react-native-element-dropdown";
 import {
   addDoc,

@@ -41,11 +41,8 @@ import {
 } from "firebase/firestore";
 import { useUserInfo } from "@/components/UserContext";
 import { router } from "expo-router";
-import { deleteObject, ref } from "firebase/storage";
-import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { useRecoilState } from "recoil";
 import { modalCountyComment } from "@/atoms/modalAtom";
-import Moment from "react-moment";
 import moment from "moment";
 import { useUser } from "@clerk/clerk-expo";
 import { Avatar } from "react-native-elements";

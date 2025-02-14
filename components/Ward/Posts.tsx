@@ -13,16 +13,12 @@ import {
   ActivityIndicator,
   Pressable,
   Alert,
-  StyleSheet,
   TextInput,
-  ScrollView,
 } from "react-native";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import Feather from "@expo/vector-icons/Feather";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import AntDesign from "@expo/vector-icons/AntDesign";
-
-import * as ImagePicker from "expo-image-picker";
 import { auth, db, storage } from "@/firebase";
 import {
   addDoc,
@@ -42,9 +38,7 @@ import {
 import { useUserInfo } from "@/components/UserContext";
 import { router } from "expo-router";
 import { deleteObject, ref } from "firebase/storage";
-import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { useRecoilState } from "recoil";
-import Moment from "react-moment";
 import { useUser } from "@clerk/clerk-expo";
 import Popover from "react-native-popover-view";
 import { Video } from "expo-av";
@@ -53,6 +47,7 @@ import moment from "moment";
 import { Avatar } from "react-native-elements";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
 import { FontAwesome5 } from "@expo/vector-icons";
+import { useWindowDimensions } from "react-native";
 
 const Posts = ({ post, id, openBottomSheet, isPaused }) => {
   const { formatNumber } = useUserInfo();
@@ -68,6 +63,17 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
   const colorScheme = useColorScheme();
   const [isMuted, setIsMuted] = useState(true);
   const [userData, setUserData] = useState(null);
+  const { width } = useWindowDimensions();
+  const [mediaSize, setMediaSize] = useState({ width: "100%", height: 300 });
+
+  useEffect(() => {
+    if (post?.images) {
+      Image.getSize(post.images, (imgWidth, imgHeight) => {
+        const aspectRatio = imgWidth / imgHeight;
+        setMediaSize({ width: "100%", height: width / aspectRatio });
+      });
+    }
+  }, [post?.images]);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -513,48 +519,48 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
             )}
           </View>
           <View className="bg-gray-100 rounded-md dark:bg-gray-800 w-full">
+            {/* Video Handling */}
             {post?.videos && (
-              <>
+              <View
+                onLayout={(event) => {
+                  const { width: videoWidth } = event.nativeEvent.layout;
+                  setMediaSize({ width: "100%", height: videoWidth * 0.56 }); // 16:9 ratio
+                }}
+              >
                 <Video
                   ref={videoRef}
                   source={{ uri: post?.videos }}
-                  style={{ width: "100%", height: 500 }}
+                  style={{ width: mediaSize.width, height: mediaSize.height }}
                   isLooping
                   shouldPlay={!isPaused}
                   resizeMode="contain"
-                  isMuted={isMuted} // Controlled by state
+                  isMuted={isMuted}
                   className="relative"
                 />
                 <Pressable
                   onPress={() => setIsMuted(!isMuted)}
                   className="absolute flex-1 w-full h-full"
                 >
-                  {isMuted ? (
-                    <View className=" ml-auto mt-auto m-2">
-                      <FontAwesome5
-                        name="volume-mute"
-                        size={24}
-                        color={colorScheme === "dark" ? "#FFFFFF" : "#1F2937"}
-                      />
-                    </View>
-                  ) : (
-                    <View className=" ml-auto mt-auto m-2">
-                      <FontAwesome5
-                        name="volume-down"
-                        size={24}
-                        color={colorScheme === "dark" ? "#FFFFFF" : "#1F2937"}
-                      />
-                    </View>
-                  )}
+                  <View className="ml-auto mt-auto m-2">
+                    <FontAwesome5
+                      name={isMuted ? "volume-mute" : "volume-down"}
+                      size={24}
+                      color={colorScheme === "dark" ? "#FFFFFF" : "#1F2937"}
+                    />
+                  </View>
                 </Pressable>
-              </>
+              </View>
             )}
+
+            {/* Image Handling */}
             {post?.images && (
               <Image
-                source={{
-                  uri: post?.images,
+                source={{ uri: post.images }}
+                style={{
+                  width: mediaSize.width,
+                  height: mediaSize.height,
+                  alignSelf: "center",
                 }}
-                style={{ width: "100%", height: 500 }}
                 resizeMode="contain"
               />
             )}

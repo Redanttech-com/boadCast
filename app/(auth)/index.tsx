@@ -3,23 +3,18 @@ import * as WebBrowser from "expo-web-browser";
 import {
   Text,
   View,
-  Button,
   Pressable,
-  TouchableOpacity,
   Image,
-  Dimensions,
   TextInput,
   Animated,
 } from "react-native";
-import { Link, Redirect, router, useRouter } from "expo-router";
-import { useAuth, useOAuth, useSignUp, useUser } from "@clerk/clerk-expo";
+import { useRouter } from "expo-router";
+import { useOAuth, useSignUp, useUser } from "@clerk/clerk-expo";
 import * as Linking from "expo-linking";
-import { SafeAreaView } from "react-native-safe-area-context";
-import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "@/firebase";
 import { StatusBar } from "expo-status-bar";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
 
 export const useWarmUpBrowser = () => {

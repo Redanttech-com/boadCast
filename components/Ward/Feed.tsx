@@ -12,7 +12,6 @@ import {
   Text,
   TextInput,
   Pressable,
-  KeyboardAvoidingView,
   Alert,
 } from "react-native";
 import {
@@ -31,7 +30,7 @@ import BottomSheet, {
   BottomSheetFlashList,
   BottomSheetView,
 } from "@gorhom/bottom-sheet";
-import { Feather, Ionicons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { useUserInfo } from "@/components/UserContext";
 import { useRecoilState } from "recoil";
 import { modalWardComment } from "@/atoms/modalAtom";

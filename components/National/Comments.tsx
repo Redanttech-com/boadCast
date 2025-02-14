@@ -1,8 +1,5 @@
 import React, {
-  useCallback,
   useEffect,
-  useMemo,
-  useRef,
   useState,
 } from "react";
 import {
@@ -10,42 +7,28 @@ import {
   Text,
   Image,
   TouchableOpacity,
-  ActivityIndicator,
   Pressable,
   Alert,
   StyleSheet,
-  ScrollView,
 } from "react-native";
-import FontAwesome from "@expo/vector-icons/FontAwesome";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import Feather from "@expo/vector-icons/Feather";
-import Ionicons from "@expo/vector-icons/Ionicons";
 import AntDesign from "@expo/vector-icons/AntDesign";
-
-import * as ImagePicker from "expo-image-picker";
 import { auth, db, storage } from "@/firebase";
 import {
-  addDoc,
-  arrayUnion,
   collection,
   deleteDoc,
   doc,
-  getDoc,
   getDocs,
   onSnapshot,
   query,
-  serverTimestamp,
   setDoc,
-  updateDoc,
   where,
 } from "firebase/firestore";
 import { useUserInfo } from "@/components/UserContext";
 import { router } from "expo-router";
-import { deleteObject, ref } from "firebase/storage";
-import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { useRecoilState } from "recoil";
 import { modalComment } from "@/atoms/modalAtom";
-import Moment from "react-moment";
 import moment from "moment";
 import { useUser } from "@clerk/clerk-expo";
 import { Avatar } from "react-native-elements";

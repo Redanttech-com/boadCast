@@ -50,13 +50,13 @@ const StatusPost = ({ id, post }) => {
             source={{ uri: post?.video }}
             style={{ width: 100, height: 100, borderRadius: 10 }}
             controls
-            resizeMode="contain"
+            resizeMode="cover"
           />
         ) : post?.image ? (
           <Image
             source={{ uri: post?.image }}
             className="h-14 w-14 rounded-full"
-            objectFit="contain"
+            objectFit="cover"
           />
         ) : (
           <Text className="h-14 w-14 rounded-full text-black">

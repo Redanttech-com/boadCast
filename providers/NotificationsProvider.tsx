@@ -1,13 +1,13 @@
 import { PropsWithChildren, useEffect, useState } from "react";
 import messaging from '@react-native-firebase/messaging';
 import { StreamChat } from "stream-chat";
-import { useAuth } from "./AuthProvider";
+import { useUser } from "@clerk/clerk-expo";
 
 const client = StreamChat.getInstance(process.env.EXPO_PUBLIC_STREAM_API_KEY!);
 
 export default function NotificationsProvider ({ children }: PropsWithChildren) {
   const [isReady, setIsReady] = useState(false);
-const { user } = useAuth();
+const { user } = useUser();
 
     // Request Push Notification permission from device.
   const requestPermission = async () => {
@@ -29,7 +29,7 @@ const { user } = useAuth();
       const token = await messaging().getToken();
       const push_provider = "firebase";
       const push_provider_name = "Firebase"; // name an alias for your push provider (optional)
-    client.addDevice(token, push_provider, user.id, push_provider_name);
+    client.addDevice(token, push_provider, user?.id, push_provider_name);
       //   client.setLocalDevice({
     //     id: token,
     //     push_provider,

@@ -34,7 +34,7 @@ const ProductList = ({ id, item }) => {
 
           <View className="m-3 ">
             <Text style={{ marginTop: 10, fontSize: 16 }}>
-              {item.productname || "Unknown"}
+              {item.productname}
             </Text>
             <Text style={{ fontSize: 14, color: "#555" }}>
               Price: KES {Number(item.cost).toLocaleString("en-KE")}

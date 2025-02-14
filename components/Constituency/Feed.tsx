@@ -12,7 +12,6 @@ import {
   Text,
   TextInput,
   Pressable,
-  KeyboardAvoidingView,
   Alert,
 } from "react-native";
 import {

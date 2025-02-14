@@ -11,8 +11,6 @@ import React, { useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AntDesign, Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { useUserInfo } from "@/components/UserContext";
-import { Dropdown } from "react-native-element-dropdown";
 import {
   addDoc,
   collection,
@@ -32,16 +30,12 @@ import { useColorScheme } from "@/hooks/useColorScheme.web";
 import { Avatar } from "react-native-elements";
 
 const Status = () => {
-
   const [loading, setLoading] = useState(false);
   const [image, setImage] = useState<string | null>(null);
   const [input, setInput] = useState("");
-
   const [userData, setUserData] = useState(null);
   const { user } = useUser();
-   const colorScheme = useColorScheme();
-    
-  
+  const colorScheme = useColorScheme();
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -121,31 +115,31 @@ const Status = () => {
     }
   };
 
-   const getColorFromName = (name) => {
-     if (!name) return "#ccc"; // Default color if no name exists
+  const getColorFromName = (name) => {
+    if (!name) return "#ccc"; // Default color if no name exists
 
-     // Generate a hash number from the name
-     let hash = 0;
-     for (let i = 0; i < name.length; i++) {
-       hash = name.charCodeAt(i) + ((hash << 5) - hash);
-     }
+    // Generate a hash number from the name
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+      hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
 
-     // Predefined colors for better visuals
-     const colors = [
-       "#FF5733",
-       "#33FF57",
-       "#3357FF",
-       "#F1C40F",
-       "#8E44AD",
-       "#E74C3C",
-       "#2ECC71",
-       "#1ABC9C",
-       "#3498DB",
-     ];
+    // Predefined colors for better visuals
+    const colors = [
+      "#FF5733",
+      "#33FF57",
+      "#3357FF",
+      "#F1C40F",
+      "#8E44AD",
+      "#E74C3C",
+      "#2ECC71",
+      "#1ABC9C",
+      "#3498DB",
+    ];
 
-     // Pick a color consistently based on the hash value
-     return colors[Math.abs(hash) % colors.length];
-   };
+    // Pick a color consistently based on the hash value
+    return colors[Math.abs(hash) % colors.length];
+  };
 
   return (
     <SafeAreaView className="flex-1  w-full bg-white dark:bg-gray-800">
@@ -200,7 +194,7 @@ const Status = () => {
             <View className="mt-2 items-center">
               <Image
                 source={{ uri: image }}
-                style={{width: '100%', height: 300}}
+                style={{ width: "100%", height: 300 }}
                 resizeMode="contain"
               />
             </View>

@@ -16,17 +16,11 @@ import {
   StyleSheet,
   ScrollView,
 } from "react-native";
-import FontAwesome from "@expo/vector-icons/FontAwesome";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import Feather from "@expo/vector-icons/Feather";
-import Ionicons from "@expo/vector-icons/Ionicons";
 import AntDesign from "@expo/vector-icons/AntDesign";
-
-import * as ImagePicker from "expo-image-picker";
 import { auth, db, storage } from "@/firebase";
 import {
-  addDoc,
-  arrayUnion,
   collection,
   deleteDoc,
   doc,
@@ -34,18 +28,14 @@ import {
   getDocs,
   onSnapshot,
   query,
-  serverTimestamp,
   setDoc,
   updateDoc,
   where,
 } from "firebase/firestore";
 import { useUserInfo } from "@/components/UserContext";
 import { router } from "expo-router";
-import { deleteObject, ref } from "firebase/storage";
-import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { useRecoilState } from "recoil";
-import {  modalConstituencyComment } from "@/atoms/modalAtom";
-import Moment from "react-moment";
+import { modalConstituencyComment } from "@/atoms/modalAtom";
 import moment from "moment";
 import { useUser } from "@clerk/clerk-expo";
 import { Avatar } from "react-native-elements";
@@ -58,12 +48,8 @@ const Comments = ({ id, comment }) => {
   const { user } = useUser();
   const [postID, setPostID] = useRecoilState(modalConstituencyComment);
   const [loading, setLoading] = useState(false);
-
-  // like
-
   const [userData, setUserData] = useState(null);
-        const colorScheme = useColorScheme();
-  
+  const colorScheme = useColorScheme();
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -79,7 +65,7 @@ const Comments = ({ id, comment }) => {
 
   useEffect(() => {
     try {
-      if (!id ) {
+      if (!id) {
         return;
       }
       const unsubscribe = onSnapshot(
@@ -105,17 +91,12 @@ const Comments = ({ id, comment }) => {
       if (user?.id && id && postID) {
         if (hasLiked) {
           // Unlike the post
-          await deleteDoc(
-            doc(db, "constituency", id, "likes", user.id)
-          );
+          await deleteDoc(doc(db, "constituency", id, "likes", user.id));
         } else {
           // Like the post
-          await setDoc(
-            doc(db, "constituency", id, "likes", user.id),
-            {
-              id: user.id || "Anonymous",
-            }
-          );
+          await setDoc(doc(db, "constituency", id, "likes", user.id), {
+            id: user.id || "Anonymous",
+          });
         }
       } else {
         // Redirect to the authentication page if any required data is missing
@@ -161,12 +142,17 @@ const Comments = ({ id, comment }) => {
               await Promise.all(deleteLikesPromises);
 
               // Delete the comment document
-              await deleteDoc(doc(db,
-                        "constituency",
-                        userData?.constituency,
-                        "posts",
-                        postID,
-                        "comments", id));
+              await deleteDoc(
+                doc(
+                  db,
+                  "constituency",
+                  userData?.constituency,
+                  "posts",
+                  postID,
+                  "comments",
+                  id
+                )
+              );
             } catch (error) {
               console.error("Error deleting comment:", error);
             } finally {

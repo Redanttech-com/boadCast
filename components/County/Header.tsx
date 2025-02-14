@@ -9,7 +9,6 @@ import {
   Alert,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import EvilIcons from "@expo/vector-icons/EvilIcons";
 import {
   addDoc,
   collection,
@@ -23,9 +22,6 @@ import {
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { db, storage } from "@/firebase";
 import { useUser } from "@clerk/clerk-expo";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { router } from "expo-router";
-import { useUserInfo } from "@/components/UserContext";
 import * as ImagePicker from "expo-image-picker";
 import { Video } from "expo-av";
 import { Avatar } from "react-native-elements";

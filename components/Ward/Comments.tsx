@@ -34,15 +34,11 @@ import {
   getDocs,
   onSnapshot,
   query,
-  serverTimestamp,
   setDoc,
-  updateDoc,
   where,
 } from "firebase/firestore";
 import { useUserInfo } from "@/components/UserContext";
 import { router } from "expo-router";
-import { deleteObject, ref } from "firebase/storage";
-import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { useRecoilState } from "recoil";
 import { modalWardComment } from "@/atoms/modalAtom";
 import Moment from "react-moment";
@@ -58,12 +54,8 @@ const Comments = ({ id, comment }) => {
   const { user } = useUser();
   const [postID] = useRecoilState(modalWardComment);
   const [loading, setLoading] = useState(false);
-
-  // like
-
   const [userData, setUserData] = useState(null);
-      const colorScheme = useColorScheme();
-  
+  const colorScheme = useColorScheme();
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -152,15 +144,7 @@ const Comments = ({ id, comment }) => {
 
               // Delete the comment document
               await deleteDoc(
-                doc(
-                  db,
-                  "ward",
-                  userData?.ward,
-                  "posts",
-                  postID,
-                  "comments",
-                  id
-                )
+                doc(db, "ward", userData?.ward, "posts", postID, "comments", id)
               );
             } catch (error) {
               console.error("Error deleting comment:", error);

@@ -3,15 +3,15 @@ import React from "react";
 import { router } from "expo-router";
 
 const SearchCategory = ({ id, item }) => {
-     const handlePress = () => {
-          console.log("Navigating to product:", item.id);
-          router.push(`/(Products)/product/${id}`); // ✅ Navigate programmatically
-        };
+  const handlePress = () => {
+    console.log("Navigating to product:", item.id);
+    router.push(`/(Products)/product/${id}`); // ✅ Navigate programmatically
+  };
 
   return (
     <ScrollView>
       <TouchableOpacity
-      onPress={handlePress}
+        onPress={handlePress}
         style={{
           backgroundColor: "#fff",
           marginVertical: 5,

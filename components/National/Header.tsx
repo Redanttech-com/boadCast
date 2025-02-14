@@ -32,6 +32,8 @@ import { Video } from "expo-av";
 import StatusPost from "@/app/(status)/StatusPost";
 import StatusFeed from "@/app/(status)/StatusFeed";
 import { Avatar } from "react-native-elements";
+import { FontAwesome } from "@expo/vector-icons";
+import { useWindowDimensions } from "react-native";
 
 const Header = () => {
   const [input, setInput] = useState("");
@@ -43,6 +45,9 @@ const Header = () => {
   const [userData, setUserData] = useState(null);
   const colorScheme = useColorScheme();
   const [isModalVisible, setISModalVisible] = useState(true);
+  const [isMuted, setIsMuted] = useState(true);
+  const [isPaused, setIsPaused] = useState(false);
+  const { width } = useWindowDimensions();
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -192,7 +197,7 @@ const Header = () => {
           containerStyle={{ backgroundColor: getColorFromName(userData?.name) }} // Consistent color per user
         />
       </View>
-      <View className="mt-3 mb-3 h-15">
+      <View className="mt-3  h-15">
         <StatusFeed />
       </View>
 
@@ -223,23 +228,54 @@ const Header = () => {
           </Pressable>
         )}
       </View>
-      {media?.uri &&
-        (media.type === "video" ? (
-          <Video
-            source={{ uri: media.uri }}
-            style={{ width: "100%", height: 200, borderRadius: 10 }}
-            useNativeControls
-            shouldPlay
-            isLooping
-            resizeMode="contain"
-          />
-        ) : (
-          <Image
-            source={{ uri: media.uri }}
-            style={{ width: "100%", height: 400, borderRadius: 10 }}
-            resizeMode="contain"
-          />
-        ))}
+      {media?.uri && (
+        <View className="relative mt-4 w-full items-center ">
+          {media.type === "video" ? (
+            <>
+              <Pressable onPress={() => setIsPaused((prev) => !prev)}>
+                <Video
+                  source={{ uri: media.uri }}
+                  style={{
+                    width: width,
+                    height: width * 0.56, // 16:9 aspect ratio
+                    borderRadius: 10,
+                  }}
+                  useNativeControls={false}
+                  isLooping
+                  shouldPlay={!isPaused}
+                  resizeMode="contain"
+                  isMuted={isMuted}
+                />
+
+                <Pressable
+                  onPress={() => setIsMuted(!isMuted)}
+                  className="absolute bottom-2 right-2 bg-gray-700 p-2 rounded-full"
+                >
+                  <FontAwesome name="volume-down" size={24} color="white" />
+                </Pressable>
+              </Pressable>
+            </>
+          ) : (
+            <Image
+              source={{ uri: media.uri }}
+              style={{
+                width: width,
+                height: width * 0.75, // 4:3 aspect ratio
+                borderRadius: 10,
+              }}
+              resizeMode="cover"
+            />
+          )}
+
+          {/* Remove Media Button */}
+          <Pressable
+            onPress={() => setMedia(null)}
+            className="absolute top-2 right-2 bg-gray-700 p-2 rounded-full"
+          >
+            <FontAwesome name="times" size={16} color="white" />
+          </Pressable>
+        </View>
+      )}
 
       <View className="flex-row mt-4 gap-2 justify-between w-full items-center">
         <View className="flex-row  justify-center gap-3">

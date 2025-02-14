@@ -15,6 +15,7 @@ import {
   TextInput,
   ActivityIndicator,
   Button,
+  useWindowDimensions,
 } from "react-native";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import Feather from "@expo/vector-icons/Feather";
@@ -37,7 +38,7 @@ import {
   where,
 } from "firebase/firestore";
 import { useUserInfo } from "@/components/UserContext";
-import { router } from "expo-router";
+import { Link, router } from "expo-router";
 import { deleteObject, ref } from "firebase/storage";
 import { useRecoilState } from "recoil";
 import { useUser } from "@clerk/clerk-expo";
@@ -68,6 +69,17 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
 
   const [userData, setUserData] = useState(null);
   const colorScheme = useColorScheme();
+  const [mediaSize, setMediaSize] = useState({ width: "100%", height: 300 });
+  const { width } = useWindowDimensions();
+
+  useEffect(() => {
+    if (post?.images) {
+      Image.getSize(post.images, (imgWidth, imgHeight) => {
+        const aspectRatio = imgWidth / imgHeight;
+        setMediaSize({ width: "100%", height: width / aspectRatio });
+      });
+    }
+  }, [post?.images]);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -389,7 +401,7 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
 
   return (
     <View className="mb-1 rounded-md  border-gray-200  shadow-md bg-white  dark:bg-gray-800">
-      <View className="flex-row items-center gap-1">
+      <View className="flex-row items-center gap-1 p-2">
         <Avatar
           size={40}
           rounded
@@ -460,7 +472,9 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
 
       {post?.citeInput ? (
         <View className="gap-3">
-          <Text className="ml-12 dark:text-white">{post?.citeInput}</Text>
+          <Link href={`/view/${id}`} className="ml-12">
+            <Text className="ml-12 dark:text-white">{post?.citeInput}</Text>
+          </Link>
           <View className="bg-gray-100 ml-20 gap-3 p-2 rounded-md dark:bg-gray-600">
             <View className="flex-row items-center gap-1">
               <Avatar
@@ -497,68 +511,153 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
                 </Text>
               </View>
             </View>
-            <View className="w-full ">
+
+            {loading ? (
+              <ActivityIndicator />
+            ) : (
+              <View className="bg-gray-100 rounded-md dark:bg-gray-800 w-full">
+                {/* Video Handling */}
+                {post?.videos && (
+                  <View
+                    onLayout={(event) => {
+                      const { width: videoWidth } = event.nativeEvent.layout;
+                      const videoHeight = videoWidth * 0.56; // Default 16:9 ratio
+                      const minHeight = 300; // Minimum height for videos
+
+                      setMediaSize({
+                        width: "100%",
+                        height:
+                          videoHeight > minHeight ? videoHeight : minHeight, // Ensure the video height is at least the minimum value
+                      });
+                    }}
+                  >
+                    <Video
+                      ref={videoRef}
+                      source={{ uri: post?.videos }}
+                      style={{
+                        width: mediaSize.width,
+                        height: mediaSize.height,
+                      }}
+                      isLooping
+                      shouldPlay={!isPaused}
+                      resizeMode="contain"
+                      isMuted={isMuted}
+                      className="relative"
+                    />
+                    <Pressable
+                      onPress={() => setIsMuted(!isMuted)}
+                      className="absolute flex-1 w-full h-full"
+                    >
+                      <View className="ml-auto mt-auto m-2">
+                        <FontAwesome5
+                          name={isMuted ? "volume-mute" : "volume-down"}
+                          size={24}
+                          color={colorScheme === "dark" ? "#FFFFFF" : "#1F2937"}
+                        />
+                      </View>
+                    </Pressable>
+                  </View>
+                )}
+
+                {/* Image Handling */}
+                {post?.images && (
+                  <Link href={`/view/${id}`}>
+                    <Image
+                      source={{ uri: post.images }}
+                      style={{
+                        width: mediaSize.width,
+                        height: mediaSize.height,
+                        alignSelf: "center",
+                      }}
+                      resizeMode="contain"
+                      className="w-full"
+                    />
+                  </Link>
+                )}
+              </View>
+            )}
+
+            <View className="w-full">
               <Text className="ml-12 dark:text-white ">{post?.text}</Text>
             </View>
           </View>
         </View>
       ) : (
         <>
-          <View className="ml-12 mb-4">
-            <Text className="text-md dark:text-white ">{post?.text}</Text>
+          <View className="ml-12 mb-4 gap-3">
+            <Link href={`/view/${id}`}>
+              <Text className="text-md dark:text-white ">{post?.text}</Text>
+            </Link>
             {post?.fromNickname && (
-              <Text className="text-gray-500 ">
+              <Text className="text-gray-500 mb-3">
                 Reposted by @{post?.fromNickname}
               </Text>
             )}
           </View>
-          <View className="bg-gray-100 rounded-md dark:bg-gray-800 w-full">
-            {post?.videos && (
-              <>
-                <Video
-                  ref={videoRef}
-                  source={{ uri: post?.videos }}
-                  style={{ width: "100%", height: 500 }}
-                  isLooping
-                  shouldPlay={!isPaused}
-                  resizeMode="contain"
-                  isMuted={isMuted} // Controlled by state
-                  className="relative"
-                />
-                <Pressable
-                  onPress={() => setIsMuted(!isMuted)}
-                  className="absolute flex-1 w-full h-full"
+          {loading ? (
+            <ActivityIndicator />
+          ) : (
+            <View className="bg-gray-100 rounded-md dark:bg-gray-800 w-screen">
+              {/* Video Handling */}
+              {post?.videos && (
+                <View
+                  onLayout={(event) => {
+                    const { width: videoWidth } = event.nativeEvent.layout;
+                    const videoHeight = videoWidth * 0.56; // Default 16:9 ratio
+                    const minHeight = 300; // Minimum height for videos
+
+                    setMediaSize({
+                      width: "100%",
+                      height: videoHeight > minHeight ? videoHeight : minHeight, // Ensure the video height is at least the minimum value
+                    });
+                  }}
                 >
-                  {isMuted ? (
-                    <View className=" ml-auto mt-auto m-2">
-                      <FontAwesome5
-                        name="volume-mute"
-                        size={24}
-                        color={colorScheme === "dark" ? "#FFFFFF" : "#1F2937"}
-                      />
-                    </View>
-                  ) : (
-                    <View className=" ml-auto mt-auto m-2">
-                      <FontAwesome5
-                        name="volume-down"
-                        size={24}
-                        color={colorScheme === "dark" ? "#FFFFFF" : "#1F2937"}
-                      />
-                    </View>
-                  )}
-                </Pressable>
-              </>
-            )}
-            {post?.images && (
-              <Image
-                source={{
-                  uri: post?.images,
-                }}
-                style={{ width: "100%", height: 500 }}
-                resizeMode="contain"
-              />
-            )}
-          </View>
+                  <Video
+                    ref={videoRef}
+                    source={{ uri: post?.videos }}
+                    style={{
+                      width: mediaSize.width,
+                      height: mediaSize.height,
+                    }}
+                    isLooping
+                    shouldPlay={!isPaused}
+                    resizeMode="contain"
+                    isMuted={isMuted}
+                    className="h-96"
+                  />
+              
+                    <Pressable className="absolute w-full h-full " onPress={() => router.push(`/view/${id}`)}>
+                      <Pressable
+                        onPress={() => setIsMuted(!isMuted)}
+                        className=" w-10 h-10 ml-auto mt-auto mr-4"
+                      >
+                        <FontAwesome5
+                          name={isMuted ? "volume-mute" : "volume-down"}
+                          size={24}
+                          color={colorScheme === "dark" ? "#FFFFFF" : "#1F2937"}
+                        />
+                      </Pressable>
+                    </Pressable>
+           
+                </View>
+              )}
+
+              {/* Image Handling */}
+              {post?.images && (
+                <Link href={`/view/${id}`}>
+                  <Image
+                    source={{ uri: post.images }}
+                    style={{
+                      width: mediaSize.width,
+                      height: mediaSize.height,
+                      alignSelf: "center",
+                    }}
+                    resizeMode="cover"
+                  />
+                </Link>
+              )}
+            </View>
+          )}
         </>
       )}
 
