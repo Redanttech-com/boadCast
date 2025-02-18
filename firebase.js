@@ -5,13 +5,12 @@ import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAmI3uZKu0oqJ90xsX-3BLsYNLno3rz3rI",
-  authDomain: "deep-state-dce44.firebaseapp.com",
-  databaseURL: "https://deep-state-dce44-default-rtdb.firebaseio.com",
-  projectId: "deep-state-dce44",
-  storageBucket: "deep-state-dce44.appspot.com",
-  messagingSenderId: "36467854328",
-  appId: "1:36467854328:web:bb49838d3beb41be77240d",
+  apiKey: "AIzaSyDamBDVXsQEo1Ii7m44OFHIEKiFihJngtg",
+  authDomain: "insta-2-yt-326f5.firebaseapp.com",
+  projectId: "insta-2-yt-326f5",
+  storageBucket: "insta-2-yt-326f5.appspot.com",
+  messagingSenderId: "816842422080",
+  appId: "1:816842422080:web:4ce71ea7146ca29f71eca5",
 };
 
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();

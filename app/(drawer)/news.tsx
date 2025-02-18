@@ -12,8 +12,11 @@ import { useQuery } from "@tanstack/react-query";
 import { FetchKenyanNews } from "@/utils/cryptoapi";
 import { heightPercentageToDP as hp } from "react-native-responsive-screen";
 import { router } from "expo-router";
+import { useColorScheme } from "@/hooks/useColorScheme.web";
 
 const NewsScreen = () => {
+    const colorScheme = useColorScheme();
+  
   const { data: NewsData = [], isLoading: IsNewsLoading } = useQuery({
     queryKey: ["cryptonews"],
     queryFn: FetchKenyanNews,
@@ -75,14 +78,20 @@ const NewsScreen = () => {
     <SafeAreaView className="space-x-2 bg-white dark:bg-gray-800  flex-1">
       <View className="w-full flex-row justify-between items-center px-4 pb-4">
         <View className="w-3/4 flex-row space-x-2 items-center">
-          <Text className="font-bold text-3xl dark:text-white">Trending News</Text>
+          <Text className="font-bold text-3xl dark:text-white">
+            Trending News
+          </Text>
         </View>
       </View>
 
-      <View>
+      <View className="flex-1">
         {IsNewsLoading ? (
           <View className="flex-1 justify-center items-center">
-            <ActivityIndicator size="large" color="black" />
+            <ActivityIndicator
+              size="large"
+              color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
+            />
+            <Text className="dark:text-white">Loading news</Text>
           </View>
         ) : (
           <FlatList

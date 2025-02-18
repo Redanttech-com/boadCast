@@ -1,12 +1,16 @@
 import React from "react";
-import { ChannelList, ChannelPreviewMessenger } from "stream-chat-expo";
+import {
+  ChannelList,
+  ChannelPreviewMessenger,
+  OverlayProvider,
+} from "stream-chat-expo";
 import { router, Stack } from "expo-router";
 import { useUserInfo } from "@/components/UserContext";
 import { View, useColorScheme } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { Text } from "react-native";
-import { AntDesign } from "@expo/vector-icons";
+import { AntDesign, Ionicons } from "@expo/vector-icons";
 
 const index = () => {
   const { userDetails } = useUserInfo();
@@ -16,7 +20,6 @@ const index = () => {
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
-
       <SafeAreaView className="flex-1 dark:bg-gray-800">
         <StatusBar style="auto" />
         <View className="flex-row justify-between p-4">
@@ -26,10 +29,10 @@ const index = () => {
             size={24}
             color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
           />
-          <Text className="dark:text-white font-bold text-2xl">Chat</Text>
-          <AntDesign
+          <Text className="dark:text-white font-bold text-2xl">Chats</Text>
+          <Ionicons
             onPress={() => router.push("/(drawer)/(chats)/users")}
-            name="right"
+            name="people"
             size={24}
             color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
           />

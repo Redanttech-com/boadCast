@@ -10,11 +10,12 @@ import {
 import { db } from "@/firebase";
 import { doc, setDoc, deleteDoc } from "firebase/firestore";
 import useFollowData from "./useFollowData";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { StatusBar } from "expo-status-bar";
 
 const FollowersScreen = () => {
   const { followers, following, loading, currentUserId } = useFollowData();
   const [activeTab, setActiveTab] = useState("followers");
-
 
   // Prevent operations if currentUserId is missing
   if (!currentUserId) {
@@ -28,7 +29,7 @@ const FollowersScreen = () => {
   }
 
   // Convert following list to a Set for quick lookup
-  const followingSet = new Set(following.map((user) => user.id));
+  const followingSet = new Set(following.map((user) => user.uid));
 
   // Handle Follow
   const handleFollow = async (userId) => {
@@ -51,7 +52,6 @@ const FollowersScreen = () => {
     try {
       const docRef = doc(db, "following", `${currentUserId}_${userId}`);
       await deleteDoc(docRef);
-     
     } catch (error) {
       console.error("Error unfollowing user:", error);
     }
@@ -92,55 +92,66 @@ const FollowersScreen = () => {
   const renderTabContent = (data) => (
     <FlatList
       data={data}
-      keyExtractor={(item) => item.id}
+      keyExtractor={(item) => item.uid} // Ensuring correct key usage
       renderItem={renderItem}
       showsVerticalScrollIndicator={false}
       ListEmptyComponent={
-        <View className="flex-1 items-center justify-center h-screen">
-          <Text>empty</Text>
+        <View className="flex-1 justify-center items-center">
+          <Text className="dark:text-white">No users found</Text>
         </View>
       }
     />
   );
 
   return (
-    <>
-      <View className="flex-1 p-4">
-        {/* Toggle Buttons */}
-        <View className="flex-row justify-between w-4/4 mb-4">
-          <Pressable
-            onPress={() => setActiveTab("followers")}
-            className={`p-2 px-4 rounded-md w-2/4 ${
+    <SafeAreaView className="flex-1 p-4 dark:bg-gray-800">
+      <StatusBar style="auto" />
+      {/* Toggle Buttons */}
+      <View className="flex-row justify-between mb-4 border-b">
+        <Pressable
+          onPress={() => setActiveTab("followers")}
+          className={`flex-1 p-2 items-center ${
+            activeTab === "followers" ? "border-b-2 border-blue-600" : ""
+          }`}
+        >
+          <Text
+            className={
               activeTab === "followers"
-                ? "border-b border-blue-600 w-full items-center"
-                : "w-full items-center opacity-20"
-            }`}
+                ? "text-blue-600 font-bold"
+                : "text-gray-500"
+            }
           >
-            <Text className="font-bold">Followers</Text>
-          </Pressable>
+            Followers
+          </Text>
+        </Pressable>
 
-          <Pressable
-            onPress={() => setActiveTab("following")}
-            className={`p-2 px-4 rounded-md w-2/4 ${
+        <Pressable
+          onPress={() => setActiveTab("following")}
+          className={`flex-1 p-2 items-center ${
+            activeTab === "following" ? "border-b-2 border-blue-600" : ""
+          }`}
+        >
+          <Text
+            className={
               activeTab === "following"
-                ? "border-b border-blue-600 w-full items-center"
-                : "w-full items-center opacity-20"
-            }`}
+                ? "text-blue-600 font-bold"
+                : "text-gray-500"
+            }
           >
-            <Text className="font-bold ">Following</Text>
-          </Pressable>
-        </View>
-
-        {/* Render selected tab */}
-        {loading ? (
-          <ActivityIndicator />
-        ) : activeTab === "followers" ? (
-          renderTabContent(followers)
-        ) : (
-          renderTabContent(following)
-        )}
+            Following
+          </Text>
+        </Pressable>
       </View>
-    </>
+
+      {/* Render selected tab */}
+      {loading ? (
+        <ActivityIndicator />
+      ) : activeTab === "followers" ? (
+        renderTabContent(followers)
+      ) : (
+        renderTabContent(following)
+      )}
+    </SafeAreaView>
   );
 };
 

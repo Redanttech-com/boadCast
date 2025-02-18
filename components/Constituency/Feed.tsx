@@ -17,14 +17,16 @@ import {
 import {
   addDoc,
   collection,
+  doc,
   getDocs,
   onSnapshot,
   orderBy,
   query,
   serverTimestamp,
+  updateDoc,
   where,
 } from "firebase/firestore";
-import { auth, db } from "@/firebase";
+import { auth, db, storage } from "@/firebase";
 import Posts from "./Posts";
 import BottomSheet, {
   BottomSheetFlashList,
@@ -39,6 +41,12 @@ import Comments from "./Comments";
 import { router } from "expo-router";
 import Header from "./Header";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
+import { Image } from "react-native";
+import { Video } from "expo-av";
+import * as ImagePicker from "expo-image-picker";
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import { Avatar } from "react-native-elements";
+
 
 const Feed = () => {
   const [loadingPosts, setLoadingPosts] = useState(false);
@@ -57,6 +65,113 @@ const Feed = () => {
   const openBottomSheet = useCallback(() => setIsBottomSheetOpen(true), []);
   const [userData, setUserData] = useState(null);
   const colorScheme = useColorScheme();
+
+    const [loading, setLoading] = useState(false);
+    const [media, setMedia] = useState({ uri: null, type: null });
+
+    const pickMedia = useCallback(async (type: "Images" | "Videos") => {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes:
+          type === "Images"
+            ? ImagePicker.MediaTypeOptions.Images
+            : ImagePicker.MediaTypeOptions.Videos,
+        allowsEditing: true,
+        quality: 1,
+      });
+
+      if (!result.canceled) {
+        setMedia({ uri: result.assets[0].uri, type });
+      }
+    }, []);
+
+    const uploadMedia = async (docRefId: string) => {
+      if (!media.uri) return;
+
+      const blob = await (await fetch(media.uri)).blob();
+      const mediaRef = ref(storage, `constituency/${docRefId}/${media.type}`);
+      await uploadBytes(mediaRef, blob);
+
+      const downloadUrl = await getDownloadURL(mediaRef);
+      await updateDoc(
+        doc(db, "constituency", userData?.constituency, "posts", docRefId),
+        {
+          [media.type.toLowerCase()]: downloadUrl,
+        }
+      );
+    };
+
+    useEffect(() => {
+      const fetchUserData = async () => {
+        if (!user?.id) return;
+
+        const q = query(
+          collection(db, "userPosts"),
+          where("uid", "==", user.id)
+        );
+        const querySnapshot = await getDocs(q);
+        if (!querySnapshot.empty) {
+          setUserData(querySnapshot.docs[0].data());
+        }
+      };
+
+      fetchUserData();
+    }, [user]);
+
+    const sendPost = async () => {
+      if (!input.trim()) {
+        Alert.alert("Error", "Post content cannot be empty.");
+        return;
+      }
+
+      // Ensure user and userData exist
+      if (!user || !userData) {
+        Alert.alert("Error", "User not authenticated. Please log in again.");
+        return;
+      }
+      const docRef = await addDoc(
+        collection(db, "constituency", userData?.constituency, "posts"),
+        {
+          uid: user?.id,
+          text: input.trim(),
+          userImg: userData?.userImg || null,
+          timestamp: serverTimestamp(),
+          lastname: userData?.lastname,
+          name: userData?.name,
+          nickname: userData?.nickname,
+          constituency: userData?.constituency,
+        }
+      );
+
+      if (media.uri) await uploadMedia(docRef.id);
+
+      setInput("");
+      setMedia({ uri: null, type: null });
+    };
+    const getColorFromName = (name) => {
+      if (!name) return "#ccc"; // Default color if no name exists
+
+      // Generate a hash number from the name
+      let hash = 0;
+      for (let i = 0; i < name?.length; i++) {
+        hash = name.charCodeAt(i) + ((hash << 5) - hash);
+      }
+
+      // Predefined colors for better visuals
+      const colors = [
+        "#FF5733",
+        "#33FF57",
+        "#3357FF",
+        "#F1C40F",
+        "#8E44AD",
+        "#E74C3C",
+        "#2ECC71",
+        "#1ABC9C",
+        "#3498DB",
+      ];
+
+      // Pick a color consistently based on the hash value
+      return colors[Math.abs(hash) % colors.length];
+    };
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -191,19 +306,98 @@ const Feed = () => {
     itemVisiblePercentThreshold: 50, // Define what percentage of the item should be visible to count as visible
   };
 
-  if (loadingPosts) {
-    return (
-      <View className="flex-1 justify-center items-center dark:bg-gray-800">
-        <ActivityIndicator
-          color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
-        />
-      </View>
-    );
-  }
+  // if (loadingPosts) {
+  //   return (
+  //     <View className="flex-1 justify-center items-center dark:bg-gray-800">
+  //       <ActivityIndicator
+  //         color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
+  //       />
+  //     </View>
+  //   );
+  // }
 
   return (
-    <View className="flex-1 px-2 dark:bg-gray-800">
-      <Header />
+    <View className="flex-1  dark:bg-gray-800">
+      <View className="shadow-md p-4">
+        <View className="flex-row items-center justify-between">
+          <Text className="font-extrabold text-2xl dark:text-white">
+            {userData?.constituency} Constituency
+          </Text>
+          <Avatar
+            size={40}
+            rounded
+            source={userData?.userImg && { uri: userData?.userImg }}
+            title={userData?.name && userData?.name[0].toUpperCase()}
+            containerStyle={{
+              backgroundColor: getColorFromName(userData?.name),
+            }} // Consistent color per user
+          />
+        </View>
+
+        <View className="w-full flex-row items-center mt-4">
+          <TextInput
+            placeholder="What's on your mind?"
+            placeholderTextColor={
+              colorScheme === "dark" ? "#FFFFFF" : "#808080"
+            } // Light gray for light mode, white for dark mode
+            value={input}
+            onChangeText={setInput}
+            multiline
+            numberOfLines={3}
+            style={{
+              width: "88%",
+              padding: 8,
+              borderBottomWidth: 1,
+              borderBottomColor: "gray",
+              color: colorScheme === "dark" ? "#FFFFFF" : "#000000", // Text color
+            }}
+          />
+          {loading ? (
+            <ActivityIndicator size="small" color="blue" />
+          ) : (
+            <Pressable
+              onPress={sendPost}
+              className="ml-2 bg-blue-500 p-2 rounded-full"
+            >
+              <Text className="text-white">Cast</Text>
+            </Pressable>
+          )}
+        </View>
+        {media?.uri &&
+          (media.type === "video" ? (
+            <Video
+              source={{ uri: media.uri }}
+              style={{ width: "100%", height: 200, borderRadius: 10 }}
+              useNativeControls
+              shouldPlay
+              isLooping
+              resizeMode="contain"
+            />
+          ) : (
+            <Image
+              source={{ uri: media.uri }}
+              className="w-full h-96 rounded-md"
+              resizeMode="cover"
+            />
+          ))}
+
+        <View className="flex-row mt-4 justify-center gap-3">
+          <Pressable onPress={() => pickMedia("Images")}>
+            <Ionicons
+              name="image-outline"
+              size={24}
+              color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
+            />
+          </Pressable>
+          <Pressable onPress={() => pickMedia("Videos")}>
+            <Ionicons
+              name="videocam-outline"
+              size={24}
+              color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
+            />
+          </Pressable>
+        </View>
+      </View>
       <FlatList
         data={posts}
         keyExtractor={(item) => item.id}

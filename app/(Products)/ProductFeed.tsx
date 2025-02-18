@@ -15,6 +15,7 @@ import {
   TouchableOpacity,
   FlatList,
   Pressable,
+  ScrollView,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import ProductList from "./ProductList";
@@ -30,8 +31,7 @@ function ProductFeed() {
   const [error, setError] = useState("");
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("");
-    const colorScheme = useColorScheme();
-  
+  const colorScheme = useColorScheme();
 
   const fetchPosts = async () => {
     try {
@@ -150,9 +150,7 @@ function ProductFeed() {
           </View>
 
           {/* Category Filter */}
-          <View
-            style={{ flexDirection: "row", flexWrap: "wrap", marginBottom: 10 }}
-          >
+          <ScrollView horizontal={true} className="flex-row">
             {[
               "Vehicles",
               "Electronics",
@@ -177,7 +175,7 @@ function ProductFeed() {
                 <Text style={{ color: "white" }}>{category}</Text>
               </TouchableOpacity>
             ))}
-          </View>
+          </ScrollView>
 
           {/* Products List */}
           <FlatList

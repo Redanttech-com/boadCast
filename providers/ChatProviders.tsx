@@ -1,9 +1,10 @@
 import { PropsWithChildren, useEffect, useState } from "react";
-import { ActivityIndicator, View } from "react-native";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { StreamChat } from "stream-chat";
 import { Chat, OverlayProvider } from "stream-chat-expo";
 import { useUser } from "@clerk/clerk-expo";
 import { useUserInfo } from "@/components/UserContext";
+import { useColorScheme } from "@/hooks/useColorScheme.web";
 
 const client = StreamChat.getInstance(process.env.EXPO_PUBLIC_STREAM_API_KEY!);
 
@@ -20,6 +21,7 @@ export default function ChatProvider({ children }: PropsWithChildren) {
   const [isReady, setIsReady] = useState(false);
   const { user } = useUser();
   const { userDetails } = useUserInfo();
+  const colorScheme = useColorScheme();
 
   useEffect(() => {
     const connectUser = async () => {
@@ -56,15 +58,21 @@ export default function ChatProvider({ children }: PropsWithChildren) {
 
   if (!isReady) {
     return (
-      <View style={{ flex: 1, justifyContent: "center" }}>
-        <ActivityIndicator size="large" color="red" />
+      <View className="flex-1 justify-center items-center dark:bg-gray-800">
+        <ActivityIndicator
+          size="large"
+          color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
+        />
       </View>
     );
   }
 
   return (
     <OverlayProvider>
-      <Chat client={client}>{children}</Chat>
+        <Chat client={client} >
+          {children}
+        </Chat>
     </OverlayProvider>
   );
 }
+

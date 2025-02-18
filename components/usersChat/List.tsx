@@ -9,32 +9,30 @@ import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "@/firebase";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
 
-const UserList = () => {
+const List = () => {
   const { client } = useChatContext();
 
   const { user: me } = useUser();
 
-    const { user } = useUser();
-    const [userData, setUserData] = useState(null);
-    const colorScheme = useColorScheme();
+  const { user } = useUser();
+  const [userData, setUserData] = useState(null);
+  const colorScheme = useColorScheme();
 
-    useEffect(() => {
-      const fetchUserData = async () => {
-        if (!user?.id) return;
-        const q = query(
-          collection(db, "userPosts")
-        );
-        const querySnapshot = await getDocs(q);
-        if (!querySnapshot.empty) {
-          setUserData(querySnapshot.docs[0].data());
-        }
-      };
-      fetchUserData();
-    }, [user]);
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (!user?.id) return;
+      const q = query(collection(db, "userPosts"));
+      const querySnapshot = await getDocs(q);
+      if (!querySnapshot.empty) {
+        setUserData(querySnapshot.docs[0].data());
+      }
+    };
+    fetchUserData();
+  }, [user]);
 
   const onPress = async () => {
     const channel = client.channel("messaging", {
-      members: [ user?.id],
+      members: [user?.id],
     });
     await channel.watch();
     router.replace(`/(drawer)/(chats)/channel/${channel.cid}`);
@@ -84,7 +82,9 @@ const UserList = () => {
           />
           <View className="flex-row gap-2">
             <Text className="font-bold dark:text-white">{userData?.name}</Text>
-            <Text className="font-bold dark:text-white">{userData?.lastname}</Text>
+            <Text className="font-bold dark:text-white">
+              {userData?.lastname}
+            </Text>
             <Text style={{ color: "gray" }}>@{userData?.nickname}</Text>
           </View>
         </View>
@@ -93,4 +93,4 @@ const UserList = () => {
   );
 };
 
-export default UserList;
+export default List;

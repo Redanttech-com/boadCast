@@ -10,7 +10,13 @@ import {
 } from "react-native";
 import { useUserInfo } from "@/components/UserContext";
 import { db } from "@/firebase";
-import { collection, query, where, onSnapshot } from "firebase/firestore";
+import {
+  collection,
+  query,
+  where,
+  onSnapshot,
+  getDocs,
+} from "firebase/firestore";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const Members = () => {
@@ -18,15 +24,31 @@ const Members = () => {
   const [countyMembers, setCountyMembers] = useState([]);
   const [constituencyMembers, setConstituencyMembers] = useState([]);
   const [wardMembers, setWardMembers] = useState([]);
-  const { userDetails, followLoading, hasFollowed, followMember } = useUserInfo();
+  const [nationalMembers, setNationalMembers] = useState([]);
+  const { userDetails, followLoading, hasFollowed, followMember } =
+    useUserInfo();
 
-  // Fetch members based on user location
+  // Fetch members based on user location and all users for National
   useEffect(() => {
     if (!userDetails) return;
 
+    // Fetch all users for national tab
+    const fetchAllUsers = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, "userPosts"));
+        const users = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setNationalMembers(users);
+      } catch (error) {
+        console.error("Error fetching all users:", error);
+      }
+    };
+
+    // Fetch users based on specific location fields (county, constituency, ward)
     const fetchMembers = (field, value, setter) => {
       if (!value) return;
-
       const q = query(collection(db, "userPosts"), where(field, "==", value));
       const unsubscribe = onSnapshot(q, (snapshot) => {
         const membersData = snapshot.docs.map((doc) => ({
@@ -35,9 +57,10 @@ const Members = () => {
         }));
         setter(membersData);
       });
-
       return unsubscribe;
     };
+
+    fetchAllUsers(); // Fetch all users for National tab
 
     const unsubCounty = fetchMembers(
       "county",
@@ -46,7 +69,7 @@ const Members = () => {
     );
     const unsubConstituency = fetchMembers(
       "constituency",
-      userDetails?.constituency,
+      userDetails.constituency,
       setConstituencyMembers
     );
     const unsubWard = fetchMembers("ward", userDetails.ward, setWardMembers);
@@ -63,7 +86,7 @@ const Members = () => {
     <View className="flex-row items-center justify-between m-2 gap-2">
       <View className="flex-row items-center gap-3">
         <Image
-          source={{ uri: item.userImg }}
+          source={{ uri: item.userImg || "https://via.placeholder.com/150" }} // Fallback image
           className="h-14 w-14 rounded-full border border-red-500 p-[1.5px]"
         />
         <Text>
@@ -115,7 +138,7 @@ const Members = () => {
     <SafeAreaView className="flex-1 gap-5 dark:bg-gray-800">
       {/* Tab Selector */}
       <View className="flex-row justify-between p-3 px-5 bg-gray-200 dark:bg-gray-600 items-center">
-        {["county", "constituency", "ward"].map((tab) => (
+        {["national", "county", "constituency", "ward"].map((tab) => (
           <TouchableOpacity key={tab} onPress={() => setActiveTab(tab)}>
             <Text
               className={`${
@@ -132,6 +155,7 @@ const Members = () => {
 
       {/* Member List */}
       <View>
+        {activeTab === "national" && renderTabContent(nationalMembers)}
         {activeTab === "county" && renderTabContent(countyMembers)}
         {activeTab === "constituency" && renderTabContent(constituencyMembers)}
         {activeTab === "ward" && renderTabContent(wardMembers)}

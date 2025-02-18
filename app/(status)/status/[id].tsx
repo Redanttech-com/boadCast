@@ -205,11 +205,6 @@ export default function StatusPage() {
           <Text style={styles.deleteButtonText}>Delete</Text>
         </TouchableOpacity>
       )}
-      <TouchableOpacity style={styles.pauseButton} onPress={pauseOrResume}>
-        <Text style={styles.pauseButtonText}>
-          {isPaused ? "Resume" : "Pause"}
-        </Text>
-      </TouchableOpacity>
 
       {/* Navigation Controls */}
       <TouchableOpacity style={styles.navButtonLeft} onPress={handlePrev} className="h-screen p-10 ">

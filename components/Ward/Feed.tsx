@@ -13,24 +13,28 @@ import {
   TextInput,
   Pressable,
   Alert,
+  useWindowDimensions,
+  Image,
 } from "react-native";
 import {
   addDoc,
   collection,
+  doc,
   getDocs,
   onSnapshot,
   orderBy,
   query,
   serverTimestamp,
+  updateDoc,
   where,
 } from "firebase/firestore";
-import { auth, db } from "@/firebase";
+import { auth, db, storage } from "@/firebase";
 import Posts from "./Posts";
 import BottomSheet, {
   BottomSheetFlashList,
   BottomSheetView,
 } from "@gorhom/bottom-sheet";
-import { Ionicons } from "@expo/vector-icons";
+import { FontAwesome, Ionicons } from "@expo/vector-icons";
 import { useUserInfo } from "@/components/UserContext";
 import { useRecoilState } from "recoil";
 import { modalWardComment } from "@/atoms/modalAtom";
@@ -39,12 +43,15 @@ import Comments from "./Comments";
 import { router } from "expo-router";
 import Header from "./Header";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
+import * as ImagePicker from "expo-image-picker";
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import { Video } from "expo-av";
+import { Avatar } from "react-native-elements";
 
 const Feed = () => {
   const [loadingPosts, setLoadingPosts] = useState(false);
   const [loadingComments, setLoadingComments] = useState(false); // Separate loading state for comments
   const [posts, setPosts] = useState([]);
-  const [input, setInput] = useState("");
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
   const bottomSheetRef = useRef(null);
   const [comments, setComments] = useState([]);
@@ -57,6 +64,110 @@ const Feed = () => {
   const openBottomSheet = useCallback(() => setIsBottomSheetOpen(true), []);
   const [userData, setUserData] = useState(null);
   const colorScheme = useColorScheme();
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [media, setMedia] = useState(null);
+  const [isMuted, setIsMuted] = useState(true);
+  const [isPaused, setIsPaused] = useState(false);
+  const videoRef = useRef(null);
+  const { width } = useWindowDimensions();
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (!user?.id) return;
+      const q = query(collection(db, "userPosts"), where("uid", "==", user.id));
+      const querySnapshot = await getDocs(q);
+      if (!querySnapshot.empty) {
+        setUserData(querySnapshot.docs[0].data());
+      }
+    };
+    fetchUserData();
+  }, [user]);
+
+  const pickMedia = useCallback(async (type) => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes:
+        type === "image"
+          ? ImagePicker.MediaTypeOptions.Images
+          : ImagePicker.MediaTypeOptions.Videos,
+      allowsEditing: true,
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setMedia({ uri: result.assets[0].uri, type });
+    }
+  }, []);
+
+  const uploadMedia = async (docRefId) => {
+    if (!media?.uri) return;
+    const blob = await (await fetch(media.uri)).blob();
+    const mediaRef = ref(storage, `ward/${docRefId}/${media.type}`);
+    await uploadBytes(mediaRef, blob);
+    const downloadUrl = await getDownloadURL(mediaRef);
+    await updateDoc(doc(db, "ward", userData?.ward, "posts", docRefId), {
+      [media.type]: downloadUrl,
+    });
+  };
+
+  const sendPost = async () => {
+    if (!input.trim()) {
+      Alert.alert("Error", "Post content cannot be empty.");
+      return;
+    }
+
+    if (!user || !userData) {
+      Alert.alert("Error", "User not authenticated. Please log in again.");
+      return;
+    }
+
+    // setLoading(true);
+
+    const docRef = await addDoc(
+      collection(db, "ward", userData?.ward, "posts"),
+      {
+        uid: user?.id,
+        text: input.trim(),
+        userImg: userData?.userImg || null,
+        timestamp: serverTimestamp(),
+        lastname: userData?.lastname,
+        name: userData?.name,
+        nickname: userData?.nickname,
+        ward: userData?.ward,
+      }
+    );
+
+    if (media) await uploadMedia(docRef.id);
+
+    setInput("");
+    setMedia(null);
+  };
+
+  const getColorFromName = (name) => {
+    if (!name) return "#ccc"; // Default color if no name exists
+
+    // Generate a hash number from the name
+    let hash = 0;
+    for (let i = 0; i < name?.length; i++) {
+      hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
+
+    // Predefined colors for better visuals
+    const colors = [
+      "#FF5733",
+      "#33FF57",
+      "#3357FF",
+      "#F1C40F",
+      "#8E44AD",
+      "#E74C3C",
+      "#2ECC71",
+      "#1ABC9C",
+      "#3498DB",
+    ];
+
+    // Pick a color consistently based on the hash value
+    return colors[Math.abs(hash) % colors.length];
+  };
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -177,19 +288,133 @@ const Feed = () => {
     itemVisiblePercentThreshold: 50, // Define what percentage of the item should be visible to count as visible
   };
 
-  if (loadingPosts) {
-    return (
-      <View className="flex-1 justify-center items-center dark:bg-gray-800">
-        <ActivityIndicator
-          color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
-        />
-      </View>
-    );
-  }
+  // if (loadingPosts) {
+  //   return (
+  //     <View className="flex-1 justify-center items-center dark:bg-gray-800">
+  //       <ActivityIndicator
+  //         color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
+  //       />
+  //     </View>
+  //   );
+  // }
 
   return (
-    <View className="flex-1 px-2 dark:bg-gray-800">
-      <Header />
+    <View className="flex-1 dark:bg-gray-800">
+      <View className="shadow-md p-4 ">
+        {/* Header */}
+        <View className="flex-row items-center justify-between">
+          <Text className="font-extrabold text-2xl dark:text-white">
+            {userData?.ward} Ward
+          </Text>
+          <Avatar
+            size={40}
+            rounded
+            source={userData?.userImg && { uri: userData?.userImg }}
+            title={userData?.name && userData?.name[0].toUpperCase()}
+            containerStyle={{
+              backgroundColor: getColorFromName(userData?.name),
+            }} // Consistent color per user
+          />
+        </View>
+
+        {/* Input & Post Button */}
+        <View className="w-full flex-row items-center mt-4">
+          <TextInput
+            placeholder="What's on your mind?"
+            placeholderTextColor={
+              colorScheme === "dark" ? "#FFFFFF" : "#808080"
+            }
+            value={input}
+            onChangeText={setInput}
+            multiline
+            style={{
+              width: "88%",
+              padding: 8,
+              borderBottomWidth: 1,
+              borderBottomColor: "gray",
+              color: colorScheme === "dark" ? "#FFFFFF" : "#000000",
+            }}
+          />
+          {loading ? (
+            <ActivityIndicator size="small" color="blue" />
+          ) : (
+            <Pressable
+              onPress={sendPost}
+              className="ml-2 bg-blue-500 p-2 rounded-full"
+            >
+              <Text className="text-white">Cast</Text>
+            </Pressable>
+          )}
+        </View>
+
+        {/* Media Preview */}
+        {media?.uri && (
+          <View className="relative mt-4 w-full items-center ">
+            {media.type === "video" ? (
+              <>
+                <Pressable onPress={() => setIsPaused((prev) => !prev)}>
+                  <Video
+                    source={{ uri: media.uri }}
+                    style={{
+                      width: width,
+                      height: width * 0.56, // 16:9 aspect ratio
+                      borderRadius: 10,
+                    }}
+                    useNativeControls={false}
+                    isLooping
+                    shouldPlay={!isPaused}
+                    resizeMode="contain"
+                    isMuted={isMuted}
+                  />
+
+                  <Pressable
+                    onPress={() => setIsMuted(!isMuted)}
+                    className="absolute bottom-2 right-2 bg-gray-700 p-2 rounded-full"
+                  >
+                    <FontAwesome name="volume-down" size={24} color="white" />
+                  </Pressable>
+                </Pressable>
+              </>
+            ) : (
+              <Image
+                source={{ uri: media.uri }}
+                style={{
+                  width: width,
+                  height: width * 0.75, // 4:3 aspect ratio
+                  borderRadius: 10,
+                }}
+                resizeMode="cover"
+              />
+            )}
+
+            {/* Remove Media Button */}
+            <Pressable
+              onPress={() => setMedia(null)}
+              className="absolute top-2 right-2 bg-gray-700 p-2 rounded-full"
+            >
+              <FontAwesome name="times" size={16} color="white" />
+            </Pressable>
+          </View>
+        )}
+
+        {/* Media Picker Buttons */}
+        <View className="flex-row mt-4 justify-center gap-3">
+          <Pressable onPress={() => pickMedia("image")}>
+            <Ionicons
+              name="image-outline"
+              size={24}
+              color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
+            />
+          </Pressable>
+          <Pressable onPress={() => pickMedia("video")}>
+            <Ionicons
+              name="videocam-outline"
+              size={24}
+              color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
+            />
+          </Pressable>
+        </View>
+      </View>
       <FlatList
         data={posts}
         keyExtractor={(item) => item.id}

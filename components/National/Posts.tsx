@@ -16,12 +16,14 @@ import {
   ActivityIndicator,
   Button,
   useWindowDimensions,
+  Share,
 } from "react-native";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import Feather from "@expo/vector-icons/Feather";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { db, storage } from "@/firebase";
+import * as Sharing from "expo-sharing";
 import {
   addDoc,
   arrayUnion,
@@ -71,6 +73,28 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
   const colorScheme = useColorScheme();
   const [mediaSize, setMediaSize] = useState({ width: "100%", height: 300 });
   const { width } = useWindowDimensions();
+;
+
+  const onShare = async () => {
+    try {
+      const result = await Share.share({
+        message: "BroadCast:\n", // Properly formatted message
+      });
+
+      if (result.action === Share.sharedAction) {
+        if (result.activityType) {
+          console.log("Shared with activity:", result.activityType);
+        } else {
+          console.log("Shared successfully");
+        }
+      } else if (result.action === Share.dismissedAction) {
+        console.log("Share dismissed");
+      }
+    } catch (error) {
+      console.error("Error sharing:", error);
+    }
+  };
+
 
   useEffect(() => {
     if (post?.images) {
@@ -400,7 +424,7 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
   };
 
   return (
-    <View className="mb-1 rounded-md  border-gray-200  shadow-md bg-white  dark:bg-gray-800">
+    <View className="mb-1 rounded-md  border-gray-200  shadow-md bg-white  dark:bg-gray-700">
       <View className="flex-row items-center gap-1 p-2">
         <Avatar
           size={40}
@@ -616,12 +640,12 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
                     ref={videoRef}
                     source={{ uri: post?.videos }}
                     style={{
-                      width: mediaSize.width,
-                      height: mediaSize.height,
+                      width: "100%",
+                      height: 300,
                     }}
                     isLooping
                     shouldPlay={!isPaused}
-                    resizeMode="contain"
+                    resizeMode="cover"
                     isMuted={isMuted}
                     className="h-96"
                   />
@@ -648,8 +672,8 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
                   <Image
                     source={{ uri: post.images }}
                     style={{
-                      width: mediaSize.width,
-                      height: mediaSize.height,
+                      width: '100%',
+                      height: 300,
                       alignSelf: "center",
                     }}
                     resizeMode="cover"
@@ -766,6 +790,7 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
             name="sharealt"
             size={20}
             color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
+            onPress={onShare}
           />
         </TouchableOpacity>
       </View>

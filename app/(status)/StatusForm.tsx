@@ -7,9 +7,9 @@ import {
   ActivityIndicator,
   ScrollView,
 } from "react-native";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { AntDesign, Feather } from "@expo/vector-icons";
+import { AntDesign, Feather, Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import {
   addDoc,
@@ -36,20 +36,22 @@ const Status = () => {
   const [userData, setUserData] = useState(null);
   const { user } = useUser();
   const colorScheme = useColorScheme();
+  const [media, setMedia] = useState({ uri: null, type: null });
 
-  const pickImage = async () => {
+  const pickMedia = useCallback(async (type: "Images" | "Videos") => {
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes:
+        type === "Images"
+          ? ImagePicker.MediaTypeOptions.Images
+          : ImagePicker.MediaTypeOptions.Videos,
       allowsEditing: true,
-      aspect: [4, 3],
       quality: 1,
     });
 
     if (!result.canceled) {
-      console.log("Selected Image URI:", result.assets[0].uri); // Debugging
-      setImage(result.assets[0].uri);
+      setMedia({ uri: result.assets[0].uri, type });
     }
-  };
+  }, []);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -183,22 +185,21 @@ const Status = () => {
           />
         </View>
 
-        <View>
-          <Pressable
-            onPress={pickImage}
-            className=" bg-blue-950 rounded-full p-4 dark:bg-blue-700"
-          >
-            <Text className="text-white text-center">Choose Image</Text>
+        <View className="flex-row mt-4 justify-center gap-3">
+          <Pressable onPress={() => pickMedia("Images")}>
+            <Ionicons
+              name="image-outline"
+              size={24}
+              color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
+            />
           </Pressable>
-          {image && (
-            <View className="mt-2 items-center">
-              <Image
-                source={{ uri: image }}
-                style={{ width: "100%", height: 300 }}
-                resizeMode="contain"
-              />
-            </View>
-          )}
+          <Pressable onPress={() => pickMedia("Videos")}>
+            <Ionicons
+              name="videocam-outline"
+              size={24}
+              color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
+            />
+          </Pressable>
         </View>
         <Pressable
           onPress={submit}

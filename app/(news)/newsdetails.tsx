@@ -21,12 +21,12 @@ const NewsDetails = () => {
   return (
     <SafeAreaView className="flex-1 bg-white">
       {/* Header */}
-      <View className="w-full flex-row justify-between items-center px-4 bg-white">
+      <View className="w-full flex-row justify-between items-center px-4 bg-white dark:bg-gray-800">
         <Pressable
           onPress={() => router.push("/news")}
-          className="bg-gray-100 p-2 rounded-full"
+          className="bg-gray-100 p-2 rounded-full dark:bg-gray-500"
         >
-          <Text>⬅ Back</Text>
+          <Text className="dark:text-white">⬅ Back</Text>
         </Pressable>
       </View>
 

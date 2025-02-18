@@ -7,6 +7,9 @@ import { ActivityIndicator, View } from "react-native";
 import { useUser } from "@clerk/clerk-expo";
 import { StreamChat } from "stream-chat";
 import { useUserInfo } from "../components/UserContext";
+import { useColorScheme } from "@/hooks/useColorScheme.web";
+ 
+
 
 const apiKey = process.env.EXPO_PUBLIC_STREAM_API_KEY;
 if (!apiKey) {
@@ -30,6 +33,7 @@ export default function VideoProvider({ children }: PropsWithChildren) {
     null
   );
   const { userDetails } = useUserInfo();
+ const colorScheme = useColorScheme();
 
   useEffect(() => {
     if (!userDetails) return;
@@ -66,8 +70,11 @@ export default function VideoProvider({ children }: PropsWithChildren) {
 
   if (!videoClient) {
     return (
-      <View style={{ flex: 1, justifyContent: "center" }}>
-        <ActivityIndicator size="large" color="red" />
+      <View className="flex-1 justify-center items-center dark:bg-gray-800">
+        <ActivityIndicator
+          size="large"
+          color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
+        />
       </View>
     );
   }
