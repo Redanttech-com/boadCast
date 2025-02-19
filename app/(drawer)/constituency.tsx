@@ -54,14 +54,18 @@ const Constituency = () => {
   }, [user]);
 
   useEffect(() => {
-    const unsubscribe = onSnapshot(collection(db, "constituency"), (snapshot) => {
-      const fetchedPosts = snapshot.docs.map((doc) => doc.data());
-      setTrendPosts(fetchedPosts);
-      setPosts(fetchedPosts);
-    });
+    if (!userData?.constituency) return;
+    const unsubscribe = onSnapshot(
+      collection(db, "constituency", userData?.constituency, "posts"),
+      (snapshot) => {
+        const fetchedPosts = snapshot.docs.map((doc) => doc.data());
+        setTrendPosts(fetchedPosts);
+        setPosts(fetchedPosts);
+      }
+    );
 
     return () => unsubscribe();
-  }, []);
+  }, [userData?.constituency]);
 
   useEffect(() => {
     const findTrendingTopics = () => {
@@ -146,14 +150,14 @@ const Constituency = () => {
               renderItem={({ item }) => (
                 <TouchableOpacity
                   onPress={() => setSelectedTopic(item.topic)}
-                  className={`px-4 py-2 rounded-full mr-2 ${
+                  className={`px-4 p-2 rounded-full mr-2 ${
                     isDarkMode ? "bg-gray-700" : "bg-gray-200"
                   }`}
                 >
                   <Text className="font-semibold dark:text-white">
                     #{item.topic}
                   </Text>
-                  <Text className="text-xs dark:text-gray-300">
+                  <Text className="text-xs dark:text-gray-300 ">
                     {item.postCount} mentions
                   </Text>
                 </TouchableOpacity>
@@ -170,9 +174,16 @@ const Constituency = () => {
                   data={filteredPosts}
                   keyExtractor={(item, index) => index.toString()}
                   showsVerticalScrollIndicator={false}
+                  ListEmptyComponent={
+                    <View className="flex-1 justify-center items-center">
+                      <Text className="dark:text-white">
+                        No posts available
+                      </Text>
+                    </View>
+                  }
                   renderItem={({ item }) => (
                     <View
-                      className={`p-4 my-2 rounded-lg ${
+                      className={`p-4 my-2 rounded-lg mb-2 ${
                         isDarkMode ? "bg-gray-800" : "bg-gray-100"
                       }`}
                     >

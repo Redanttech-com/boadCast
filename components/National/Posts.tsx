@@ -178,8 +178,8 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
 
     if (post) {
       Alert.alert(
-        "Repost Confirmation",
-        "Are you sure you want to repost this? It will appear on your profile.",
+        "Recast Confirmation",
+        "Are you sure you want to recast this? It will appear on your profile.",
         [
           {
             text: "Cancel",

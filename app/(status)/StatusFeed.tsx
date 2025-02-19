@@ -19,8 +19,7 @@ const StatusFeed = () => {
   const [loadingStatus, setLoadingStatus] = useState(true); // Set to true initially
   const [posts, setPosts] = useState([]);
   const { user } = useUser();
-    const colorScheme = useColorScheme();
-  
+  const colorScheme = useColorScheme();
 
   // Delete post if older than 24 hours
   const deletePostAfter24Hours = async (id, timestamp) => {
@@ -41,7 +40,7 @@ const StatusFeed = () => {
 
     const fetchStatus = async () => {
       try {
-        const q = query(collection(db, "status"), orderBy("timestamp", "desc"));
+        const q = query(collection(db, "status"), orderBy("timestamp", "asc"));
 
         unsubscribe = onSnapshot(q, (snapshot) => {
           const newPosts = snapshot.docs.map((doc) => ({
@@ -93,7 +92,7 @@ const StatusFeed = () => {
       data={posts}
       keyExtractor={(item) => item.id}
       horizontal={true} // ✅ Enables horizontal scrolling
-      renderItem={({ item }) => <StatusPost post={item} id={item.uid} />}
+      renderItem={({ item }) => <StatusPost post={item} id={item.id} />}
       initialNumToRender={10}
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={{ paddingHorizontal: 10 }} // ✅ Optional: Adds spacing

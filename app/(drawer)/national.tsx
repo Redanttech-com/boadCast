@@ -146,14 +146,14 @@ const National = () => {
             renderItem={({ item }) => (
               <TouchableOpacity
                 onPress={() => setSelectedTopic(item.topic)}
-                className={`px-4 py-2 rounded-full mr-2 ${
+                className={`px-4 p-2 rounded-full mr-2 ${
                   isDarkMode ? "bg-gray-700" : "bg-gray-200"
                 }`}
               >
                 <Text className="font-semibold dark:text-white">
                   #{item.topic}
                 </Text>
-                <Text className="text-xs dark:text-gray-300">
+                <Text className="text-xs dark:text-gray-300 ">
                   {item.postCount} mentions
                 </Text>
               </TouchableOpacity>
@@ -172,7 +172,7 @@ const National = () => {
                 showsVerticalScrollIndicator={false}
                 renderItem={({ item }) => (
                   <View
-                    className={`p-4 my-2 rounded-lg ${
+                    className={`p-4 my-2 rounded-lg mb-2 ${
                       isDarkMode ? "bg-gray-800" : "bg-gray-100"
                     }`}
                   >

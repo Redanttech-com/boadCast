@@ -49,6 +49,7 @@ import { Avatar } from "react-native-elements";
 import { Image } from "react-native";
 import StatusFeed from "@/app/(status)/StatusFeed";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import { Video } from "expo-av";
 
 const Feed = () => {
   const [loadingPosts, setLoadingPosts] = useState(true);
@@ -59,12 +60,9 @@ const Feed = () => {
   const bottomSheetRef = useRef(null);
   const [comments, setComments] = useState([]);
   const [postID] = useRecoilState(modalComment);
-  // const { user } = useUser();
   const { formatNumber } = useUserInfo();
   const snapPoints = useMemo(() => ["100%", "100%"], []);
   const openBottomSheet = useCallback(() => setIsBottomSheetOpen(true), []);
-  // const [userData, setUserData] = useState(null);
-  //const colorScheme = useColorScheme();
   const [loading, setLoading] = useState(false);
   const [media, setMedia] = useState({ uri: null, type: null });
   const [modalVisible, setModalVisible] = useState(false);
@@ -155,6 +153,7 @@ const Feed = () => {
     }
   };
   const sendNational = async () => {
+    setLoading(true)
     if (!input.trim()) {
       Alert.alert("Error", "Post content cannot be empty.");
       return;
@@ -176,6 +175,8 @@ const Feed = () => {
     if (media.uri) await uploadMedia(docRef.id);
     setInput("");
     setMedia({ uri: null, type: null });
+
+    setLoading(false)
   };
 
   const getColorFromName = (name) => {
@@ -321,7 +322,7 @@ const Feed = () => {
   if (loadingPosts) {
     return (
       <View className="flex-1 justify-center items-center dark:bg-gray-800">
-        <ActivityIndicator
+        <ActivityIndicator size={"large"}
           color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
         />
       </View>
@@ -346,9 +347,9 @@ const Feed = () => {
               }} // Consistent color per user
             />
           </View>
-            <View className="mt-3  h-15 ">
-              <StatusFeed />
-            </View>
+          <View className="mt-3  h-15 ">
+            <StatusFeed />
+          </View>
           <View className="w-full flex-row items-center mt-2">
             <TextInput
               placeholder="What's on your mind?"
@@ -368,11 +369,14 @@ const Feed = () => {
               }}
             />
             {loading ? (
-              <ActivityIndicator size="small" color="#0000ff" />
+              <ActivityIndicator
+                size="small"
+                color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
+              />
             ) : (
               <Pressable
                 onPress={sendNational}
-                className="ml-2 bg-blue-500 p-2 rounded-full"
+                className="ml-2 bg-blue-500 p-2 rounded-md"
               >
                 <Text className="text-white">Cast</Text>
               </Pressable>
@@ -381,7 +385,6 @@ const Feed = () => {
           {media?.uri && (
             <View className="relative mt-4 w-full items-center ">
               {media.type === "video" ? (
-                <>
                   <Pressable onPress={() => setIsPaused((prev) => !prev)}>
                     <Video
                       source={{ uri: media.uri }}
@@ -404,7 +407,6 @@ const Feed = () => {
                       <FontAwesome name="volume-down" size={24} color="white" />
                     </Pressable>
                   </Pressable>
-                </>
               ) : (
                 <Image
                   source={{ uri: media.uri }}
@@ -453,7 +455,7 @@ const Feed = () => {
                   setSelectedLevel(level);
                   setModalVisible(true);
                 }}
-                className="px-4 py-1 rounded-full bg-gray-200"
+                className="px-4 py-2 rounded-full bg-gray-200"
               >
                 <Text
                   className={`font-bold ${

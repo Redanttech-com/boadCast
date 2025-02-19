@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import React, { useCallback, useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { AntDesign, Feather, Ionicons } from "@expo/vector-icons";
+import { AntDesign, Feather, FontAwesome, Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import {
   addDoc,
@@ -28,6 +28,7 @@ import { useUser } from "@clerk/clerk-expo";
 import { StatusBar } from "expo-status-bar";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
 import { Avatar } from "react-native-elements";
+import { Video } from "expo-av";
 
 const Status = () => {
   const [loading, setLoading] = useState(false);
@@ -38,7 +39,7 @@ const Status = () => {
   const colorScheme = useColorScheme();
   const [media, setMedia] = useState({ uri: null, type: null });
 
-  const pickMedia = useCallback(async (type: "Images" | "Videos") => {
+  const pickMedia = useCallback(async (type) => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes:
         type === "Images"
@@ -47,11 +48,21 @@ const Status = () => {
       allowsEditing: true,
       quality: 1,
     });
-
     if (!result.canceled) {
       setMedia({ uri: result.assets[0].uri, type });
     }
   }, []);
+
+  const uploadMedia = async (docRefId) => {
+    if (!media.uri) return;
+    const blob = await (await fetch(media.uri)).blob();
+    const mediaRef = ref(storage, `status/${docRefId}/${media.type}`);
+    await uploadBytes(mediaRef, blob);
+    const downloadUrl = await getDownloadURL(mediaRef);
+    await updateDoc(doc(db, "status", docRefId), {
+      [media.type.toLowerCase()]: downloadUrl,
+    });
+  };
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -80,30 +91,7 @@ const Status = () => {
         nickname: userData?.nickname,
       });
 
-      const uploadImage = async (imageUri, docRef) => {
-        try {
-          if (!imageUri) return;
-
-          const response = await fetch(imageUri);
-          const blob = await response.blob();
-
-          const imageRef = ref(storage, `status/${docRef?.id}/image`);
-          await uploadBytes(imageRef, blob);
-
-          const downloadUrl = await getDownloadURL(imageRef);
-          await updateDoc(doc(db, "status", docRef.id), {
-            image: downloadUrl,
-          });
-
-          console.log("Image uploaded successfully!");
-        } catch (error) {
-          console.error("Error uploading image:", error);
-        }
-      };
-
-      if (image) {
-        await uploadImage(image, docRef);
-      }
+      if (media.uri) await uploadMedia(docRef.id);
 
       // Reset form
       setImage(null);
@@ -154,7 +142,7 @@ const Status = () => {
         <Text className="text-center font-bold text-2xl dark:text-white">
           Add Status
         </Text>
-        <View className="border h-10 w-10 p-1 rounded-full">
+        <View className="border dark:border-gray-300 h-10 w-10 p-1 rounded-full">
           {userData?.userImg && (
             <Avatar
               size={40}
@@ -200,6 +188,36 @@ const Status = () => {
               color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
             />
           </Pressable>
+        </View>
+        <View>
+          {media?.uri && (
+            <View className="relative mt-4 w-full items-center ">
+              {media.type === "video" ? (
+                <Video
+                  source={{ uri: media.uri }}
+                  style={{ width: "100%", height: 300 }}
+                  useNativeControls={false}
+                  isLooping
+                  shouldPlay
+                  resizeMode="contain"
+                />
+              ) : (
+                <Image
+                  source={{ uri: media.uri }}
+                  style={{ width: "100%", height: 300 }}
+                  resizeMode="contain"
+                />
+              )}
+
+              {/* Remove Media Button */}
+              <Pressable
+                onPress={() => setMedia(null)}
+                className="absolute top-2 right-2 bg-gray-700 p-2 rounded-full"
+              >
+                <FontAwesome name="times" size={16} color="white" />
+              </Pressable>
+            </View>
+          )}
         </View>
         <Pressable
           onPress={submit}

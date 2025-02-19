@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -6,16 +6,36 @@ import {
   FlatList,
   Image,
   Pressable,
+  useColorScheme,
 } from "react-native";
 import { db } from "@/firebase";
-import { doc, setDoc, deleteDoc } from "firebase/firestore";
+import {
+  doc,
+  setDoc,
+  deleteDoc,
+  query,
+  collection,
+  getDocs,
+  where,
+} from "firebase/firestore";
 import useFollowData from "./useFollowData";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
+import { AntDesign, Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
+import { Avatar } from "react-native-elements";
+import { useUser } from "@clerk/clerk-expo";
+import { useUserInfo } from "@/components/UserContext";
 
 const FollowersScreen = () => {
   const { followers, following, loading, currentUserId } = useFollowData();
   const [activeTab, setActiveTab] = useState("followers");
+  const colorScheme = useColorScheme();
+  const { user } = useUser();
+    const { userDetails, followLoading, hasFollowed, followMember } =
+      useUserInfo();
+
+
 
   // Prevent operations if currentUserId is missing
   if (!currentUserId) {
@@ -33,12 +53,13 @@ const FollowersScreen = () => {
 
   // Handle Follow
   const handleFollow = async (userId) => {
-    if (!currentUserId || !userId) return; // Prevent errors
+    if (!currentUserId || !userId || !userDetails?.userImg) return; // Prevent errors
     try {
       const docRef = doc(db, "following", `${currentUserId}_${userId}`);
       await setDoc(docRef, {
         followerId: currentUserId,
         followingId: userId,
+        userImg: userDetails?.userImg,
       });
       console.log("Followed user:", userId);
     } catch (error) {
@@ -57,33 +78,73 @@ const FollowersScreen = () => {
     }
   };
 
+  const getColorFromName = (name) => {
+    if (!name) return "#ccc"; // Default color if no name exists
+
+    // Generate a hash number from the name
+    let hash = 0;
+    for (let i = 0; i < name?.length; i++) {
+      hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
+
+    // Predefined colors for better visuals
+    const colors = [
+      "#FF5733",
+      "#33FF57",
+      "#3357FF",
+      "#F1C40F",
+      "#8E44AD",
+      "#E74C3C",
+      "#2ECC71",
+      "#1ABC9C",
+      "#3498DB",
+    ];
+
+    // Pick a color consistently based on the hash value
+    return colors[Math.abs(hash) % colors.length];
+  };
+
   // Render List Item
   const renderItem = ({ item }) => {
     const isFollowing = followingSet.has(item.uid); // Check if already following
 
     return (
       <View className="flex-row items-center gap-3 p-3">
-        <Image
-          source={{ uri: item.userImg || "https://via.placeholder.com/150" }} // Fallback image
-          className="w-10 h-10 rounded-full"
+        <Avatar
+          size={40}
+          rounded
+          source={userDetails?.userImg && { uri: userDetails?.userImg }}
+          title={userDetails?.name && userDetails?.name[0].toUpperCase()}
+          containerStyle={{
+            backgroundColor: getColorFromName(userDetails?.name),
+          }} // Consistent color per user
         />
         <View className="flex-1">
-          <Text className="font-bold">
+          <Text className="font-bold dark:text-white">
             {item.name} @{item.nickname}
           </Text>
         </View>
-        <Pressable
-          onPress={() =>
-            isFollowing ? handleUnfollow(item.uid) : handleFollow(item.uid)
-          }
-          className={`px-4 py-2 rounded-md ${
-            isFollowing ? "bg-red-500" : "bg-blue-500"
-          }`}
-        >
-          <Text className="text-white font-bold">
-            {isFollowing ? "Unfollow" : "Follow"}
-          </Text>
-        </Pressable>
+         <Pressable
+                onPress={() => followMember(item.uid)}
+                disabled={followLoading[item.uid]}
+                className={`p-3 rounded-lg ${
+                  userDetails?.uid === item.uid
+                    ? "bg-gray-300"
+                    : hasFollowed[item.uid]
+                    ? "bg-red-500 text-white"
+                    : "bg-blue-500 text-white"
+                }`}
+              >
+                {userDetails?.uid === item.uid ? (
+                  <Text className="font-bold">You</Text>
+                ) : followLoading[item.uid] ? (
+                  <ActivityIndicator size="small" color="#ffffff" />
+                ) : (
+                  <Text className="font-bold text-white">
+                    {hasFollowed[item.uid] ? "Unfollow" : "Follow"}
+                  </Text>
+                )}
+              </Pressable>
       </View>
     );
   };
@@ -107,7 +168,13 @@ const FollowersScreen = () => {
     <SafeAreaView className="flex-1 p-4 dark:bg-gray-800">
       <StatusBar style="auto" />
       {/* Toggle Buttons */}
-      <View className="flex-row justify-between mb-4 border-b">
+      <View className="flex-row justify-between mb-4 ">
+        <AntDesign
+          name="left"
+          size={24}
+          color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
+          onPress={() => router.push("/(drawer)/profile")}
+        />
         <Pressable
           onPress={() => setActiveTab("followers")}
           className={`flex-1 p-2 items-center ${
@@ -118,7 +185,7 @@ const FollowersScreen = () => {
             className={
               activeTab === "followers"
                 ? "text-blue-600 font-bold"
-                : "text-gray-500"
+                : "text-white"
             }
           >
             Followers
@@ -135,7 +202,7 @@ const FollowersScreen = () => {
             className={
               activeTab === "following"
                 ? "text-blue-600 font-bold"
-                : "text-gray-500"
+                : "text-white"
             }
           >
             Following
@@ -145,7 +212,7 @@ const FollowersScreen = () => {
 
       {/* Render selected tab */}
       {loading ? (
-        <ActivityIndicator />
+        <ActivityIndicator size={"large"} color={"blue"} />
       ) : activeTab === "followers" ? (
         renderTabContent(followers)
       ) : (

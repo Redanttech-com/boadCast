@@ -201,7 +201,6 @@ export default function GooglePage() {
   return (
     <View className="flex-1 p-2 dark:bg-gray-800">
       <StatusBar style="auto" />
-
       <View className="flex-1 justify-center gap-3 items-center">
         <View className="w-full justify-center mt-16 flex-row items-center relative">
           <Animated.View
@@ -245,7 +244,6 @@ export default function GooglePage() {
               className=" flex-1 h-full dark:text-white"
             />
           </View>
-
           <View className="border w-full p-3 rounded-full border-gray-200 flex-row items-center gap-3">
             <Ionicons name="person" size={24} color={"gray"} />
             <TextInput
@@ -259,7 +257,6 @@ export default function GooglePage() {
               className=" flex-1 h-full dark:text-white"
             />
           </View>
-
           <Pressable
             onPress={onSignUpPress}
             className="bg-slate-900 items-center p-3 rounded-md w-full"

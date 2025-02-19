@@ -214,7 +214,7 @@ const MediaSize = () => {
 
     if (post) {
       Alert.alert(
-        "Repost Confirmation",
+        "Recast Confirmation",
         "Are you sure you want to repost this? It will appear on your profile.",
         [
           {
@@ -512,7 +512,7 @@ const MediaSize = () => {
           <Avatar
             size={40}
             rounded
-            source={post?.userImg ? { uri: post?.userImg } : null}
+            source={post?.userImg && { uri: post?.userImg }}
             title={post?.name && post?.name[0].toUpperCase()}
             containerStyle={{ backgroundColor: getColorFromName(post?.name) }} // Consistent color per user
           />

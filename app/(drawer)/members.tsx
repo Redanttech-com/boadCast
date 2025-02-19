@@ -18,6 +18,8 @@ import {
   getDocs,
 } from "firebase/firestore";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { StatusBar } from "expo-status-bar";
+import { Avatar } from "react-native-elements";
 
 const Members = () => {
   const [activeTab, setActiveTab] = useState("county");
@@ -81,13 +83,44 @@ const Members = () => {
     };
   }, [userDetails]);
 
+  const getColorFromName = (name) => {
+    if (!name) return "#ccc"; // Default color if no name exists
+
+    // Generate a hash number from the name
+    let hash = 0;
+    for (let i = 0; i < name?.length; i++) {
+      hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
+
+    // Predefined colors for better visuals
+    const colors = [
+      "#FF5733",
+      "#33FF57",
+      "#3357FF",
+      "#F1C40F",
+      "#8E44AD",
+      "#E74C3C",
+      "#2ECC71",
+      "#1ABC9C",
+      "#3498DB",
+    ];
+
+    // Pick a color consistently based on the hash value
+    return colors[Math.abs(hash) % colors.length];
+  };
+
   // Render each member
   const renderMember = ({ item }) => (
     <View className="flex-row items-center justify-between m-2 gap-2">
       <View className="flex-row items-center gap-3">
-        <Image
-          source={{ uri: item.userImg || "https://via.placeholder.com/150" }} // Fallback image
-          className="h-14 w-14 rounded-full border border-red-500 p-[1.5px]"
+        <Avatar
+          size={40}
+          rounded
+          source={userDetails?.userImg && { uri: userDetails?.userImg }}
+          title={userDetails?.name && userDetails?.name[0].toUpperCase()}
+          containerStyle={{
+            backgroundColor: getColorFromName(userDetails?.name),
+          }} // Consistent color per user
         />
         <Text>
           <Text className="font-bold dark:text-white">{item.name}</Text>
@@ -136,6 +169,7 @@ const Members = () => {
 
   return (
     <SafeAreaView className="flex-1 gap-5 dark:bg-gray-800">
+      <StatusBar style="auto" />
       {/* Tab Selector */}
       <View className="flex-row justify-between p-3 px-5 bg-gray-200 dark:bg-gray-600 items-center">
         {["national", "county", "constituency", "ward"].map((tab) => (

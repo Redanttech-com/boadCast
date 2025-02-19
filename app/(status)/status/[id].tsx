@@ -2,39 +2,49 @@ import React, { useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
-  Image,
-  TouchableOpacity,
-  Alert,
   ActivityIndicator,
-  StatusBar,
+  Alert,
+  Image,
+  Animated,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
 import { Video } from "expo-av";
 import {
   collection,
   deleteDoc,
   doc,
+  getDocs,
   onSnapshot,
   query,
   where,
 } from "firebase/firestore";
 import { deleteObject, ref } from "firebase/storage";
-import { ChevronLeft, ChevronRight } from "lucide-react-native";
-import { StyleSheet } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { StatusBar } from "expo-status-bar";
+import { Avatar } from "react-native-elements";
 import { router, useLocalSearchParams } from "expo-router";
 import { db, storage } from "@/firebase";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function StatusPage() {
   const { id } = useLocalSearchParams();
   const [statuses, setStatuses] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [progress, setProgress] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [userDetails, setUserDetails] = useState(null);
-  const [isPaused, setIsPaused] = useState(false);
-  const timerRef = useRef(null);
+  const progress = useRef(new Animated.Value(0)).current;
   const videoRef = useRef(null);
+  const [userData, setUserData] = useState(null);
+  const [isPaused, setIsPaused] = useState(false);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (!id) return;
+      const q = query(collection(db, "userPosts"), where("uid", "==", id));
+      const querySnapshot = await getDocs(q);
+      if (!querySnapshot.empty) {
+        setUserData(querySnapshot.docs[0].data());
+      }
+    };
+    fetchUserData();
+  }, [id]);
 
   useEffect(() => {
     if (!id) return;
@@ -52,222 +62,142 @@ export default function StatusPage() {
     return () => unsubscribe();
   }, [id]);
 
-  const deleteStatus = async (docId) => {
-    if (!docId) return;
-    Alert.alert(
-      "Delete Status",
-      "Are you sure you want to delete this status?",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await deleteDoc(doc(db, "status", docId));
-              await deleteObject(ref(storage, `status/${docId}/video`));
-              setStatuses((prev) =>
-                prev.filter((status) => status.docId !== docId)
-              );
-            } catch (error) {
-              console.error("Error deleting status:", error);
-            }
-          },
-        },
-      ]
-    );
-  };
-
-  const pauseOrResume = () => setIsPaused((prev) => !prev);
-
   useEffect(() => {
     if (!statuses.length || loading) return;
 
-    const currentStatus = statuses[currentIndex];
-
-    if (currentStatus?.video) {
-      if (videoRef.current) {
-        videoRef.current.playAsync();
-      }
-    } else {
-      // Start progress for images (5 seconds duration)
-      timerRef.current = setInterval(() => {
-        setProgress((prev) => {
-          if (prev >= 100) {
-            handleNext();
-            return 0;
-          }
-          return prev + 2; // Adjust based on total duration
-        });
-      }, 100);
-    }
-
-    return () => clearInterval(timerRef.current);
+    progress.setValue(0);
+    Animated.timing(progress, {
+      toValue: 100,
+      duration: statuses[currentIndex]?.videos ? 10000 : 5000, // 10 sec for video, 5 sec for image
+      useNativeDriver: false,
+    }).start(({ finished }) => {
+      if (finished) handleNext();
+    });
   }, [statuses, currentIndex, loading]);
 
   const handleNext = () => {
     if (currentIndex < statuses.length - 1) {
       setCurrentIndex((prev) => prev + 1);
-      setProgress(0);
     } else {
-       router.push("/(drawer)/(tabs)");
-    }
-  };
-
-  const handlePrev = () => {
-    if (currentIndex > 0) {
-      setCurrentIndex((prev) => prev - 1);
-      setProgress(0);
+      router.push("/(drawer)/(tabs)");
     }
   };
 
   if (loading) {
     return (
-      <View style={styles.centered}>
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
         <ActivityIndicator size="large" color="#0000ff" />
       </View>
     );
   }
 
-// useEffect(() => {
-//   if (!loading && statuses.length === 0) {
-//     setTimeout(() => {
-//       router.push("/(drawer)/(tabs)");
-//     }, 100); // Delay to ensure hooks complete before navigation
-//   }
-// }, [loading, statuses]);
+  const getColorFromName = (name) => {
+    if (!name) return "#ccc"; // Default color if no name exists
 
+    // Generate a hash number from the name
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+      hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
 
+    // Predefined colors for better visuals
+    const colors = [
+      "#FF5733",
+      "#33FF57",
+      "#3357FF",
+      "#F1C40F",
+      "#8E44AD",
+      "#E74C3C",
+      "#2ECC71",
+      "#1ABC9C",
+      "#3498DB",
+    ];
+
+    // Pick a color consistently based on the hash value
+    return colors[Math.abs(hash) % colors.length];
+  };
 
   return (
-    <SafeAreaView style={styles.container}>
-      
-      {/* Progress Bars */}
-      <View style={styles.progressBarContainer}>
-        {statuses.map((_, index) => (
-          <View
-            key={index}
-            style={[
-              styles.progressBar,
-              index < currentIndex ? styles.progressBarCompleted : {},
-            ]}
+    <SafeAreaView className="dark:bg-gray-800 flex-1">
+      <StatusBar style="auto" />
+      <View className="flex-row items-center gap-1 p-2 dark:bg-gray-800">
+        <Avatar
+          size={40}
+          rounded
+          source={userData?.userImg ? { uri: userData?.userImg } : null}
+          title={userData?.name && userData?.name[0].toUpperCase()}
+          containerStyle={{ backgroundColor: getColorFromName(userData?.name) }} // Consistent color per user
+        />
+        <View className="flex-row gap-2 items-center ">
+          <Text
+            className="text-md max-w-20 min-w-12 font-bold dark:text-white  "
+            numberOfLines={1}
+            ellipsizeMode="tail"
           >
-            {index === currentIndex && (
-              <View
-                style={{ ...styles.progressIndicator, width: `${progress}%` }}
-              />
-            )}
-          </View>
-        ))}
+            {userData?.name}
+          </Text>
+
+          <Text
+            className="text-md max-w-20 min-w-12 font-bold text-gray-400 dark:text-white"
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
+            {userData?.lastname}
+          </Text>
+
+          <Text
+            className="text-md max-w-20 min-w-12 text-gray-400 dark:text-white "
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
+            @{userData?.nickname}
+          </Text>
+        </View>
       </View>
 
-      {/* Current Status */}
-      {statuses.length > 0 &&
-        (statuses[currentIndex]?.image ? (
-          <Image
-            source={{ uri: statuses[currentIndex]?.image }}
-            style={styles.image}
-            resizeMode="contain"
-          />
-        ) : statuses[currentIndex]?.video ? (
+      {/* Progress Bar */}
+      <View style={{ height: 2, backgroundColor: "#ccc", marginTop: 10 }}>
+        <Animated.View
+          style={{
+            height: 2,
+            backgroundColor: "#3498DB",
+            width: progress.interpolate({
+              inputRange: [0, 100],
+              outputRange: ["0%", "100%"],
+            }),
+          }}
+        />
+      </View>
+
+      <View>
+        {statuses[currentIndex]?.videos && (
           <Video
             ref={videoRef}
-            source={{ uri: statuses[currentIndex]?.video }}
-            style={styles.video}
+            source={{ uri: statuses[currentIndex].videos }}
+            style={{ width: "100%", height: 600 }}
             useNativeControls
-            shouldPlay
-            resizeMode="contain"
+            resizeMode="cover"
             onPlaybackStatusUpdate={(status) => {
-              if (status.didJustFinish) {
-                handleNext();
-              } else {
-                const progressPercentage =
-                  (status.positionMillis / status.durationMillis) * 100;
-                setProgress(progressPercentage);
-              }
+              if (status.didJustFinish) handleNext();
             }}
           />
-        ) : null)}
+        )}
 
-      {/* Status Text */}
-      {statuses[currentIndex]?.text && (
-        <View style={styles.textContainer}>
-          <Text style={styles.statusText}>{statuses[currentIndex]?.text}</Text>
-        </View>
-      )}
+        {statuses[currentIndex]?.images && (
+          <Image
+            source={{ uri: statuses[currentIndex].images }}
+            style={{ width: "100%", height: 700 }}
+          />
+        )}
+      </View>
 
-      {/* Delete & Pause Buttons */}
-      {id === userDetails?.uid && (
-        <TouchableOpacity
-          style={styles.deleteButton}
-          onPress={() => deleteStatus(statuses[currentIndex]?.docId)}
-        >
-          <Text style={styles.deleteButtonText}>Delete</Text>
-        </TouchableOpacity>
-      )}
-
-      {/* Navigation Controls */}
-      <TouchableOpacity style={styles.navButtonLeft} onPress={handlePrev} className="h-screen p-10 ">
-        <ChevronLeft size={32} className="hidden"/>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.navButtonRight} onPress={handleNext} className="h-screen p-10 ">
-        <ChevronRight size={32} className="hidden"/>
-      </TouchableOpacity>
+      <View>
+        {statuses[currentIndex]?.input && (
+          <Text className="h-12 bottom-0 sticky dark:text-white m-4">
+            {statuses[currentIndex]?.input}
+          </Text>
+        )}
+      </View>
     </SafeAreaView>
   );
 }
-
-// Styles
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "black",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  centered: { flex: 1, justifyContent: "center", alignItems: "center" },
-  progressBarContainer: {
-    position: "absolute",
-    top: 10,
-    left: 10,
-    right: 10,
-    flexDirection: "row",
-  },
-  progressBar: {
-    flex: 1,
-    height: 2,
-    backgroundColor: "gray",
-    marginHorizontal: 2,
-  },
-  progressBarCompleted: { backgroundColor: "white" },
-  progressIndicator: { height: 2, backgroundColor: "white" },
-  image: { width: "100%", height: "80%" },
-  video: { width: "100%", height: "80%" },
-  textContainer: {
-    position: "absolute",
-    bottom: 40,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    padding: 10,
-    borderRadius: 5,
-  },
-  statusText: { color: "white", fontSize: 18 },
-  deleteButton: {
-    position: "absolute",
-    top: 40,
-    right: 20,
-    backgroundColor: "red",
-    padding: 10,
-    borderRadius: 5,
-  },
-  deleteButtonText: { color: "white", fontWeight: "bold" },
-  pauseButton: {
-    position: "absolute",
-    bottom: 80,
-    padding: 10,
-    backgroundColor: "gray",
-    borderRadius: 5,
-  },
-  pauseButtonText: { color: "white" },
-  navButtonLeft: { position: "absolute", left: 10, top: "50%" },
-  navButtonRight: { position: "absolute", right: 10, top: "50%" },
-});

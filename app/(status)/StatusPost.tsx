@@ -5,7 +5,6 @@ import { Video } from "expo-av";
 
 const StatusPost = ({ id, post }) => {
   const borderColorAnim = useRef(new Animated.Value(0)).current; // Create Animated Value
-
   useEffect(() => {
     // Animate border color between blue and purple
     Animated.loop(
@@ -32,9 +31,10 @@ const StatusPost = ({ id, post }) => {
     outputRange: ["#3b82f6", "#bd124e"], // Blue to Purple
   });
 
+
   return (
     <Pressable
-      onPress={() => router.push(`/(status)/status/${id}`)}
+      onPress={() => router.push(`/(status)/status/${post?.uid}`)}
       className="items-center px-1 justify-center"
     >
       <Animated.View
@@ -45,23 +45,20 @@ const StatusPost = ({ id, post }) => {
           padding: 3,
         }}
       >
-        {post?.video ? (
+        {post?.videos && (
           <Video
-            source={{ uri: post?.video }}
-            style={{ width: 100, height: 100, borderRadius: 10 }}
-            controls
+            source={{ uri: post?.videos }}
+            style={{ width: 40, height: 40, borderRadius: 10 }}
+            useNativeControls
             resizeMode="cover"
           />
-        ) : post?.image ? (
+        )}
+        {post?.images && (
           <Image
-            source={{ uri: post?.image }}
-            className="h-14 w-14 rounded-full"
+            source={{ uri: post?.images }}
+            style={{ width: 40, height: 40, borderRadius: 10 }}
             objectFit="cover"
           />
-        ) : (
-          <Text className="h-14 w-14 rounded-full text-black">
-            {post?.status}
-          </Text>
         )}
       </Animated.View>
       <Text
@@ -76,4 +73,3 @@ const StatusPost = ({ id, post }) => {
 };
 
 export default StatusPost;
-

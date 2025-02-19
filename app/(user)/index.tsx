@@ -176,7 +176,10 @@ const Form = () => {
 
   const submit = async () => {
     try {
-      if (loading) return <ActivityIndicator />;
+      if (loading) return;
+      <View className="flex-1 justify-center items-center">
+        <ActivityIndicator />
+      </View>;
       setLoading(true);
 
       const docRef = await addDoc(collection(db, "userPosts"), {

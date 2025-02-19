@@ -111,6 +111,7 @@ const Feed = () => {
   };
 
   const sendPost = async () => {
+    setLoading(true)
     if (!input.trim()) {
       Alert.alert("Error", "Post content cannot be empty.");
       return;
@@ -141,6 +142,7 @@ const Feed = () => {
 
     setInput("");
     setMedia(null);
+    setLoading(false)
   };
 
   const getColorFromName = (name) => {
@@ -340,7 +342,7 @@ const Feed = () => {
           ) : (
             <Pressable
               onPress={sendPost}
-              className="ml-2 bg-blue-500 p-2 rounded-full"
+              className="ml-2 bg-blue-500 p-2 rounded-md"
             >
               <Text className="text-white">Cast</Text>
             </Pressable>

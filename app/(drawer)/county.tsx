@@ -54,14 +54,18 @@ const County = () => {
   }, [user]);
 
   useEffect(() => {
-    const unsubscribe = onSnapshot(collection(db, "county"), (snapshot) => {
-      const fetchedPosts = snapshot.docs.map((doc) => doc.data());
-      setTrendPosts(fetchedPosts);
-      setPosts(fetchedPosts);
-    });
+    if (!userData?.county) return;
+    const unsubscribe = onSnapshot(
+      collection(db, "county", userData?.county, "posts"),
+      (snapshot) => {
+        const fetchedPosts = snapshot.docs.map((doc) => doc.data());
+        setTrendPosts(fetchedPosts);
+        setPosts(fetchedPosts);
+      }
+    );
 
     return () => unsubscribe();
-  }, []);
+  }, [userData?.county]);
 
   useEffect(() => {
     const findTrendingTopics = () => {
@@ -129,7 +133,7 @@ const County = () => {
               color={isDarkMode ? "white" : "blue"}
             />
             <Text className="font-bold text-lg dark:text-white mt-2">
-              Loading county Trends...
+              Loading National Trends...
             </Text>
           </View>
         ) : (
@@ -146,14 +150,14 @@ const County = () => {
               renderItem={({ item }) => (
                 <TouchableOpacity
                   onPress={() => setSelectedTopic(item.topic)}
-                  className={`px-4 py-2 rounded-full mr-2 ${
+                  className={`px-4 p-2 rounded-full mr-2 ${
                     isDarkMode ? "bg-gray-700" : "bg-gray-200"
                   }`}
                 >
                   <Text className="font-semibold dark:text-white">
                     #{item.topic}
                   </Text>
-                  <Text className="text-xs dark:text-gray-300">
+                  <Text className="text-xs dark:text-gray-300 ">
                     {item.postCount} mentions
                   </Text>
                 </TouchableOpacity>
@@ -170,9 +174,14 @@ const County = () => {
                   data={filteredPosts}
                   keyExtractor={(item, index) => index.toString()}
                   showsVerticalScrollIndicator={false}
+                  ListEmptyComponent={
+                    <View>
+                      <Text>No Posts</Text>
+                    </View>
+                  }
                   renderItem={({ item }) => (
                     <View
-                      className={`p-4 my-2 rounded-lg ${
+                      className={`p-4 my-2 rounded-lg mb-2 ${
                         isDarkMode ? "bg-gray-800" : "bg-gray-100"
                       }`}
                     >
