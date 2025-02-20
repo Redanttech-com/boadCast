@@ -40,7 +40,7 @@ import { useUser } from "@clerk/clerk-expo";
 import Comments from "./Comments";
 import { router } from "expo-router";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
-import { Video } from "expo-av";
+import { ResizeMode, Video } from "expo-av";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { db, storage } from "@/firebase";
 import * as ImagePicker from "expo-image-picker";
@@ -350,13 +350,13 @@ const Feed = () => {
               useNativeControls
               shouldPlay
               isLooping
-              resizeMode="contain"
+              resizeMode={ResizeMode.CONTAIN}
             />
           ) : (
             <Image
               source={{ uri: media.uri }}
               className="w-full h-96 rounded-md"
-              resizeMode="cover"
+              resizeMode={ResizeMode.COVER}
             />
           ))}
 

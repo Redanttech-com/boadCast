@@ -45,7 +45,7 @@ import { deleteObject, ref } from "firebase/storage";
 import { useRecoilState } from "recoil";
 import { useUser } from "@clerk/clerk-expo";
 import Popover from "react-native-popover-view";
-import { Video } from "expo-av";
+import { ResizeMode, Video } from "expo-av";
 import { modalComment } from "@/atoms/modalAtom";
 import moment from "moment";
 import { Avatar } from "react-native-elements";
@@ -593,7 +593,7 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
                         height: mediaSize.height,
                         alignSelf: "center",
                       }}
-                      resizeMode="contain"
+                      resizeMode={ResizeMode.CONTAIN}
                       className="w-full"
                     />
                   </Link>
@@ -645,7 +645,7 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
                     }}
                     isLooping
                     shouldPlay={!isPaused}
-                    resizeMode="cover"
+                    resizeMode={ResizeMode.COVER}
                     isMuted={isMuted}
                     className="h-96"
                   />
@@ -676,7 +676,7 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
                       height: 300,
                       alignSelf: "center",
                     }}
-                    resizeMode="cover"
+                   resizeMode={ResizeMode.COVER}
                   />
                 </Link>
               )}

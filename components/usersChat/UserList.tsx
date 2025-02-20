@@ -1,40 +1,45 @@
-import { View, Text, Pressable, Image } from "react-native";
+import { View, Text, Pressable } from "react-native";
 import React, { useEffect, useState } from "react";
 import { useChatContext } from "stream-chat-expo";
 import { useUser } from "@clerk/clerk-expo";
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Avatar } from "react-native-elements";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import { collection, getDocs, query } from "firebase/firestore";
 import { db } from "@/firebase";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
 
 const UserList = () => {
   const { client } = useChatContext();
+  const { user } = useUser(); // Removed duplicate `me`
+  const colorScheme = useColorScheme();
+  const [users, setUsers] = useState([]);
 
-  const { user: me } = useUser();
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (!user?.id) return;
 
-    const { user } = useUser();
-    const [userData, setUserData] = useState(null);
-    const colorScheme = useColorScheme();
-
-    useEffect(() => {
-      const fetchUserData = async () => {
-        if (!user?.id) return;
-        const q = query(
-          collection(db, "userPosts")
-        );
+      try {
+        const q = query(collection(db, "userPosts")); // Ensure correct collection
         const querySnapshot = await getDocs(q);
-        if (!querySnapshot.empty) {
-          setUserData(querySnapshot.docs[0].data());
-        }
-      };
-      fetchUserData();
-    }, [user]);
+
+        const userData = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+
+        setUsers(userData);
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    };
+
+    fetchUserData();
+  }, [user]);
 
   const onPress = async () => {
     const channel = client.channel("messaging", {
-      members: [ user?.id],
+      members: [user?.id],
     });
     await channel.watch();
     router.replace(`/(drawer)/(chats)/channel/${channel.cid}`);
@@ -43,13 +48,11 @@ const UserList = () => {
   const getColorFromName = (name) => {
     if (!name) return "#ccc"; // Default color if no name exists
 
-    // Generate a hash number from the name
     let hash = 0;
     for (let i = 0; i < name.length; i++) {
       hash = name.charCodeAt(i) + ((hash << 5) - hash);
     }
 
-    // Predefined colors for better visuals
     const colors = [
       "#FF5733",
       "#33FF57",
@@ -62,33 +65,37 @@ const UserList = () => {
       "#3498DB",
     ];
 
-    // Pick a color consistently based on the hash value
     return colors[Math.abs(hash) % colors.length];
   };
 
   return (
     <View className="px-2">
-      <Pressable
-        onPress={onPress}
-        className="p-5 bg-gray-100 rounded-md dark:bg-gray-600"
-      >
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-          <Avatar
-            size={40}
-            rounded
-            source={userData?.userImg && { uri: userData?.userImg }}
-            title={userData?.name && userData?.name[0].toUpperCase()}
-            containerStyle={{
-              backgroundColor: getColorFromName(userData?.name),
-            }} // Consistent color per user
-          />
-          <View className="flex-row gap-2">
-            <Text className="font-bold dark:text-white">{userData?.name}</Text>
-            <Text className="font-bold dark:text-white">{userData?.lastname}</Text>
-            <Text style={{ color: "gray" }}>@{userData?.nickname}</Text>
+      {users.map((user) => (
+        <Pressable
+          key={user?.id}
+          onPress={() => onPress(user?.id)}
+          className="p-5 bg-gray-100 rounded-md dark:bg-gray-600 mb-2"
+        >
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+            <Avatar
+              size={40}
+              rounded
+              source={user?.userImg ? { uri: user.userImg } : null}
+              title={user?.name ? user.name[0].toUpperCase() : "?"}
+              containerStyle={{
+                backgroundColor: getColorFromName(user?.name),
+              }}
+            />
+            <View className="flex-row gap-2">
+              <Text className="font-bold dark:text-white">{user?.name}</Text>
+              <Text className="font-bold dark:text-white">
+                {user?.lastname}
+              </Text>
+              <Text style={{ color: "gray" }}>@{user?.nickname}</Text>
+            </View>
           </View>
-        </View>
-      </Pressable>
+        </Pressable>
+      ))}
     </View>
   );
 };

@@ -44,7 +44,7 @@ import { deleteObject, ref } from "firebase/storage";
 import { useRecoilState } from "recoil";
 import { useUser } from "@clerk/clerk-expo";
 import Popover from "react-native-popover-view";
-import { Video } from "expo-av";
+import { ResizeMode, Video } from "expo-av";
 import { modalCountyComment } from "@/atoms/modalAtom";
 import moment from "moment";
 import { Avatar } from "react-native-elements";
@@ -280,7 +280,7 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
               await deleteDoc(doc(db, "county", userData?.county, "posts", id));
 
               // Delete the video associated with the post, if it exists
-              const vidRef = ref(storage, `posts/${id}/video`);
+              const vidRef = ref(storage, `county/${id}/video`);
               try {
                 await deleteObject(vidRef);
               } catch (videoError) {
@@ -291,7 +291,7 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
               }
 
               // Delete the image associated with the post, if it exists
-              const imageRef = ref(storage, `posts/${id}/image`);
+              const imageRef = ref(storage, `county/${id}/image`);
               try {
                 await deleteObject(imageRef);
               } catch (imageError) {
@@ -539,7 +539,7 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
                   style={{ width: mediaSize.width, height: mediaSize.height }}
                   isLooping
                   shouldPlay={!isPaused}
-                  resizeMode="contain"
+                  resizeMode={ResizeMode.CONTAIN}
                   isMuted={isMuted}
                   className="relative"
                 />
@@ -567,7 +567,7 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
                   height: mediaSize.height,
                   alignSelf: "center",
                 }}
-                resizeMode="contain"
+                resizeMode={ResizeMode.CONTAIN}
               />
             )}
           </View>

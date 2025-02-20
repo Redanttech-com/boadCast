@@ -11,13 +11,28 @@ const Media = () => {
   const [countyPosts, setCountyPosts] = useState([]);
   const [constituencyPosts, setConstituencyPosts] = useState([]);
   const [wardPosts, setWardPosts] = useState([]);
+  const [nationalPosts, setNationalPosts] = useState([]);
+
   const { userDetails } = useUserInfo();
 
   // Fetch posts when userDetails change
+
   useEffect(() => {
     if (!userDetails) return;
 
-    let unsubCounty, unsubConstituency, unsubWard;
+    let unsubNational, unsubCounty, unsubConstituency, unsubWard;
+
+    if (userDetails?.county) {
+      const countyQuery = query(
+        collection(db, "national"),
+        orderBy("timestamp", "desc")
+      );
+      unsubCounty = onSnapshot(countyQuery, (snapshot) => {
+        setNationalPosts(
+          snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+        );
+      });
+    }
 
     // 🔥 Fetch County Posts
     if (userDetails?.county) {
@@ -59,6 +74,7 @@ const Media = () => {
     }
 
     return () => {
+      unsubNational?. ();
       unsubCounty?.();
       unsubConstituency?.();
       unsubWard?.();
@@ -108,8 +124,8 @@ const Media = () => {
   return (
     <SafeAreaView className="flex-1 gap-5 dark:bg-gray-800">
       {/* 🔥 Tab Selector */}
-      <View className="flex-row justify-between p-3 px-5 bg-gray-200 dark:bg-gray-700  items-center">
-        {["county", "constituency", "ward"].map((tab) => (
+      <View className="flex-row justify-between p-3 px-5 dark:text-white bg-gray-200 dark:bg-gray-700  items-center">
+        {["national", "county", "constituency", "ward"].map((tab) => (
           <TouchableOpacity key={tab} onPress={() => setActiveTab(tab)}>
             <Text
               className={`text-xl ${
@@ -124,6 +140,7 @@ const Media = () => {
 
       {/* 🔥 Post List */}
       <View>
+        {activeTab === "national" && renderTabContent(nationalPosts)}
         {activeTab === "county" && renderTabContent(countyPosts)}
         {activeTab === "constituency" && renderTabContent(constituencyPosts)}
         {activeTab === "ward" && renderTabContent(wardPosts)}

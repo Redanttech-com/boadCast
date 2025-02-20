@@ -41,7 +41,7 @@ import { deleteObject, ref } from "firebase/storage";
 import { useRecoilState } from "recoil";
 import { useUser } from "@clerk/clerk-expo";
 import Popover from "react-native-popover-view";
-import { Video } from "expo-av";
+import { ResizeMode, Video } from "expo-av";
 import { modalWardComment } from "@/atoms/modalAtom";
 import moment from "moment";
 import { Avatar } from "react-native-elements";
@@ -399,7 +399,7 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
         <Avatar
           size={40}
           rounded
-          source={post?.userImg ? { uri: post?.userImg } : null}
+          source={post?.userImg && { uri: post?.userImg }}
           title={post?.name && post?.name[0].toUpperCase()}
           containerStyle={{ backgroundColor: getColorFromName(post?.name) }} // Consistent color per user
         />
@@ -533,7 +533,7 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
                   style={{ width: mediaSize.width, height: mediaSize.height }}
                   isLooping
                   shouldPlay={!isPaused}
-                  resizeMode="contain"
+                  resizeMode={ResizeMode.CONTAIN}
                   isMuted={isMuted}
                   className="relative"
                 />
@@ -561,7 +561,7 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
                   height: mediaSize.height,
                   alignSelf: "center",
                 }}
-                resizeMode="contain"
+                resizeMode={ResizeMode.CONTAIN}
               />
             )}
           </View>

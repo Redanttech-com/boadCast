@@ -49,7 +49,7 @@ import { Avatar } from "react-native-elements";
 import { Image } from "react-native";
 import StatusFeed from "@/app/(status)/StatusFeed";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
-import { Video } from "expo-av";
+import { ResizeMode, Video } from "expo-av";
 
 const Feed = () => {
   const [loadingPosts, setLoadingPosts] = useState(true);
@@ -396,7 +396,7 @@ const Feed = () => {
                       useNativeControls={false}
                       isLooping
                       shouldPlay={!isPaused}
-                      resizeMode="contain"
+                      resizeMode={ResizeMode.CONTAIN}
                       isMuted={isMuted}
                     />
 
@@ -415,7 +415,7 @@ const Feed = () => {
                     height: width * 0.75, // 4:3 aspect ratio
                     borderRadius: 10,
                   }}
-                  resizeMode="cover"
+                  resizeMode={ResizeMode.COVER}
                 />
               )}
 

@@ -42,7 +42,7 @@ import { router } from "expo-router";
 import Header from "./Header";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
 import { Image } from "react-native";
-import { Video } from "expo-av";
+import { ResizeMode, Video } from "expo-av";
 import * as ImagePicker from "expo-image-picker";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { Avatar } from "react-native-elements";
@@ -373,13 +373,13 @@ const Feed = () => {
               useNativeControls
               shouldPlay
               isLooping
-              resizeMode="contain"
+              resizeMode={ResizeMode.CONTAIN}
             />
           ) : (
             <Image
               source={{ uri: media.uri }}
               className="w-full h-96 rounded-md"
-              resizeMode="cover"
+              resizeMode={ResizeMode.COVER}
             />
           ))}
 

@@ -48,7 +48,7 @@ import { deleteObject, ref } from "firebase/storage";
 import { useRecoilState } from "recoil";
 import { useUser } from "@clerk/clerk-expo";
 import Popover from "react-native-popover-view";
-import { Video } from "expo-av";
+import { ResizeMode, Video } from "expo-av";
 import { modalComment } from "@/atoms/modalAtom";
 import moment from "moment";
 import { Avatar } from "react-native-elements";
@@ -579,9 +579,7 @@ const MediaSize = () => {
 
         {post?.citeInput ? (
           <View className="gap-3">
-            <Link href={`/view/${id}`} className="ml-12">
               <Text className="ml-12 dark:text-white">{post?.citeInput}</Text>
-            </Link>
             <View className="bg-gray-100 ml-20 gap-3 p-2 rounded-md dark:bg-gray-600">
               <View className="flex-row items-center gap-1">
                 <Avatar
@@ -647,7 +645,7 @@ const MediaSize = () => {
                         }}
                         isLooping
                         shouldPlay={!isPaused}
-                        resizeMode="contain"
+                        resizeMode={ResizeMode.CONTAIN}
                         isMuted={isMuted}
                         className="relative"
                       />
@@ -670,7 +668,6 @@ const MediaSize = () => {
 
                   {/* Image Handling */}
                   {post?.images && (
-                    <Link href={`/view/${id}`}>
                       <Image
                         source={{ uri: post.images }}
                         style={{
@@ -678,10 +675,9 @@ const MediaSize = () => {
                           height: mediaSize.height,
                           alignSelf: "center",
                         }}
-                        resizeMode="contain"
+                        resizeMode={ResizeMode.CONTAIN}
                         className="w-full"
                       />
-                    </Link>
                   )}
                 </View>
               )}
@@ -694,9 +690,7 @@ const MediaSize = () => {
         ) : (
           <>
             <View className=" p-2 mb-4 gap-3">
-              <Link href={`/view/${id}`}>
                 <Text className="text-md dark:text-white">{post?.text}</Text>
-              </Link>
               {post?.fromNickname && (
                 <Text className="text-gray-500 mb-3">
                   Reposted by @{post?.fromNickname}
@@ -736,7 +730,7 @@ const MediaSize = () => {
                         }}
                         isLooping
                         shouldPlay={!isPaused}
-                        resizeMode="contain"
+                        resizeMode={ResizeMode.CONTAIN}
                         isMuted={isMuted}
                         className="relative"
                       />
@@ -764,7 +758,6 @@ const MediaSize = () => {
 
                 {/* Image Handling */}
                 {post?.images && (
-                  <Link href={`/view/${id}`}>
                     <Image
                       source={{ uri: post.images }}
                       style={{
@@ -772,9 +765,8 @@ const MediaSize = () => {
                         height: mediaSize.height,
                         alignSelf: "center",
                       }}
-                      resizeMode="contain"
+                      resizeMode={ResizeMode.CONTAIN}
                     />
-                  </Link>
                 )}
               </View>
             )}

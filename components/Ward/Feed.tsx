@@ -45,7 +45,7 @@ import Header from "./Header";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
 import * as ImagePicker from "expo-image-picker";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
-import { Video } from "expo-av";
+import { ResizeMode, Video } from "expo-av";
 import { Avatar } from "react-native-elements";
 
 const Feed = () => {
@@ -170,18 +170,6 @@ const Feed = () => {
     // Pick a color consistently based on the hash value
     return colors[Math.abs(hash) % colors.length];
   };
-
-  useEffect(() => {
-    const fetchUserData = async () => {
-      if (!user?.id) return;
-      const q = query(collection(db, "userPosts"), where("uid", "==", user.id));
-      const querySnapshot = await getDocs(q);
-      if (!querySnapshot.empty) {
-        setUserData(querySnapshot.docs[0].data());
-      }
-    };
-    fetchUserData();
-  }, [user]);
 
   // Fetch posts
   useEffect(() => {
@@ -365,7 +353,7 @@ const Feed = () => {
                     useNativeControls={false}
                     isLooping
                     shouldPlay={!isPaused}
-                    resizeMode="contain"
+                    resizeMode={ResizeMode.CONTAIN}
                     isMuted={isMuted}
                   />
 
@@ -385,7 +373,7 @@ const Feed = () => {
                   height: width * 0.75, // 4:3 aspect ratio
                   borderRadius: 10,
                 }}
-                resizeMode="cover"
+                resizeMode={ResizeMode.COVER}
               />
             )}
 

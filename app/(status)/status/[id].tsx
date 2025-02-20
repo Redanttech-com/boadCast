@@ -7,7 +7,7 @@ import {
   Image,
   Animated,
 } from "react-native";
-import { Video } from "expo-av";
+import { ResizeMode, Video } from "expo-av";
 import {
   collection,
   deleteDoc,
@@ -176,7 +176,7 @@ export default function StatusPage() {
             source={{ uri: statuses[currentIndex].videos }}
             style={{ width: "100%", height: 600 }}
             useNativeControls
-            resizeMode="cover"
+            resizeMode={ResizeMode.CONTAIN}
             onPlaybackStatusUpdate={(status) => {
               if (status.didJustFinish) handleNext();
             }}
