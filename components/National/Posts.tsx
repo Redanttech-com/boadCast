@@ -66,15 +66,11 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
   const videoRef = useRef(null);
   const { user } = useUser();
   const [isMuted, setIsMuted] = useState(true);
-
-  // like
-
+  const [isBookmarked, setIsBookmarked] = useState({});
   const [userData, setUserData] = useState(null);
   const colorScheme = useColorScheme();
   const [mediaSize, setMediaSize] = useState({ width: "100%", height: 300 });
   const { width } = useWindowDimensions();
-;
-
   const onShare = async () => {
     try {
       const result = await Share.share({
@@ -94,7 +90,6 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
       console.error("Error sharing:", error);
     }
   };
-
 
   useEffect(() => {
     if (post?.images) {
@@ -423,13 +418,69 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
     return colors[Math.abs(hash) % colors.length];
   };
 
+  const userId = userData?.uid;
+  const pstId = post?.id;
+  // Toggle bookmark
+  const checkBookmark = async () => {
+    if (!userId || !pstId) return;
+    try {
+      const docRef = doc(db, `bookmarks/${userId}/bookmarks`, pstId);
+      const docSnap = await getDoc(docRef);
+      setIsBookmarked((prev) => ({
+        ...prev,
+        [pstId]: docSnap.exists(),
+      }));
+    } catch (error) {
+      console.error("Error checking bookmark status:", error);
+    }
+  };
+
+  // Toggle bookmark
+  const toggleBookmark = async () => {
+    if (!userId || !pstId) return;
+    try {
+      const collectionRef = collection(db, `bookmarks/${userId}/bookmarks`);
+      const docRef = doc(collectionRef, pstId);
+
+      if (isBookmarked[pstId]) {
+        // Remove bookmark
+        await deleteDoc(docRef);
+        setIsBookmarked((prev) => ({
+          ...prev,
+          [pstId]: false,
+        }));
+      } else {
+        // Add bookmark
+        const images = post?.images || [];
+        const videos = post?.videos || null;
+
+        // Add new document to the collection
+        const bookmarkData = { pstId, timestamp: Date.now() };
+        if (images.length) bookmarkData.images = images;
+        if (videos) bookmarkData.videos = videos;
+
+        await setDoc(docRef, bookmarkData); // Use setDoc to ensure consistent doc IDs
+        setIsBookmarked((prev) => ({
+          ...prev,
+          [pstId]: true,
+        }));
+      }
+    } catch (error) {
+      console.error("Error toggling bookmark:", error);
+    }
+  };
+
+  useEffect(() => {
+    checkBookmark();
+  }, [pstId, userId]);
+
   return (
     <View className="mb-1 rounded-md  border-gray-200  shadow-md bg-white  dark:bg-gray-700">
       <View className="flex-row items-center gap-1 p-2">
         <Avatar
           size={40}
           rounded
-          source={post?.userImg ? { uri: post?.userImg } : null}
+          source={post?.userImg && { uri: post?.userImg }}
           title={post?.name && post?.name[0].toUpperCase()}
           containerStyle={{ backgroundColor: getColorFromName(post?.name) }} // Consistent color per user
         />
@@ -484,13 +535,31 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
             </Pressable>
           )}
 
-          <TouchableOpacity>
-            <Feather
-              name="more-horizontal"
-              size={20}
-              color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
-            />
-          </TouchableOpacity>
+          <Popover
+            from={
+              <TouchableOpacity className="p-3">
+                <Feather
+                  name="more-horizontal"
+                  size={20}
+                  color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
+                />
+              </TouchableOpacity>
+            }
+          >
+            <Pressable
+              style={{ alignItems: "center", padding: 10 }}
+              onPress={toggleBookmark}
+            >
+              {isBookmarked[pstId] ? (
+                <Feather name="bookmark" size={24} color="blue" />
+              ) : (
+                <Feather name="bookmark" size={24} color="gray" />
+              )}
+              <Text style={{ marginTop: 5 }}>
+                {isBookmarked[pstId] ? "Remove Bookmark" : "Add Bookmark"}
+              </Text>
+            </Pressable>
+          </Popover>
         </View>
       </View>
 
@@ -564,7 +633,7 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
                       }}
                       isLooping
                       shouldPlay={!isPaused}
-                      resizeMode="contain"
+                      resizeMode={ResizeMode.CONTAIN}
                       isMuted={isMuted}
                       className="relative"
                     />
@@ -649,20 +718,22 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
                     isMuted={isMuted}
                     className="h-96"
                   />
-              
-                    <Pressable className="absolute w-full h-full " onPress={() => router.push(`/view/${id}`)}>
-                      <Pressable
-                        onPress={() => setIsMuted(!isMuted)}
-                        className=" w-10 h-10 ml-auto mt-auto mr-4"
-                      >
-                        <FontAwesome5
-                          name={isMuted ? "volume-mute" : "volume-down"}
-                          size={24}
-                          color={colorScheme === "dark" ? "#FFFFFF" : "#1F2937"}
-                        />
-                      </Pressable>
+
+                  <Pressable
+                    className="absolute w-full h-full "
+                    onPress={() => router.push(`/view/${id}`)}
+                  >
+                    <Pressable
+                      onPress={() => setIsMuted(!isMuted)}
+                      className=" w-10 h-10 ml-auto mt-auto mr-4"
+                    >
+                      <FontAwesome5
+                        name={isMuted ? "volume-mute" : "volume-down"}
+                        size={24}
+                        color={colorScheme === "dark" ? "#FFFFFF" : "#1F2937"}
+                      />
                     </Pressable>
-           
+                  </Pressable>
                 </View>
               )}
 
@@ -672,11 +743,11 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
                   <Image
                     source={{ uri: post.images }}
                     style={{
-                      width: '100%',
+                      width: "100%",
                       height: 300,
                       alignSelf: "center",
                     }}
-                   resizeMode={ResizeMode.COVER}
+                    resizeMode={ResizeMode.COVER}
                   />
                 </Link>
               )}

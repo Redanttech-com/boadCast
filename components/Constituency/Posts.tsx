@@ -65,6 +65,7 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
   const [isMuted, setIsMuted] = useState(true);
   const [userData, setUserData] = useState(null);
   const { width } = useWindowDimensions();
+  const [isBookmarked, setIsBookmarked] = useState({});
 
   useEffect(() => {
     if (post?.images) {
@@ -421,6 +422,62 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
     // Pick a color consistently based on the hash value
     return colors[Math.abs(hash) % colors.length];
   };
+
+  const userId = userData?.uid;
+  const pstId = post?.id;
+  // Toggle bookmark
+  const checkBookmark = async () => {
+    if (!userId || !pstId) return;
+    try {
+      const docRef = doc(db, `bookmarks/${userId}/bookmarks`, pstId);
+      const docSnap = await getDoc(docRef);
+      setIsBookmarked((prev) => ({
+        ...prev,
+        [pstId]: docSnap.exists(),
+      }));
+    } catch (error) {
+      console.error("Error checking bookmark status:", error);
+    }
+  };
+
+  const toggleBookmark = async () => {
+    if (!userId || !pstId) return;
+    try {
+      const collectionRef = collection(db, `bookmarks/${userId}/bookmarks`);
+      const docRef = doc(collectionRef, pstId);
+
+      if (isBookmarked[pstId]) {
+        // Remove bookmark
+        await deleteDoc(docRef);
+        setIsBookmarked((prev) => ({
+          ...prev,
+          [pstId]: false,
+        }));
+      } else {
+        // Add bookmark
+        const images = post?.data()?.images || [];
+        const videos = post?.data()?.videos || null;
+
+        // Add new document to the collection
+        const bookmarkData = { pstId, timestamp: Date.now() };
+        if (images.length) bookmarkData.images = images;
+        if (videos) bookmarkData.videos = videos;
+
+        await setDoc(docRef, bookmarkData); // Use setDoc to ensure consistent doc IDs
+        setIsBookmarked((prev) => ({
+          ...prev,
+          [pstId]: true,
+        }));
+      }
+    } catch (error) {
+      console.error("Error toggling bookmark:", error);
+    }
+  };
+
+  useEffect(() => {
+    checkBookmark();
+  }, [pstId, userId]);
+
   return (
     <View className="mb-1 rounded-md  border-gray-200  shadow-md bg-white  dark:bg-gray-800">
       <View className="flex-row items-center gap-1">
@@ -482,13 +539,31 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
             </Pressable>
           )}
 
-          <TouchableOpacity>
-            <Feather
-              name="more-horizontal"
-              size={20}
-              color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
-            />
-          </TouchableOpacity>
+          <Popover
+            from={
+              <TouchableOpacity className="p-3">
+                <Feather
+                  name="more-horizontal"
+                  size={20}
+                  color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
+                />
+              </TouchableOpacity>
+            }
+          >
+            <Pressable
+              style={{ alignItems: "center", padding: 10 }}
+              onPress={toggleBookmark}
+            >
+              {isBookmarked[pstId] ? (
+                <Feather name="bookmark" size={24} color="blue" />
+              ) : (
+                <Feather name="bookmark" size={24} color="gray" />
+              )}
+              <Text style={{ marginTop: 5 }}>
+                {isBookmarked[pstId] ? "Remove Bookmark" : "Add Bookmark"}
+              </Text>
+            </Pressable>
+          </Popover>
         </View>
       </View>
 

@@ -3,6 +3,9 @@ import React from "react";
 import { router } from "expo-router";
 import { useSignUp } from "@clerk/clerk-expo";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { StatusBar } from "expo-status-bar";
+import { Ionicons, Octicons } from "@expo/vector-icons";
 
 const verify = () => {
   const [code, setCode] = React.useState("");
@@ -37,27 +40,29 @@ const verify = () => {
   };
 
   return (
-    <View className="flex-1  justify-center gap-3 m-3 dark:bg-gray-800">
+    <SafeAreaView className="flex-1  justify-center gap-3 m-3 dark:bg-gray-800">
+      <StatusBar style="auto" />
       <Text className="font-extrabold flex-row  text-center text-2xl dark:text-white">
         Verify your email
       </Text>
-      <View className="border p-3 rounded-full border-gray-200">
+      <View className="border w-full p-3 rounded-full border-gray-200 flex-row items-center gap-3">
+        <Octicons name="code-review" size={24} color="gray" />
         <TextInput
           value={code}
-          placeholder="Enter your verification code"
-          placeholderTextColor={colorScheme === "dark" ? "#FFFFFF" : "#808080"} // Light gray for light mode, white for dark mode
-          className="flex-1 text-base dark:text-white"
+          placeholder="Enter code"
+          secureTextEntry={true}
           onChangeText={(code) => setCode(code)}
+          placeholderTextColor={colorScheme === "dark" ? "#FFFFFF" : "#808080"} // Light gray for light mode, white for dark mode
+          className=" flex-1 h-full dark:text-white"
         />
       </View>
-
       <Pressable
         onPress={onVerifyPress}
         className="w-full bg-slate-900 p-3 items-center rounded-md dark:bg-slate-700"
       >
         <Text className="text-white">Verify</Text>
       </Pressable>
-    </View>
+    </SafeAreaView>
   );
 };
 

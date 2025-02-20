@@ -32,10 +32,8 @@ const FollowersScreen = () => {
   const [activeTab, setActiveTab] = useState("followers");
   const colorScheme = useColorScheme();
   const { user } = useUser();
-    const { userDetails, followLoading, hasFollowed, followMember } =
-      useUserInfo();
-
-
+  const { userDetails, followLoading, hasFollowed, followMember } =
+    useUserInfo();
 
   // Prevent operations if currentUserId is missing
   if (!currentUserId) {
@@ -124,27 +122,27 @@ const FollowersScreen = () => {
             {item.name} @{item.nickname}
           </Text>
         </View>
-         <Pressable
-                onPress={() => followMember(item.uid)}
-                disabled={followLoading[item.uid]}
-                className={`p-3 rounded-lg ${
-                  userDetails?.uid === item.uid
-                    ? "bg-gray-300"
-                    : hasFollowed[item.uid]
-                    ? "bg-red-500 text-white"
-                    : "bg-blue-500 text-white"
-                }`}
-              >
-                {userDetails?.uid === item.uid ? (
-                  <Text className="font-bold">You</Text>
-                ) : followLoading[item.uid] ? (
-                  <ActivityIndicator size="small" color="#ffffff" />
-                ) : (
-                  <Text className="font-bold text-white">
-                    {hasFollowed[item.uid] ? "Unfollow" : "Follow"}
-                  </Text>
-                )}
-              </Pressable>
+        <Pressable
+          onPress={() => followMember(item.uid)}
+          disabled={followLoading[item.uid]}
+          className={`p-3 rounded-lg ${
+            userDetails?.uid === item.uid
+              ? "bg-gray-300"
+              : hasFollowed[item.uid]
+              ? "bg-red-500 text-white"
+              : "bg-blue-500 text-white"
+          }`}
+        >
+          {userDetails?.uid === item.uid ? (
+            <Text className="font-bold">You</Text>
+          ) : followLoading[item.uid] ? (
+            <ActivityIndicator size="small" color="#ffffff" />
+          ) : (
+            <Text className="font-bold text-white">
+              {hasFollowed[item.uid] ? "Unfollow" : "Follow"}
+            </Text>
+          )}
+        </Pressable>
       </View>
     );
   };
@@ -185,7 +183,7 @@ const FollowersScreen = () => {
             className={
               activeTab === "followers"
                 ? "text-blue-600 font-bold"
-                : "text-white"
+                : "dark:text-white font-bold"
             }
           >
             Followers
@@ -202,7 +200,7 @@ const FollowersScreen = () => {
             className={
               activeTab === "following"
                 ? "text-blue-600 font-bold"
-                : "text-white"
+                : "dark:text-white font-bold"
             }
           >
             Following

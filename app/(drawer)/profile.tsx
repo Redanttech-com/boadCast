@@ -3,6 +3,8 @@ import React, { useEffect, useState } from "react";
 import { useUserInfo } from "@/components/UserContext";
 import {
   collection,
+  doc,
+  getDoc,
   getDocs,
   onSnapshot,
   query,
@@ -27,7 +29,9 @@ const Profile = () => {
   const { user } = useUser();
   const [userData, setUserData] = useState(null);
   const [posts, setPosts] = useState([]);
+  const [replies, setReplies] = useState([]);
   const [active, setActive] = useState("posts");
+  const [userBookMark, setUserBookMark] = useState([]);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -42,9 +46,26 @@ const Profile = () => {
   }, [user]);
 
   useEffect(() => {
+    const fetchUserBookMark = async () => {
+      if (!user?.id) return;
+
+      const docRef = doc(db, "bookmarks", user.id);
+      const docSnap = await getDoc(docRef);
+
+      if (docSnap.exists()) {
+        setUserBookMark(docSnap.data()?.posts || []); // Extract 'posts' array from document
+      } else {
+        setUserBookMark([]); // Ensure it resets if no data exists
+      }
+    };
+
+    fetchUserBookMark();
+  }, [user]);
+
+  useEffect(() => {
     const fetchUserData = async () => {
       if (!user?.id && !userData) return;
-      const q = query(collection(db, "national"), where("uid", "==", user.id));
+      const q = query(collection(db, "national"), where("uid", "==", user?.id));
       const q2 = query(
         collection(db, "county", userData?.county, "posts"),
         where("uid", "==", user.id)
@@ -142,32 +163,32 @@ const Profile = () => {
     return colors[Math.abs(hash) % colors.length];
   };
 
-  const renderImage = ({ item }) => (
+  const renderBookMark = ({ item }) => (
     <View className="flex-row items-center justify-between m-2 gap-2">
       <View className="flex-row items-center gap-3 bg-red-600">
         <Image
           source={{ uri: item.images }}
           className="h-14 w-14 rounded-full border border-red-500 p-[1.5px]"
         />
-        <Text>{item?.text}ijdsiojd</Text>
+        <Text>{item?.text}</Text>
       </View>
     </View>
   );
 
-  const renderPost = (posts) => {
+  const renderPost = (data) => (
     <FlatList
-      data={posts}
+      data={data}
       keyExtractor={(item) => item.id}
       initialNumToRender={10}
       showsVerticalScrollIndicator={false}
-      renderItem={renderImage}
+      renderItem={renderBookMark}
       ListEmptyComponent={
         <View className="flex-1 items-center justify-center">
-          <Text>No Users</Text>
+          <Text>No Posts Found</Text>
         </View>
       }
-    />;
-  };
+    />
+  );
 
   return (
     <View className="flex-1 relative  dark:bg-gray-800 ">
@@ -202,7 +223,6 @@ const Profile = () => {
             <Text className="font-bold text-white">Verify Account</Text>
           </View>
         </View>
-
         <View className="mt-4 flex-row justify-between items-center">
           <Text className="font-bold text-slate-900 dark:text-white">
             {userDetails?.name}
@@ -214,7 +234,6 @@ const Profile = () => {
             <Text className="dark:text-white">View Catalogue</Text>
           </Pressable>
         </View>
-
         {/* Followers & Following */}
         <View className="flex-row justify-between gap-3 items-center p-4">
           <Pressable>
@@ -233,43 +252,57 @@ const Profile = () => {
             </Text>
           </Pressable>
         </View>
-
-        {/* Profile Menu */}
+         {/* Profile Menu */}
         <View className="border-t border-gray-200 flex-row justify-between items-center">
           <Pressable
-            key={"posts"}
-            onPress={() => setActive(active)}
+            onPress={() => setActive("posts")}
             className="p-4 flex-row gap-2 items-center"
           >
             <MaterialIcons name="photo-library" size={24} color="gray" />
             <Text
               className={`${
-                active === "posts"
-                  ? "underline font-bold text-xl text-blue-950 dark:text-white"
-                  : "text-xl"
-              }`}
+                active === "posts" ? "underline font-bold" : ""
+              } text-xl dark:text-white`}
             >
               Posts
             </Text>
           </Pressable>
-          <Pressable className="p-4 flex-row gap-2 items-center">
+
+          <Pressable
+            onPress={() => setActive("replies")}
+            className="p-4 flex-row gap-2 items-center"
+          >
             <MaterialCommunityIcons
               name="message-badge"
               size={24}
               color="gray"
             />
-            <Text className="dark:text-white">Replies</Text>
+            <Text
+              className={`${
+                active === "replies" ? "underline font-bold" : ""
+              } text-xl dark:text-white`}
+            >
+              Replies
+            </Text>
           </Pressable>
-          <Pressable className="p-4 flex-row gap-2 items-center">
+
+          <Pressable
+            onPress={() => setActive("bookmark")}
+            className="p-4 flex-row gap-2 items-center"
+          >
             <FontAwesome name="bookmark" size={24} color="gray" />
-            <Text className="dark:text-white">Bookmark</Text>
+            <Text
+              className={`${
+                active === "bookmark" ? "underline font-bold" : ""
+              } text-xl dark:text-white`}
+            >
+              Bookmarked
+            </Text>
           </Pressable>
         </View>
-      </View>
-      <View>
-        {active === "posts" && renderPost(posts)}
-        {/* {active === "replies" && renderPost(replies)}
-        {active === "bookmark" && renderPost(bookmark)} */}
+        <View>{active === "posts" && renderPost(posts)}</View>
+        <View>{active === "replies" && renderPost(replies)}</View>
+        <View>{active === "bookmark" && renderPost(userBookMark)}</View>
       </View>
     </View>
   );

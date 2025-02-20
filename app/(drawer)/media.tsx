@@ -7,7 +7,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Video } from "expo-av";
 
 const Media = () => {
-  const [activeTab, setActiveTab] = useState("county");
+  const [activeTab, setActiveTab] = useState("national");
   const [countyPosts, setCountyPosts] = useState([]);
   const [constituencyPosts, setConstituencyPosts] = useState([]);
   const [wardPosts, setWardPosts] = useState([]);
@@ -82,28 +82,33 @@ const Media = () => {
   }, [userDetails]);
 
   // ✅ Render each post
-  const renderPost = ({ item }) => (
-    <View className="flex-row  items-center justify-between m-2 gap-2 dark:bg-gray-600">
-      <View className="flex-row gap-3">
-        {item.images && (
-          <Image
-            source={{ uri: item.images }}
-            className="h-32 w-48 rounded-md border border-gray-500"
-          />
-        )}
-        {item.videos && (
-          <Video
-            source={{ uri: item.videos }}
-            className="h-32 w-48 rounded-md border border-gray-500"
-          />
-        )}
+  const renderPost = ({ item }) => {
+    // Only render items that contain images or videos
+    if (!item.images && !item.videos) return null;
 
-        <Text className="absolute bottom-1 ml-2 text-white font-bold">
-          {item.name} {item.lastname} @{item.nickname}
-        </Text>
+    return (
+      <View className="flex-row items-center justify-between m-2 gap-2 dark:bg-gray-600">
+        <View className="flex-row gap-3">
+          {item.images && (
+            <Image
+              source={{ uri: item.images }}
+              className="h-32 w-48 rounded-md border border-gray-500"
+            />
+          )}
+          {item.videos && (
+            <Video
+              source={{ uri: item.videos }}
+              className="h-32 w-48 rounded-md border border-gray-500"
+            />
+          )}
+          <Text className="absolute bottom-1 ml-2 text-white font-bold">
+            {item.name} {item.lastname} @{item.nickname}
+          </Text>
+        </View>
       </View>
-    </View>
-  );
+    );
+  };
+
 
   // ✅ Render the active tab's content
   const renderTabContent = (data) => (
@@ -124,11 +129,11 @@ const Media = () => {
   return (
     <SafeAreaView className="flex-1 gap-5 dark:bg-gray-800">
       {/* 🔥 Tab Selector */}
-      <View className="flex-row justify-between p-3 px-5 dark:text-white bg-gray-200 dark:bg-gray-700  items-center">
+      <View className="flex-row justify-between p-3 px-5 bg-gray-200 dark:bg-gray-700  items-center">
         {["national", "county", "constituency", "ward"].map((tab) => (
           <TouchableOpacity key={tab} onPress={() => setActiveTab(tab)}>
             <Text
-              className={`text-xl ${
+              className={`text-xl dark:text-white ${
                 activeTab === tab ? "underline font-bold text-blue-950" : ""
               }`}
             >
