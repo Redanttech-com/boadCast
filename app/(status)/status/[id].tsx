@@ -176,6 +176,7 @@ export default function StatusPage() {
             source={{ uri: statuses[currentIndex].videos }}
             style={{ width: "100%", height: 600 }}
             useNativeControls
+            shouldPlay
             resizeMode={ResizeMode.CONTAIN}
             onPlaybackStatusUpdate={(status) => {
               if (status.didJustFinish) handleNext();

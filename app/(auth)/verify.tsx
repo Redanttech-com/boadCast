@@ -40,7 +40,7 @@ const verify = () => {
   };
 
   return (
-    <SafeAreaView className="flex-1  justify-center gap-3 m-3 dark:bg-gray-800">
+    <SafeAreaView className="flex-1  justify-center gap-3  dark:bg-gray-800">
       <StatusBar style="auto" />
       <Text className="font-extrabold flex-row  text-center text-2xl dark:text-white">
         Verify your email

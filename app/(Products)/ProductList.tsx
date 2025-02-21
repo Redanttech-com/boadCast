@@ -17,10 +17,7 @@ const ProductList = ({ id, item }) => {
 
   return (
     <ScrollView>
-      <TouchableOpacity
-        onPress={handlePress}
-       className=""
-      >
+      <TouchableOpacity onPress={handlePress} className="">
         <View className="gap-1">
           <Image
             source={{ uri: item.image }}
@@ -38,6 +35,9 @@ const ProductList = ({ id, item }) => {
             </Text>
             <Text style={{ fontSize: 14, color: "#555" }}>
               Price: KES {Number(item.cost).toLocaleString("en-KE")}
+            </Text>
+            <Text style={{ fontSize: 14, color: "#555" }}>
+              {item.description}lirejhi
             </Text>
           </View>
         </View>

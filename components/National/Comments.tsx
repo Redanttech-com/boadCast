@@ -186,14 +186,10 @@ const Comments = ({ id, comment }) => {
   };
 
   return (
-    <View
-      key={id}
-      className="p-3 gap-1  dark:bg-gray-800"
-    >
+    <View key={id} className="p-3 gap-1  dark:bg-gray-800">
       <View className="flex-row items-center gap-3">
         <Avatar
           size={40}
-          rounded
           source={
             comment?.data()?.userImg ? { uri: comment?.data()?.userImg } : null
           }
@@ -202,6 +198,7 @@ const Comments = ({ id, comment }) => {
           }
           containerStyle={{
             backgroundColor: getColorFromName(comment?.data()?.name),
+            borderRadius: 5,
           }} // Consistent color per user
         />
 

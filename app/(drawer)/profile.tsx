@@ -23,7 +23,7 @@ import { useUser } from "@clerk/clerk-expo";
 import { StatusBar } from "expo-status-bar";
 
 const Profile = () => {
-  const { userDetails, formatNumber } = useUserInfo();
+  const { formatNumber } = useUserInfo();
   const [followingCount, setFollowingCount] = useState(0);
   const [followerCount, setFollowerCount] = useState(0);
   const { user } = useUser();
@@ -32,6 +32,8 @@ const Profile = () => {
   const [replies, setReplies] = useState([]);
   const [active, setActive] = useState("posts");
   const [userBookMark, setUserBookMark] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [post, setPost] = useState([]);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -46,21 +48,47 @@ const Profile = () => {
   }, [user]);
 
   useEffect(() => {
-    const fetchUserBookMark = async () => {
-      if (!user?.id) return;
-
-      const docRef = doc(db, "bookmarks", user.id);
-      const docSnap = await getDoc(docRef);
-
-      if (docSnap.exists()) {
-        setUserBookMark(docSnap.data()?.posts || []); // Extract 'posts' array from document
-      } else {
-        setUserBookMark([]); // Ensure it resets if no data exists
+    const fetchPost = async () => {
+      if (userData?.uid) {
+        const q = query(collection(db, userData?.uid, "bookmarks"));
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+          const posts = snapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          }));
+          setPost(posts);
+          setLoading(false);
+        });
+        return () => unsubscribe();
       }
     };
 
-    fetchUserBookMark();
-  }, [user]);
+    fetchPost();
+  }, [userData?.uid]);
+
+  useEffect(() => {
+    const fetchPost = async () => {
+      if (!post) return;
+      post.map((pst) => {
+        if (pst?.uid) {
+          const q = query(
+            collection(db, "national"),
+            where("id", "==", pst?.id)
+          );
+          const unsubscribe = onSnapshot(q, (snapshot) => {
+            const posts = snapshot.docs.map((doc) => ({
+              id: doc.id,
+              ...doc.data(),
+            }));
+            setUserBookMark(posts);
+            setLoading(false);
+          });
+          return () => unsubscribe();
+        }
+      });
+    };
+    fetchPost();
+  }, [post]);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -112,15 +140,15 @@ const Profile = () => {
 
   // Fetch followers & following in one useEffect
   useEffect(() => {
-    if (!userDetails?.uid) return;
+    if (!userData?.uid) return;
 
     const followingQuery = query(
       collection(db, "following"),
-      where("followerId", "==", userDetails.uid)
+      where("followerId", "==", userData.uid)
     );
     const followerQuery = query(
       collection(db, "following"),
-      where("followingId", "==", userDetails.uid)
+      where("followingId", "==", userData.uid)
     );
 
     const unsubscribeFollowing = onSnapshot(followingQuery, (snapshot) => {
@@ -135,7 +163,7 @@ const Profile = () => {
       unsubscribeFollowing();
       unsubscribeFollowers();
     };
-  }, [userDetails?.uid]);
+  }, [userData?.uid]);
 
   const getColorFromName = (name) => {
     if (!name) return "#ccc"; // Default color if no name exists
@@ -165,12 +193,12 @@ const Profile = () => {
 
   const renderBookMark = ({ item }) => (
     <View className="flex-row items-center justify-between m-2 gap-2">
-      <View className="flex-row items-center gap-3 bg-red-600">
+      <View className="flex-row items-center gap-3">
         <Image
           source={{ uri: item.images }}
           className="h-14 w-14 rounded-full border border-red-500 p-[1.5px]"
         />
-        <Text>{item?.text}</Text>
+        <Text className="dark:text-white">{item?.text}</Text>
       </View>
     </View>
   );
@@ -184,7 +212,7 @@ const Profile = () => {
       renderItem={renderBookMark}
       ListEmptyComponent={
         <View className="flex-1 items-center justify-center">
-          <Text>No Posts Found</Text>
+          <Text className="dark:text-white">No Posts Found</Text>
         </View>
       }
     />
@@ -202,19 +230,15 @@ const Profile = () => {
       </View>
       {/* Profile Image */}
       <View className="mt-20 justify-center items-center">
-        <View className="h-28 w-28  rounded-full overflow-hidden">
           <Avatar
-            size={128} // Match parent size
-            rounded
-            source={userData?.userImg ? { uri: userData?.userImg } : null}
+            size={100}
+            source={userData?.userImg && { uri: userData?.userImg }}
             title={userData?.name && userData?.name[0].toUpperCase()}
             containerStyle={{
               backgroundColor: getColorFromName(userData?.name),
-              width: "100%",
-              height: "100%",
-            }}
+              borderRadius: 5,
+            }} // Consistent color per user
           />
-        </View>
       </View>
       {/* Profile Info */}
       <View className="m-4 gap-2">
@@ -225,7 +249,7 @@ const Profile = () => {
         </View>
         <View className="mt-4 flex-row justify-between items-center">
           <Text className="font-bold text-slate-900 dark:text-white">
-            {userDetails?.name}
+            {userData?.name}
           </Text>
           <Pressable className="border p-2 rounded-md dark:border-white">
             <Text className="dark:text-white">Edit profile</Text>
@@ -252,8 +276,8 @@ const Profile = () => {
             </Text>
           </Pressable>
         </View>
-         {/* Profile Menu */}
-        <View className="border-t border-gray-200 flex-row justify-between items-center">
+        {/* Profile Menu */}
+        <View className="border-t-hairline border-gray-200 flex-row justify-between items-center">
           <Pressable
             onPress={() => setActive("posts")}
             className="p-4 flex-row gap-2 items-center"

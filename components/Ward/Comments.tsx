@@ -198,6 +198,7 @@ const Comments = ({ id, comment }) => {
           }
           containerStyle={{
             backgroundColor: getColorFromName(comment?.data()?.name),
+            borderRadius: 5,
           }} // Consistent color per user
         />
 

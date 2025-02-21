@@ -339,11 +339,11 @@ const Feed = () => {
             </Text>
             <Avatar
               size={40}
-              rounded
               source={userData?.userImg && { uri: userData?.userImg }}
               title={userData?.name && userData?.name[0].toUpperCase()}
               containerStyle={{
                 backgroundColor: getColorFromName(userData?.name),
+                borderRadius: 5,
               }} // Consistent color per user
             />
           </View>
@@ -385,28 +385,28 @@ const Feed = () => {
           {media?.uri && (
             <View className="relative mt-4 w-full items-center ">
               {media.type === "video" ? (
-                  <Pressable onPress={() => setIsPaused((prev) => !prev)}>
-                    <Video
-                      source={{ uri: media.uri }}
-                      style={{
-                        width: width,
-                        height: width * 0.56, // 16:9 aspect ratio
-                        borderRadius: 10,
-                      }}
-                      useNativeControls={false}
-                      isLooping
-                      shouldPlay={!isPaused}
-                      resizeMode={ResizeMode.CONTAIN}
-                      isMuted={isMuted}
-                    />
+                <Pressable onPress={() => setIsPaused((prev) => !prev)}>
+                  <Video
+                    source={{ uri: media.uri }}
+                    style={{
+                      width: width,
+                      height: width * 0.56, // 16:9 aspect ratio
+                      borderRadius: 10,
+                    }}
+                    useNativeControls={false}
+                    isLooping
+                    shouldPlay={!isPaused}
+                    resizeMode={ResizeMode.CONTAIN}
+                    isMuted={isMuted}
+                  />
 
-                    <Pressable
-                      onPress={() => setIsMuted(!isMuted)}
-                      className="absolute bottom-2 right-2 bg-gray-700 p-2 rounded-full"
-                    >
-                      <FontAwesome name="volume-down" size={24} color="white" />
-                    </Pressable>
+                  <Pressable
+                    onPress={() => setIsMuted(!isMuted)}
+                    className="absolute bottom-2 right-2 bg-gray-700 p-2 rounded-full"
+                  >
+                    <FontAwesome name="volume-down" size={24} color="white" />
                   </Pressable>
+                </Pressable>
               ) : (
                 <Image
                   source={{ uri: media.uri }}

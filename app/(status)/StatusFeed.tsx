@@ -79,7 +79,7 @@ const StatusFeed = () => {
   if (loadingStatus) {
     return (
       <View className="justify-center items-center dark:bg-gray-800 h-15 w-full mt-3">
-        <ActivityIndicator
+        <ActivityIndicator size={"large"}
           color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
         />
         <Text className="dark:text-white">Loading status...</Text>

@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useStreamVideoClient } from "@stream-io/video-react-native-sdk";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Text, View } from "react-native";
+import { ActivityIndicator, Image, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Channel as ChannelType } from "stream-chat";
 import {
@@ -10,6 +10,7 @@ import {
   MessageInput,
   MessageList,
   useChatContext,
+  useMessageContext,
 } from "stream-chat-expo";
 import * as Crypto from "expo-crypto";
 import { StatusBar } from "expo-status-bar";
@@ -67,8 +68,17 @@ export default function ChannelScreen() {
     );
   }
 
+  const CustomAvatar = () => {
+    const { message } = useMessageContext();
+    return <Image source={{ uri: message.user?.image }} />;
+  };
+
   return (
-    <Channel channel={channel} audioRecordingEnabled>
+    <Channel
+      channel={channel}
+      MessageAvatar={CustomAvatar}
+      audioRecordingEnabled
+    >
       <Stack.Screen
         options={{
           headerShown: true,

@@ -111,7 +111,7 @@ const Feed = () => {
   };
 
   const sendPost = async () => {
-    setLoading(true)
+    setLoading(true);
     if (!input.trim()) {
       Alert.alert("Error", "Post content cannot be empty.");
       return;
@@ -142,7 +142,7 @@ const Feed = () => {
 
     setInput("");
     setMedia(null);
-    setLoading(false)
+    setLoading(false);
   };
 
   const getColorFromName = (name) => {
@@ -298,11 +298,11 @@ const Feed = () => {
           </Text>
           <Avatar
             size={40}
-            rounded
             source={userData?.userImg && { uri: userData?.userImg }}
             title={userData?.name && userData?.name[0].toUpperCase()}
             containerStyle={{
               backgroundColor: getColorFromName(userData?.name),
+              borderRadius: 5,
             }} // Consistent color per user
           />
         </View>

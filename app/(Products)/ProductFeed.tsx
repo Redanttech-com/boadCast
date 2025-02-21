@@ -118,7 +118,8 @@ function ProductFeed() {
           <Text style={{ color: "white", marginTop: 10 }}>Loading...</Text>
         </View>
       ) : (
-        <><>
+        <>
+          <>
             {/* Search Bar */}
             <View
               style={{
@@ -131,22 +132,33 @@ function ProductFeed() {
                 <Feather name="search" size={24} color={"gray"} />
                 <TextInput
                   placeholder="Search Product..."
-                  placeholderTextColor={colorScheme === "dark" ? "#FFFFFF" : "#808080"} // Light gray for light mode, white for dark mode
+                  placeholderTextColor={
+                    colorScheme === "dark" ? "#FFFFFF" : "#808080"
+                  } // Light gray for light mode, white for dark mode
                   value={querySearch}
                   onChangeText={setQuerySearch}
-                  className="flex-1 rounded-full p-3 dark:text-white" />
+                  className="flex-1 rounded-full p-3 dark:text-white"
+                />
                 <Pressable onPress={clearSearch}>
                   <Feather
                     name="x"
                     size={24}
                     color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
-                    className={`${querySearch ? "inline" : "hidden"}`} />
+                    className={`${querySearch ? "inline" : "hidden"}`}
+                  />
                 </Pressable>
               </View>
             </View>
 
             {/* Category Filter */}
-            <ScrollView horizontal={true} className="flex-row h-5">
+            <View
+              style={{
+                flexDirection: "row",
+                flexWrap: "wrap",
+                width: "100%",
+                height: 100,
+              }}
+            >
               {[
                 "Vehicles",
                 "Electronics",
@@ -161,40 +173,47 @@ function ProductFeed() {
                   key={category}
                   onPress={() => handleCategorySelect(category)}
                   style={{
-                    backgroundColor: selectedCategory === category ? "#4caf50" : "#333",
-                    padding: 8,
+                    backgroundColor:
+                      selectedCategory === category ? "#4caf50" : "#333",
+                    paddingVertical: 8,
+                    paddingHorizontal: 12,
                     margin: 5,
                     borderRadius: 5,
-                    height: 40
+                    minHeight: 40,
+                    justifyContent: "center",
+                    alignItems: "center",
                   }}
                 >
                   <Text style={{ color: "white" }}>{category}</Text>
                 </TouchableOpacity>
               ))}
-            </ScrollView>
+            </View>
 
             {/* Products List */}
-
-          </><FlatList
-              data={querySearch
+          </>
+          <FlatList
+            data={
+              querySearch
                 ? products.length > 0
                   ? products
                   : categories.length > 0
-                    ? categories
-                    : []
-                : posts}
-              keyExtractor={(item) => item.id}
-              renderItem={({ item }) => {
-                if (item.productname) {
-                  return <SearchProduct id={item.id} item={item} />;
-                } else if (item.category) {
-                  return <SearchCategory id={item.id} item={item} />;
-                } else {
-                  return <ProductList id={item.id} item={item} />;
-                }
-              } }
-              showsVerticalScrollIndicator={false}
-              ListEmptyComponent={<View
+                  ? categories
+                  : []
+                : posts
+            }
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => {
+              if (item.productname) {
+                return <SearchProduct id={item.id} item={item} />;
+              } else if (item.category) {
+                return <SearchCategory id={item.id} item={item} />;
+              } else {
+                return <ProductList id={item.id} item={item} />;
+              }
+            }}
+            showsVerticalScrollIndicator={false}
+            ListEmptyComponent={
+              <View
                 style={{
                   flex: 1,
                   justifyContent: "center",
@@ -202,7 +221,10 @@ function ProductFeed() {
                 }}
               >
                 <Text className="dark:text-white">No posts available</Text>
-              </View>} /></>
+              </View>
+            }
+          />
+        </>
       )}
     </View>
   );

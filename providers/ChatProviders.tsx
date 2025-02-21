@@ -1,7 +1,7 @@
 import { PropsWithChildren, useEffect, useState } from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { StreamChat } from "stream-chat";
-import { Chat, OverlayProvider } from "stream-chat-expo";
+import { Chat, DeepPartial, OverlayProvider, Theme } from "stream-chat-expo";
 import { useUser } from "@clerk/clerk-expo";
 import { useUserInfo } from "@/components/UserContext";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
@@ -69,10 +69,7 @@ export default function ChatProvider({ children }: PropsWithChildren) {
 
   return (
     <OverlayProvider>
-        <Chat client={client} >
-          {children}
-        </Chat>
+        <Chat client={client}>{children}</Chat>
     </OverlayProvider>
   );
 }
-

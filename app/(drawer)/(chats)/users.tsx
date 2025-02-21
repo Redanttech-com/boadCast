@@ -9,12 +9,28 @@ import { StatusBar } from "expo-status-bar";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
 import { router, Stack } from "expo-router";
 import { useUser } from "@clerk/clerk-expo";
+import List from "@/components/usersChat/List";
 
 const UsersList = () => {
   const [users, setUsers] = useState([]); // State to hold user posts
+  const [allUsers, setAllUsers] = useState([]); // State to hold all user posts
   const [querySearch, setQuery] = useState("");
   const colorScheme = useColorScheme();
   const { user } = useUser();
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (!user?.id) return;
+      const q = query(collection(db, "userPosts"));
+      const querySnapshot = await getDocs(q);
+      const users = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setAllUsers(users);
+    };
+    fetchUserData();
+  }, [user]);
 
   // Fetch posts based on search query
   useEffect(() => {
@@ -74,47 +90,105 @@ const UsersList = () => {
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
-      <SafeAreaView className="bg-white gap-3 flex-1 dark:bg-gray-800">
+      <SafeAreaView
+        style={{
+          backgroundColor: colorScheme === "dark" ? "#1E1E1E" : "#FFFFFF",
+          flex: 1,
+          paddingTop: 10,
+        }}
+      >
         <StatusBar style="auto" />
-        <View className="flex-row justify-between px-4 items-center mt-5">
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+            paddingHorizontal: 16,
+            marginTop: 10,
+          }}
+        >
           <Entypo
             onPress={() => router.push("/")}
             name="chevron-with-circle-left"
             size={32}
             color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
           />
-          <Text className="dark:text-white text-center font-bold text-2xl">
+          <Text
+            style={{
+              color: colorScheme === "dark" ? "#FFFFFF" : "#000000",
+              fontSize: 20,
+              fontWeight: "bold",
+              textAlign: "center",
+            }}
+          >
             Search Users
           </Text>
           <View />
         </View>
 
         {/* Search Input */}
-        <View className="flex-row items-center justify-between px-4 m-3 border rounded-full border-gray-300 my-2">
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            paddingHorizontal: 16,
+            marginVertical: 10,
+            borderWidth: 1,
+            borderRadius: 25,
+            borderColor: "#D3D3D3",
+            backgroundColor: colorScheme === "dark" ? "#333" : "#F9F9F9",
+          }}
+        >
           <TextInput
             placeholder="Search users"
             placeholderTextColor={
-              colorScheme === "dark" ? "#FFFFFF" : "#808080"
+              colorScheme === "dark" ? "#CCCCCC" : "#808080"
             }
             value={querySearch}
             onChangeText={setQuery}
-            className="flex-1 rounded-full p-3 dark:text-white"
+            style={{
+              flex: 1,
+              paddingVertical: 10,
+              paddingHorizontal: 15,
+              color: colorScheme === "dark" ? "#FFFFFF" : "#000000",
+            }}
           />
-          <Pressable onPress={clearQuery}>
-            <Feather
-              name="x"
-              size={24}
-              color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
-            />
-          </Pressable>
+          {querySearch ? (
+            <Pressable onPress={clearQuery} style={{ padding: 10 }}>
+              <Feather
+                name="x"
+                size={24}
+                color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
+              />
+            </Pressable>
+          ) : null}
         </View>
 
         {/* Users List */}
         <FlatList
-          data={users}
-          contentContainerStyle={{ gap: 5 }}
+          data={querySearch ? users : allUsers}
           keyExtractor={(item) => item.id}
-          renderItem={({ item }) => <UserList user={item} />}
+          contentContainerStyle={{  paddingBottom: 20 }}
+          renderItem={({ item }) =>
+            querySearch ? (
+              <UserList userChat={item} />
+            ) : (
+              <List userChat={item} />
+            )
+          }
+          ListEmptyComponent={() => (
+            <Text
+              style={{
+                textAlign: "center",
+                color: colorScheme === "dark" ? "#FFFFFF" : "#808080",
+                fontSize: 16,
+                marginTop: 20,
+              }}
+            >
+              No users found.
+            </Text>
+          )}
         />
       </SafeAreaView>
     </>

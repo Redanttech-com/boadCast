@@ -15,6 +15,7 @@ import {
   KeyboardAvoidingView,
   Alert,
   Image,
+  useWindowDimensions,
 } from "react-native";
 import {
   addDoc,
@@ -32,7 +33,7 @@ import BottomSheet, {
   BottomSheetFlashList,
   BottomSheetView,
 } from "@gorhom/bottom-sheet";
-import { Feather, Ionicons } from "@expo/vector-icons";
+import { Feather, FontAwesome, Ionicons } from "@expo/vector-icons";
 import { useUserInfo } from "@/components/UserContext";
 import { useRecoilState } from "recoil";
 import { modalCountyComment } from "@/atoms/modalAtom";
@@ -58,6 +59,9 @@ const Feed = () => {
   const [postID] = useRecoilState(modalCountyComment);
   const { user } = useUser();
   const { formatNumber } = useUserInfo();
+  const [isMuted, setIsMuted] = useState(true);
+  const [isPaused, setIsPaused] = useState(false);
+  const { width } = useWindowDimensions();
 
   const snapPoints = useMemo(() => ["100%", "100%"], []);
   const openBottomSheet = useCallback(() => setIsBottomSheetOpen(true), []);
@@ -109,7 +113,7 @@ const Feed = () => {
   }, [user]);
 
   const sendPost = async () => {
-    setLoading(true)
+    setLoading(true);
     if (!input.trim()) {
       Alert.alert("Error", "Post content cannot be empty.");
       return;
@@ -139,10 +143,9 @@ const Feed = () => {
 
     setInput("");
     setMedia({ uri: null, type: null });
-    setLoading(false)
+    setLoading(false);
   };
   const getColorFromName = (name) => {
- 
     // Generate a hash number from the name
     let hash = 0;
     for (let i = 0; i < name?.length; i++) {
@@ -304,11 +307,11 @@ const Feed = () => {
           </Text>
           <Avatar
             size={40}
-            rounded
             source={userData?.userImg && { uri: userData?.userImg }}
             title={userData?.name && userData?.name[0].toUpperCase()}
             containerStyle={{
               backgroundColor: getColorFromName(userData?.name),
+              borderRadius: 5,
             }} // Consistent color per user
           />
         </View>
@@ -342,23 +345,52 @@ const Feed = () => {
             </Pressable>
           )}
         </View>
-        {media?.uri &&
-          (media.type === "video" ? (
-            <Video
-              source={{ uri: media.uri }}
-              style={{ width: "100%", height: 200, borderRadius: 10 }}
-              useNativeControls
-              shouldPlay
-              isLooping
-              resizeMode={ResizeMode.CONTAIN}
-            />
-          ) : (
-            <Image
-              source={{ uri: media.uri }}
-              className="w-full h-96 rounded-md"
-              resizeMode={ResizeMode.COVER}
-            />
-          ))}
+        {media?.uri && (
+          <View className="relative mt-4 w-full items-center ">
+            {media.type === "video" ? (
+              <Pressable onPress={() => setIsPaused((prev) => !prev)}>
+                <Video
+                  source={{ uri: media.uri }}
+                  style={{
+                    width: width,
+                    height: width * 0.56, // 16:9 aspect ratio
+                    borderRadius: 10,
+                  }}
+                  useNativeControls={false}
+                  isLooping
+                  shouldPlay={!isPaused}
+                  resizeMode={ResizeMode.CONTAIN}
+                  isMuted={isMuted}
+                />
+
+                <Pressable
+                  onPress={() => setIsMuted(!isMuted)}
+                  className="absolute bottom-2 right-2 bg-gray-700 p-2 rounded-full"
+                >
+                  <FontAwesome name="volume-down" size={24} color="white" />
+                </Pressable>
+              </Pressable>
+            ) : (
+              <Image
+                source={{ uri: media.uri }}
+                style={{
+                  width: width,
+                  height: width * 0.75, // 4:3 aspect ratio
+                  borderRadius: 10,
+                }}
+                resizeMode={ResizeMode.COVER}
+              />
+            )}
+
+            {/* Remove Media Button */}
+            <Pressable
+              onPress={() => setMedia(null)}
+              className="absolute top-2 right-2 bg-gray-700 p-2 rounded-full"
+            >
+              <FontAwesome name="times" size={16} color="white" />
+            </Pressable>
+          </View>
+        )}
 
         <View className="flex-row mt-4 justify-center gap-3">
           <Pressable onPress={() => pickMedia("Images")}>

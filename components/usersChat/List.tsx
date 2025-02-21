@@ -9,33 +9,20 @@ import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "@/firebase";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
 
-const List = () => {
+const List = ({userChat}) => {
   const { client } = useChatContext();
 
   const { user: me } = useUser();
 
-  const { user } = useUser();
-  const [userData, setUserData] = useState(null);
   const colorScheme = useColorScheme();
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      if (!user?.id) return;
-      const q = query(collection(db, "userPosts"));
-      const querySnapshot = await getDocs(q);
-      if (!querySnapshot.empty) {
-        setUserData(querySnapshot.docs[0].data());
-      }
-    };
-    fetchUserData();
-  }, [user]);
 
   const onPress = async () => {
     const channel = client.channel("messaging", {
-      members: [user?.id],
+      members: [me?.id, userChat.uid],
     });
     await channel.watch();
-    router.replace(`/(drawer)/(chats)/channel/${channel.cid}`);
+    router.push(`/(drawer)/(chats)/channel/${channel.cid}`);
   };
 
   const getColorFromName = (name) => {
@@ -65,7 +52,7 @@ const List = () => {
   };
 
   return (
-    <View className="px-2">
+    <View className="pb-2">
       <Pressable
         onPress={onPress}
         className="p-5 bg-gray-100 rounded-md dark:bg-gray-600"
@@ -73,19 +60,19 @@ const List = () => {
         <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
           <Avatar
             size={40}
-            rounded
-            source={userData?.userImg && { uri: userData?.userImg }}
-            title={userData?.name && userData?.name[0].toUpperCase()}
+            source={userChat?.userImg && { uri: userChat?.userImg }}
+            title={userChat?.name && userChat?.name[0].toUpperCase()}
             containerStyle={{
-              backgroundColor: getColorFromName(userData?.name),
+              backgroundColor: getColorFromName(userChat?.name),
+              borderRadius: 5,
             }} // Consistent color per user
           />
           <View className="flex-row gap-2">
-            <Text className="font-bold dark:text-white">{userData?.name}</Text>
+            <Text className="font-bold dark:text-white">{userChat?.name}</Text>
             <Text className="font-bold dark:text-white">
-              {userData?.lastname}
+              {userChat?.lastname}
             </Text>
-            <Text style={{ color: "gray" }}>@{userData?.nickname}</Text>
+            <Text style={{ color: "gray" }}>@{userChat?.nickname}</Text>
           </View>
         </View>
       </Pressable>

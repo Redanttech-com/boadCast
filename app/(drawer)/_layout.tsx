@@ -34,7 +34,7 @@ function CustomDrawerContent(props) {
   const { user } = useUser();
   const [loading, setLoading] = useState(true);
   // Detect system theme
-const colorScheme = useColorScheme(); 
+  const colorScheme = useColorScheme();
   useEffect(() => {
     const fetchUserData = async () => {
       if (!user?.id) return;
@@ -93,12 +93,12 @@ const colorScheme = useColorScheme();
         <View className="flex-row items-center">
           <Avatar
             size={40}
-            rounded
-            source={userData?.userImg ? { uri: userData?.userImg } : null}
-            title={userData?.name ? userData?.name[0].toUpperCase() : "?"}
+            source={userData?.userImg && { uri: userData?.userImg }}
+            title={userData?.name && userData?.name[0].toUpperCase()}
             containerStyle={{
               backgroundColor: getColorFromName(userData?.name),
-            }} // Consistent color per user
+              borderRadius: 5, // Adjust this value for more or less roundness
+            }}
           />
           <View>
             <Text
@@ -130,7 +130,7 @@ const colorScheme = useColorScheme();
 
 // Drawer Layout
 export default function DrawerLayout() {
-  const colorScheme = useColorScheme(); 
+  const colorScheme = useColorScheme();
   return (
     <Drawer
       screenOptions={{
@@ -141,7 +141,6 @@ export default function DrawerLayout() {
         },
         drawerActiveTintColor: colorScheme === "dark" ? "#FFFFFF" : "#000000", // Active item text
         drawerInactiveTintColor: colorScheme === "dark" ? "#D1D5DB" : "#4B5563", // Inactive item text
-      
       }}
       drawerContent={(props) => <CustomDrawerContent {...props} />}
     >

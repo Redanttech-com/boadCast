@@ -13,6 +13,7 @@ import {
   TextInput,
   Pressable,
   Alert,
+  useWindowDimensions,
 } from "react-native";
 import {
   addDoc,
@@ -32,7 +33,7 @@ import BottomSheet, {
   BottomSheetFlashList,
   BottomSheetView,
 } from "@gorhom/bottom-sheet";
-import { Feather, Ionicons } from "@expo/vector-icons";
+import { Feather, FontAwesome, Ionicons } from "@expo/vector-icons";
 import { useUserInfo } from "@/components/UserContext";
 import { useRecoilState } from "recoil";
 import { modalConstituencyComment } from "@/atoms/modalAtom";
@@ -46,7 +47,6 @@ import { ResizeMode, Video } from "expo-av";
 import * as ImagePicker from "expo-image-picker";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { Avatar } from "react-native-elements";
-
 
 const Feed = () => {
   const [loadingPosts, setLoadingPosts] = useState(false);
@@ -66,114 +66,114 @@ const Feed = () => {
   const [userData, setUserData] = useState(null);
   const colorScheme = useColorScheme();
 
-    const [loading, setLoading] = useState(false);
-    const [media, setMedia] = useState({ uri: null, type: null });
+  const [loading, setLoading] = useState(false);
+  const [media, setMedia] = useState({ uri: null, type: null });
+  const [isMuted, setIsMuted] = useState(true);
+  const [isPaused, setIsPaused] = useState(false);
+  const { width } = useWindowDimensions();
 
-    const pickMedia = useCallback(async (type: "Images" | "Videos") => {
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes:
-          type === "Images"
-            ? ImagePicker.MediaTypeOptions.Images
-            : ImagePicker.MediaTypeOptions.Videos,
-        allowsEditing: true,
-        quality: 1,
-      });
+  const pickMedia = useCallback(async (type: "Images" | "Videos") => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes:
+        type === "Images"
+          ? ImagePicker.MediaTypeOptions.Images
+          : ImagePicker.MediaTypeOptions.Videos,
+      allowsEditing: true,
+      quality: 1,
+    });
 
-      if (!result.canceled) {
-        setMedia({ uri: result.assets[0].uri, type });
+    if (!result.canceled) {
+      setMedia({ uri: result.assets[0].uri, type });
+    }
+  }, []);
+
+  const uploadMedia = async (docRefId: string) => {
+    if (!media.uri) return;
+
+    const blob = await (await fetch(media.uri)).blob();
+    const mediaRef = ref(storage, `constituency/${docRefId}/${media.type}`);
+    await uploadBytes(mediaRef, blob);
+
+    const downloadUrl = await getDownloadURL(mediaRef);
+    await updateDoc(
+      doc(db, "constituency", userData?.constituency, "posts", docRefId),
+      {
+        [media.type.toLowerCase()]: downloadUrl,
       }
-    }, []);
+    );
+  };
 
-    const uploadMedia = async (docRefId: string) => {
-      if (!media.uri) return;
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (!user?.id) return;
 
-      const blob = await (await fetch(media.uri)).blob();
-      const mediaRef = ref(storage, `constituency/${docRefId}/${media.type}`);
-      await uploadBytes(mediaRef, blob);
-
-      const downloadUrl = await getDownloadURL(mediaRef);
-      await updateDoc(
-        doc(db, "constituency", userData?.constituency, "posts", docRefId),
-        {
-          [media.type.toLowerCase()]: downloadUrl,
-        }
-      );
+      const q = query(collection(db, "userPosts"), where("uid", "==", user.id));
+      const querySnapshot = await getDocs(q);
+      if (!querySnapshot.empty) {
+        setUserData(querySnapshot.docs[0].data());
+      }
     };
 
-    useEffect(() => {
-      const fetchUserData = async () => {
-        if (!user?.id) return;
+    fetchUserData();
+  }, [user]);
 
-        const q = query(
-          collection(db, "userPosts"),
-          where("uid", "==", user.id)
-        );
-        const querySnapshot = await getDocs(q);
-        if (!querySnapshot.empty) {
-          setUserData(querySnapshot.docs[0].data());
-        }
-      };
+  const sendPost = async () => {
+    setLoading(true);
+    if (!input.trim()) {
+      Alert.alert("Error", "Post content cannot be empty.");
+      return;
+    }
 
-      fetchUserData();
-    }, [user]);
-
-    const sendPost = async () => {
-      setLoading(true)
-      if (!input.trim()) {
-        Alert.alert("Error", "Post content cannot be empty.");
-        return;
+    // Ensure user and userData exist
+    if (!user || !userData) {
+      Alert.alert("Error", "User not authenticated. Please log in again.");
+      return;
+    }
+    const docRef = await addDoc(
+      collection(db, "constituency", userData?.constituency, "posts"),
+      {
+        uid: user?.id,
+        text: input.trim(),
+        userImg: userData?.userImg || null,
+        timestamp: serverTimestamp(),
+        lastname: userData?.lastname,
+        name: userData?.name,
+        nickname: userData?.nickname,
+        constituency: userData?.constituency,
       }
+    );
 
-      // Ensure user and userData exist
-      if (!user || !userData) {
-        Alert.alert("Error", "User not authenticated. Please log in again.");
-        return;
-      }
-      const docRef = await addDoc(
-        collection(db, "constituency", userData?.constituency, "posts"),
-        {
-          uid: user?.id,
-          text: input.trim(),
-          userImg: userData?.userImg || null,
-          timestamp: serverTimestamp(),
-          lastname: userData?.lastname,
-          name: userData?.name,
-          nickname: userData?.nickname,
-          constituency: userData?.constituency,
-        }
-      );
+    if (media.uri) await uploadMedia(docRef.id);
 
-      if (media.uri) await uploadMedia(docRef.id);
+    setInput("");
+    setMedia({ uri: null, type: null });
+    setLoading(false);
+  };
+  const getColorFromName = (name) => {
+    if (!name) return "#ccc"; // Default color if no name exists
 
-      setInput("");
-      setMedia({ uri: null, type: null });
-      setLoading(false)
-    };
-    const getColorFromName = (name) => {
-      if (!name) return "#ccc"; // Default color if no name exists
+    // Generate a hash number from the name
+    let hash = 0;
+    for (let i = 0; i < name?.length; i++) {
+      hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
 
-      // Generate a hash number from the name
-      let hash = 0;
-      for (let i = 0; i < name?.length; i++) {
-        hash = name.charCodeAt(i) + ((hash << 5) - hash);
-      }
+    // Predefined colors for better visuals
+    const colors = [
+      "#FF5733",
+      "#33FF57",
+      "#3357FF",
+      "#F1C40F",
+      "#8E44AD",
+      "#E74C3C",
+      "#2ECC71",
+      "#1ABC9C",
+      "#3498DB",
+    ];
 
-      // Predefined colors for better visuals
-      const colors = [
-        "#FF5733",
-        "#33FF57",
-        "#3357FF",
-        "#F1C40F",
-        "#8E44AD",
-        "#E74C3C",
-        "#2ECC71",
-        "#1ABC9C",
-        "#3498DB",
-      ];
-
-      // Pick a color consistently based on the hash value
-      return colors[Math.abs(hash) % colors.length];
-    };
+    // Pick a color consistently based on the hash value
+    return colors[Math.abs(hash) % colors.length];
+  };
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -327,11 +327,11 @@ const Feed = () => {
           </Text>
           <Avatar
             size={40}
-            rounded
             source={userData?.userImg && { uri: userData?.userImg }}
             title={userData?.name && userData?.name[0].toUpperCase()}
             containerStyle={{
               backgroundColor: getColorFromName(userData?.name),
+              borderRadius: 5,
             }} // Consistent color per user
           />
         </View>
@@ -365,24 +365,52 @@ const Feed = () => {
             </Pressable>
           )}
         </View>
-        {media?.uri &&
-          (media.type === "video" ? (
-            <Video
-              source={{ uri: media.uri }}
-              style={{ width: "100%", height: 200, borderRadius: 10 }}
-              useNativeControls
-              shouldPlay
-              isLooping
-              resizeMode={ResizeMode.CONTAIN}
-            />
-          ) : (
-            <Image
-              source={{ uri: media.uri }}
-              className="w-full h-96 rounded-md"
-              resizeMode={ResizeMode.COVER}
-            />
-          ))}
+        {media?.uri && (
+          <View className="relative mt-4 w-full items-center ">
+            {media.type === "video" ? (
+              <Pressable onPress={() => setIsPaused((prev) => !prev)}>
+                <Video
+                  source={{ uri: media.uri }}
+                  style={{
+                    width: width,
+                    height: width * 0.56, // 16:9 aspect ratio
+                    borderRadius: 10,
+                  }}
+                  useNativeControls={false}
+                  isLooping
+                  shouldPlay={!isPaused}
+                  resizeMode={ResizeMode.CONTAIN}
+                  isMuted={isMuted}
+                />
 
+                <Pressable
+                  onPress={() => setIsMuted(!isMuted)}
+                  className="absolute bottom-2 right-2 bg-gray-700 p-2 rounded-full"
+                >
+                  <FontAwesome name="volume-down" size={24} color="white" />
+                </Pressable>
+              </Pressable>
+            ) : (
+              <Image
+                source={{ uri: media.uri }}
+                style={{
+                  width: width,
+                  height: width * 0.75, // 4:3 aspect ratio
+                  borderRadius: 10,
+                }}
+                resizeMode={ResizeMode.COVER}
+              />
+            )}
+
+            {/* Remove Media Button */}
+            <Pressable
+              onPress={() => setMedia(null)}
+              className="absolute top-2 right-2 bg-gray-700 p-2 rounded-full"
+            >
+              <FontAwesome name="times" size={16} color="white" />
+            </Pressable>
+          </View>
+        )}
         <View className="flex-row mt-4 justify-center gap-3">
           <Pressable onPress={() => pickMedia("Images")}>
             <Ionicons

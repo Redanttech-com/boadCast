@@ -22,7 +22,7 @@ import { StatusBar } from "expo-status-bar";
 import { Avatar } from "react-native-elements";
 
 const Members = () => {
-  const [activeTab, setActiveTab] = useState("county");
+  const [activeTab, setActiveTab] = useState("national");
   const [countyMembers, setCountyMembers] = useState([]);
   const [constituencyMembers, setConstituencyMembers] = useState([]);
   const [wardMembers, setWardMembers] = useState([]);
@@ -66,15 +66,15 @@ const Members = () => {
 
     const unsubCounty = fetchMembers(
       "county",
-      userDetails.county,
+      userDetails?.county,
       setCountyMembers
     );
     const unsubConstituency = fetchMembers(
       "constituency",
-      userDetails.constituency,
+      userDetails?.constituency,
       setConstituencyMembers
     );
-    const unsubWard = fetchMembers("ward", userDetails.ward, setWardMembers);
+    const unsubWard = fetchMembers("ward", userDetails?.ward, setWardMembers);
 
     return () => {
       unsubCounty?.();
@@ -115,11 +115,11 @@ const Members = () => {
       <View className="flex-row items-center gap-3">
         <Avatar
           size={40}
-          rounded
           source={userDetails?.userImg && { uri: userDetails?.userImg }}
           title={userDetails?.name && userDetails?.name[0].toUpperCase()}
           containerStyle={{
             backgroundColor: getColorFromName(userDetails?.name),
+            borderRadius: 5,
           }} // Consistent color per user
         />
         <Text>
@@ -177,8 +177,8 @@ const Members = () => {
             <Text
               className={`${
                 activeTab === tab
-                  ? "underline font-bold text-2xl text-blue-950 dark:text-white"
-                  : "text-xl"
+                  ? "underline font-bold text-2xl  text-blue-950 dark:text-white"
+                  : "text-xl text-gray-200"
               }`}
             >
               {tab.charAt(0).toUpperCase() + tab.slice(1)}

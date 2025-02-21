@@ -7,6 +7,7 @@ import {
   Image,
   TextInput,
   Animated,
+  Alert,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useOAuth, useSignUp, useUser } from "@clerk/clerk-expo";
@@ -136,7 +137,8 @@ export default function GooglePage() {
     } catch (err) {
       // See https://clerk.com/docs/custom-flows/error-handling
       // for more info on error handling
-      console.error(JSON.stringify(err, null, 2));
+      //console.error(JSON.stringify(err, null, 2));
+      Alert.alert('Invalid Email and Password')
     }
   };
 

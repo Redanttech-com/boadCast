@@ -68,7 +68,6 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
   const [userData, setUserData] = useState(null);
   const { width } = useWindowDimensions();
   const [isBookmarked, setIsBookmarked] = useState({});
-  
 
   useEffect(() => {
     if (post?.images) {
@@ -398,22 +397,22 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
     return colors[Math.abs(hash) % colors.length];
   };
 
-    const userId = userData?.uid;
-    const pstId = post?.id;
-    // Toggle bookmark
-    const checkBookmark = async () => {
-      if (!userId || !pstId) return;
-      try {
-        const docRef = doc(db, `bookmarks/${userId}/bookmarks`, pstId);
-        const docSnap = await getDoc(docRef);
-        setIsBookmarked((prev) => ({
-          ...prev,
-          [pstId]: docSnap.exists(),
-        }));
-      } catch (error) {
-        console.error("Error checking bookmark status:", error);
-      }
-    };
+  const userId = userData?.uid;
+  const pstId = post?.id;
+  // Toggle bookmark
+  const checkBookmark = async () => {
+    if (!userId || !pstId) return;
+    try {
+      const docRef = doc(db, `bookmarks/${userId}/bookmarks`, pstId);
+      const docSnap = await getDoc(docRef);
+      setIsBookmarked((prev) => ({
+        ...prev,
+        [pstId]: docSnap.exists(),
+      }));
+    } catch (error) {
+      console.error("Error checking bookmark status:", error);
+    }
+  };
 
   const toggleBookmark = async () => {
     if (!userId || !pstId) return;
@@ -458,10 +457,12 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
       <View className="flex-row items-center gap-1">
         <Avatar
           size={40}
-          rounded
-          source={post?.userImg ? { uri: post?.userImg } : null}
+          source={post?.userImg && { uri: post?.userImg }}
           title={post?.name && post?.name[0].toUpperCase()}
-          containerStyle={{ backgroundColor: getColorFromName(post?.name) }} // Consistent color per user
+          containerStyle={{
+            backgroundColor: getColorFromName(post?.name),
+            borderRadius: 5, // Adjust this value for more or less roundness
+          }}
         />
         <View className="flex-row gap-2 items-center ">
           <Text

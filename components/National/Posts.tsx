@@ -479,11 +479,14 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
       <View className="flex-row items-center gap-1 p-2">
         <Avatar
           size={40}
-          rounded
           source={post?.userImg && { uri: post?.userImg }}
           title={post?.name && post?.name[0].toUpperCase()}
-          containerStyle={{ backgroundColor: getColorFromName(post?.name) }} // Consistent color per user
+          containerStyle={{
+            backgroundColor: getColorFromName(post?.name),
+            borderRadius: 5, // Adjust this value for more or less roundness
+          }}
         />
+
         <View className="flex-row gap-2 items-center ">
           <Text
             className="text-md max-w-20 min-w-12 font-bold dark:text-white  "

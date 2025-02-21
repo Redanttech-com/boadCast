@@ -1,7 +1,7 @@
 import { View, Text, Image, Pressable, Animated, Easing } from "react-native";
 import React, { useEffect, useRef } from "react";
 import { router } from "expo-router";
-import { Video } from "expo-av";
+import { ResizeMode, Video } from "expo-av";
 
 const StatusPost = ({ id, post }) => {
   const borderColorAnim = useRef(new Animated.Value(0)).current; // Create Animated Value
@@ -42,22 +42,22 @@ const StatusPost = ({ id, post }) => {
           borderWidth: 2,
           borderColor, // Animated border color
           borderRadius: 50,
-          padding: 3,
+          padding: 2,
         }}
       >
         {post?.videos && (
           <Video
             source={{ uri: post?.videos }}
-            style={{ width: 40, height: 40, borderRadius: 10 }}
+            style={{ width: 50, height: 50, borderRadius: 100 }}
             useNativeControls
-            resizeMode="cover"
+            resizeMode={ResizeMode.COVER}
           />
         )}
         {post?.images && (
           <Image
             source={{ uri: post?.images }}
-            style={{ width: 40, height: 40, borderRadius: 10 }}
-            objectFit="cover"
+            style={{ width: 50, height: 50, borderRadius: 100 }}
+            resizeMode={ResizeMode.COVER}
           />
         )}
       </Animated.View>
