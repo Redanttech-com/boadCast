@@ -22,7 +22,7 @@ import { Avatar } from "react-native-elements";
 import { useUser } from "@clerk/clerk-expo";
 import { StatusBar } from "expo-status-bar";
 
-const Profile = () => {
+const Profile = ({ bookmarks}) => {
   const { formatNumber } = useUserInfo();
   const [followingCount, setFollowingCount] = useState(0);
   const [followerCount, setFollowerCount] = useState(0);
@@ -191,32 +191,44 @@ const Profile = () => {
     return colors[Math.abs(hash) % colors.length];
   };
 
-  const renderBookMark = ({ item }) => (
-    <View className="flex-row items-center justify-between m-2 gap-2">
-      <View className="flex-row items-center gap-3">
-        <Image
-          source={{ uri: item.images }}
-          className="h-14 w-14 rounded-full border border-red-500 p-[1.5px]"
-        />
-        <Text className="dark:text-white">{item?.text}</Text>
-      </View>
-    </View>
-  );
+ const renderBookMark = ({ item }) => (
+   <View className="flex-row items-center justify-between m-2 gap-2">
+     <View className="flex-row items-center gap-3">
+       <Image
+         source={{ uri: item.images }}
+         className="h-14 w-14 rounded-full border border-red-500 p-[1.5px]"
+       />
+       <Text className="dark:text-white">{item?.text}</Text>
+     </View>
+   </View>
+ );
 
-  const renderPost = (data) => (
-    <FlatList
-      data={data}
-      keyExtractor={(item) => item.id}
-      initialNumToRender={10}
-      showsVerticalScrollIndicator={false}
-      renderItem={renderBookMark}
-      ListEmptyComponent={
-        <View className="flex-1 items-center justify-center">
-          <Text className="dark:text-white">No Posts Found</Text>
-        </View>
-      }
-    />
-  );
+ const renderPostItem = ({ item }) => (
+   <View className="flex-row   m-2 gap-2 p-3  border-gray-300">
+     <View className="flex-row items-center gap-3">
+       <Image
+         source={{ uri: item.images }}
+         style={{height: 200, width: 200, borderRadius: 10}}
+       />
+     </View>
+   </View>
+ );
+
+ const renderList = (data, renderItem) => (
+   <FlatList
+     data={data}
+     keyExtractor={(item) => item.id}
+     initialNumToRender={10}
+     showsVerticalScrollIndicator={false}
+     renderItem={renderItem}
+     ListEmptyComponent={
+       <View className="flex-1 items-center justify-center">
+         <Text className="dark:text-white">No Posts Found</Text>
+       </View>
+     }
+   />
+ );
+
 
   return (
     <View className="flex-1 relative  dark:bg-gray-800 ">
@@ -230,15 +242,15 @@ const Profile = () => {
       </View>
       {/* Profile Image */}
       <View className="mt-20 justify-center items-center">
-          <Avatar
-            size={100}
-            source={userData?.userImg && { uri: userData?.userImg }}
-            title={userData?.name && userData?.name[0].toUpperCase()}
-            containerStyle={{
-              backgroundColor: getColorFromName(userData?.name),
-              borderRadius: 5,
-            }} // Consistent color per user
-          />
+        <Avatar
+          size={100}
+          source={userData?.userImg && { uri: userData?.userImg }}
+          title={userData?.name && userData?.name[0].toUpperCase()}
+          containerStyle={{
+            backgroundColor: getColorFromName(userData?.name),
+            borderRadius: 5,
+          }} // Consistent color per user
+        />
       </View>
       {/* Profile Info */}
       <View className="m-4 gap-2">
@@ -324,9 +336,9 @@ const Profile = () => {
             </Text>
           </Pressable>
         </View>
-        <View>{active === "posts" && renderPost(posts)}</View>
-        <View>{active === "replies" && renderPost(replies)}</View>
-        <View>{active === "bookmark" && renderPost(userBookMark)}</View>
+        {active === "posts" && renderList(posts, renderPostItem)}
+        {active === "replies" && renderList(replies, renderPostItem)}
+        {active === "bookmark" && renderList(userBookMark, renderBookMark)}
       </View>
     </View>
   );

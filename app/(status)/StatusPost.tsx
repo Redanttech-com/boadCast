@@ -2,8 +2,10 @@ import { View, Text, Image, Pressable, Animated, Easing } from "react-native";
 import React, { useEffect, useRef } from "react";
 import { router } from "expo-router";
 import { ResizeMode, Video } from "expo-av";
+import { useColorScheme } from "@/hooks/useColorScheme.web";
 
 const StatusPost = ({ id, post }) => {
+  const colorScheme = useColorScheme(); // Detect theme
   const borderColorAnim = useRef(new Animated.Value(0)).current; // Create Animated Value
   useEffect(() => {
     // Animate border color between blue and purple
@@ -31,10 +33,9 @@ const StatusPost = ({ id, post }) => {
     outputRange: ["#3b82f6", "#bd124e"], // Blue to Purple
   });
 
-
   return (
     <Pressable
-      onPress={() => router.push(`/(status)/status/${post?.uid}`)}
+      onPress={() => router.push(`/(status)/status/${post?.id}`)}
       className="items-center px-1 justify-center"
     >
       <Animated.View
@@ -59,6 +60,23 @@ const StatusPost = ({ id, post }) => {
             style={{ width: 50, height: 50, borderRadius: 100 }}
             resizeMode={ResizeMode.COVER}
           />
+        )}
+        {post?.input && (
+          <Text
+            style={{
+              width: 50,
+              height: 50,
+              borderRadius: 100,
+              textAlign: "center",
+              overflow: "hidden",
+              alignItems: 'center',
+              color: colorScheme === "dark" ? "white" : "black", // Change text color based on theme
+            }}
+            numberOfLines={1} // Limits text to 1 line
+            ellipsizeMode="tail" // Adds "..." when text is too long
+          >
+            {post?.input}
+          </Text>
         )}
       </Animated.View>
       <Text

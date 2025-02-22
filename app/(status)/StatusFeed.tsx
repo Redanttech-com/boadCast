@@ -1,8 +1,7 @@
-import { View, Text, Image, FlatList, ActivityIndicator } from "react-native";
+import { View, Text, FlatList, ActivityIndicator } from "react-native";
 import React, { useEffect, useState } from "react";
 import {
   collection,
-  getDocs,
   onSnapshot,
   orderBy,
   query,
@@ -12,74 +11,68 @@ import {
 import { useUser } from "@clerk/clerk-expo";
 import { db } from "@/firebase";
 import StatusPost from "./StatusPost";
-import dayjs from "dayjs"; // Install dayjs for time comparison
+import dayjs from "dayjs";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
 
 const StatusFeed = () => {
-  const [loadingStatus, setLoadingStatus] = useState(true); // Set to true initially
+  const [loadingStatus, setLoadingStatus] = useState(true);
   const [posts, setPosts] = useState([]);
   const { user } = useUser();
   const colorScheme = useColorScheme();
 
-  // Delete post if older than 24 hours
   const deletePostAfter24Hours = async (id, timestamp) => {
-    const postTime = dayjs(timestamp); // Get post creation time
+    if (!timestamp) return;
+    const postTime = dayjs(timestamp.toDate());
     const now = dayjs();
+
     if (now.diff(postTime, "hour") >= 24) {
       try {
-        await deleteDoc(doc(db, "status", id)); // Delete post from Firebase
+        await deleteDoc(doc(db, "status", id));
+        console.log(`Deleted status with ID: ${id}`);
       } catch (error) {
-        console.error("Error deleting post:", error);
+        console.error("Error deleting status:", error);
       }
     }
   };
 
-  // Fetch and filter posts
   useEffect(() => {
-    let unsubscribe; // Declare unsubscribe outside
+    const q = query(collection(db, "status"), orderBy("timestamp", "desc"));
 
-    const fetchStatus = async () => {
-      try {
-        const q = query(collection(db, "status"), orderBy("timestamp", "asc"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const latestStatuses = new Map();
 
-        unsubscribe = onSnapshot(q, (snapshot) => {
-          const newPosts = snapshot.docs.map((doc) => ({
-            id: doc.id,
-            ...doc.data(),
-          }));
+      snapshot.docs.forEach((doc) => {
+        const post = { id: doc.id, ...doc.data() };
 
-          // Check and delete posts older than 24 hours
-          newPosts.forEach((post) => {
-            deletePostAfter24Hours(post.id, post.timestamp); // Call delete if 24 hours passed
-          });
+        if (post.timestamp) {
+          const postTime = dayjs(post.timestamp.toDate());
+          const now = dayjs();
 
-          // Ensure only unique posts are added
-          const uniquePosts = Array.from(
-            new Map(newPosts.map((post) => [post.uid, post])).values()
-          );
+          // Delete posts older than 24 hours
+          if (now.diff(postTime, "hour") >= 24) {
+            deletePostAfter24Hours(post.id, post.timestamp);
+            return; // Skip adding to the list
+          }
+        }
 
-          setPosts(uniquePosts); // Use uniquePosts instead of raw snapshot data
-          setLoadingStatus(false);
-        });
-      } catch (error) {
-        console.error("Error fetching Status:", error);
-        setLoadingStatus(false);
-      }
-    };
+        // Store only the latest status per user
+        if (!latestStatuses.has(post.uid)) {
+          latestStatuses.set(post.uid, post);
+        }
+      });
 
-    fetchStatus();
+      setPosts(Array.from(latestStatuses.values()));
+      setLoadingStatus(false);
+    });
 
-    return () => {
-      if (unsubscribe) {
-        unsubscribe(); // Unsubscribe on unmount
-      }
-    };
-  }, []); // Run only once
+    return () => unsubscribe();
+  }, []);
 
   if (loadingStatus) {
     return (
       <View className="justify-center items-center dark:bg-gray-800 h-15 w-full mt-3">
-        <ActivityIndicator size={"large"}
+        <ActivityIndicator
+          size="large"
           color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
         />
         <Text className="dark:text-white">Loading status...</Text>
@@ -91,11 +84,16 @@ const StatusFeed = () => {
     <FlatList
       data={posts}
       keyExtractor={(item) => item.id}
-      horizontal={true} // ✅ Enables horizontal scrolling
+      horizontal={true}
       renderItem={({ item }) => <StatusPost post={item} id={item.id} />}
+      ListEmptyComponent={
+        <View className="flex-1 justify-center items-center">
+          <Text className="dark:text-white">No Status</Text>
+        </View>
+      }
       initialNumToRender={10}
       showsHorizontalScrollIndicator={false}
-      contentContainerStyle={{ paddingHorizontal: 10 }} // ✅ Optional: Adds spacing
+      contentContainerStyle={{ paddingHorizontal: 10 }}
     />
   );
 };

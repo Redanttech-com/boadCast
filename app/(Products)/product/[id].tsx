@@ -5,10 +5,11 @@ import {
   Pressable,
   TouchableOpacity,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
-import { db } from "@/firebase";
+import { db, storage } from "@/firebase";
 import {
   collection,
   deleteDoc,
@@ -27,6 +28,7 @@ import { useUserInfo } from "@/components/UserContext";
 import { useUser } from "@clerk/clerk-expo";
 import { StatusBar } from "expo-status-bar";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
+import { deleteObject, ref } from "firebase/storage";
 
 export default function ProductDetail() {
   const { id } = useLocalSearchParams(); // ✅ Get the correct ID
@@ -36,8 +38,7 @@ export default function ProductDetail() {
   const [likes, setLikes] = useState([]);
   const [hasLiked, setHasLiked] = useState(false);
   const { user } = useUser();
-   const colorScheme = useColorScheme();
-  
+  const colorScheme = useColorScheme();
 
   // ✅ Fetch Product Data
   useEffect(() => {
@@ -71,6 +72,61 @@ export default function ProductDetail() {
     );
   }
 
+  async function deletePost() {
+    if (!id) {
+      console.log("No post document reference available to delete.");
+      return;
+    }
+
+    Alert.alert(
+      "Delete Post",
+      "Are you sure you want to delete this post? This action cannot be undone.",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              // Delete all likes associated with the post
+              // const likesCollectionRef = collection(db, "status", id);
+              // const likesSnapshot = await getDocs(likesCollectionRef);
+              // const deleteLikesPromises = likesSnapshot.docs.map((likeDoc) =>
+              //   deleteDoc(likeDoc.ref)
+              // // );
+              // await Promise.all(deleteLikesPromises);
+
+              // Delete the post document
+              await deleteDoc(doc(db, "market", id));
+
+              // Delete the image associated with the post, if it exists
+              const imageRef = ref(storage, `market/${id}/image`);
+              try {
+                await deleteObject(imageRef);
+              } catch (imageError) {
+                console.warn(
+                  "Image could not be deleted (may not exist):",
+                  imageError
+                );
+              }
+
+              console.log(
+                "Post and associated resources deleted successfully."
+              );
+            } catch (error) {
+              console.error("An error occurred during deletion:", error);
+            }
+            router.replace("/(Products)/ProductFeed");
+          },
+        },
+      ],
+      { cancelable: true } // Allows the user to dismiss the alert by tapping outside
+    );
+  }
+
   const onPress = async () => {
     router.replace(`/(drawer)/(chats)/users`);
   };
@@ -78,7 +134,7 @@ export default function ProductDetail() {
   return (
     <SafeAreaView className="flex-1 bg-white dark:bg-gray-800">
       <StatusBar style="auto" />
-      <View className="flex-row items-center justify-between px-4">
+      <View className="flex-row items-center justify-between px-2 w-full">
         <Pressable
           onPress={() => router.replace("/(drawer)/market")}
           className="m-2"
@@ -88,16 +144,17 @@ export default function ProductDetail() {
         <Text className="text-2xl font-bold dark:text-white">
           {product?.productname}
         </Text>
-        {/* <View className="flex-col h-16 items-center">
-          <Pressable onPress={likePost} className="p-3">
-            <AntDesign
-              name="hearto"
-              size={20}
-              color={hasLiked ? "red" : "gray"}
-            />
-          </Pressable>
-          {likes.length > 0 && <Text>{formatNumber(likes.length)}</Text>}
-        </View> */}
+        <View>
+          {user?.id === product?.uid && (
+            <Pressable onPress={deletePost}>
+              <Feather
+                name="trash-2"
+                size={20}
+                color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
+              />
+            </Pressable>
+          )}
+        </View>
         <View></View>
       </View>
 

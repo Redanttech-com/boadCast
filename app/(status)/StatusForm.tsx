@@ -28,7 +28,7 @@ import { useUser } from "@clerk/clerk-expo";
 import { StatusBar } from "expo-status-bar";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
 import { Avatar } from "react-native-elements";
-import { Video } from "expo-av";
+import { ResizeMode, Video } from "expo-av";
 
 const Status = () => {
   const [loading, setLoading] = useState(false);
@@ -142,7 +142,7 @@ const Status = () => {
         <Text className="text-center font-bold text-2xl dark:text-white">
           Add Status
         </Text>
-        <View className="border dark:border-gray-300 h-10 w-10 p-1 rounded-full">
+        <View className="border dark:border-gray-300 h-50 w-50 p-1 rounded-full items-center justify-center">
           {userData?.userImg && (
             <Avatar
               size={40}
@@ -199,13 +199,13 @@ const Status = () => {
                   useNativeControls={false}
                   isLooping
                   shouldPlay
-                  resizeMode="contain"
+                  resizeMode={ResizeMode.CONTAIN}
                 />
               ) : (
                 <Image
                   source={{ uri: media.uri }}
                   style={{ width: "100%", height: 300 }}
-                  resizeMode="contain"
+                  resizeMode={ResizeMode.CONTAIN}
                 />
               )}
 
