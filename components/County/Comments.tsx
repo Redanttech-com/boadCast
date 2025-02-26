@@ -151,8 +151,6 @@ const Comments = ({ id, comment }) => {
                 doc(
                   db,
                   "county",
-                  userData?.county,
-                  "posts",
                   postID,
                   "comments",
                   id
@@ -211,6 +209,9 @@ const Comments = ({ id, comment }) => {
             backgroundColor: getColorFromName(comment?.data()?.name),
             borderRadius: 5,
           }} // Consistent color per user
+          avatarStyle={{
+            borderRadius: 5, // This affects the actual image
+          }}
         />
 
         <View className="flex-row gap-2 items-center ">

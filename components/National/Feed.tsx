@@ -345,6 +345,9 @@ const Feed = () => {
                 backgroundColor: getColorFromName(userData?.name),
                 borderRadius: 5,
               }} // Consistent color per user
+              avatarStyle={{
+                borderRadius: 5, // This affects the actual image
+              }}
             />
           </View>
           <View className="mt-3  h-15 ">
@@ -395,7 +398,7 @@ const Feed = () => {
                     }}
                     useNativeControls={false}
                     isLooping
-                    shouldPlay={!isPaused}
+                    shouldPlay={true}
                     resizeMode={ResizeMode.CONTAIN}
                     isMuted={isMuted}
                   />
@@ -575,7 +578,7 @@ const Feed = () => {
           )}
         </View>
 
-        <BottomSheetView className="px-4 z-50  bg-white   fixed dark:bg-gray-800">
+        <BottomSheetView className="px-4 z-50     fixed dark:bg-gray-800">
           <View className="flex-row items-center justify-between px-4 mb-1 border rounded-full border-gray-500 ">
             <TextInput
               placeholder="Comment"

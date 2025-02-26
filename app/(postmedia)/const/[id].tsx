@@ -43,7 +43,7 @@ import {
   where,
 } from "firebase/firestore";
 import { useUserInfo } from "@/components/UserContext";
-import { Link, router, useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { deleteObject, ref } from "firebase/storage";
 import { useRecoilState } from "recoil";
 import { useUser } from "@clerk/clerk-expo";
@@ -112,10 +112,16 @@ const MediaSize = () => {
 
   useEffect(() => {
     const fetchUserData = async () => {
-      if (!id) return; // Ensure ID is present
+      if (!id || !userData?.constituency) return; // Ensure ID is present
 
       try {
-        const docRef = doc(db, "constituency", id);
+        const docRef = doc(
+          db,
+          "constituency",
+          userData?.constituency,
+          "posts",
+          id
+        );
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
@@ -130,7 +136,7 @@ const MediaSize = () => {
     setLoading(false);
 
     fetchUserData();
-  }, [id]);
+  }, [id, userData?.constituency]);
 
   useEffect(() => {
     if (post?.images) {
@@ -162,7 +168,7 @@ const MediaSize = () => {
       (snapshot) => setComments(snapshot.docs)
     );
     return () => unsubscribe();
-  }, [db]);
+  }, [id]);
 
   useEffect(() => {
     if (!id) {
@@ -245,10 +251,7 @@ const MediaSize = () => {
                   ...(postData.video && { video: postData.video }),
                 };
 
-                await addDoc(
-                  collection(db, "constituency", userData?.constituency, "posts"),
-                  newPostData
-                );
+                await addDoc(collection(db, "constituency", userData?.constituency, "posts"), newPostData);
                 console.log("Post successfully reposted.");
               } catch (error) {
                 console.error("Error reposting the post:", error);
@@ -286,7 +289,7 @@ const MediaSize = () => {
           }
 
           // Increment the post's view count
-          const postRef = doc(db, "constituency", userData?.constituency, "posts", id);
+          const postRef = doc(db, "constituency", id);
           const postSnap = await getDoc(postRef);
 
           if (postSnap.exists()) {
@@ -311,7 +314,7 @@ const MediaSize = () => {
 
   //delete post
   async function deletePost() {
-    if (!id) {
+    if (!id || !userData?.constituency) {
       console.log("No post document reference available to delete.");
       return;
     }
@@ -330,7 +333,12 @@ const MediaSize = () => {
           onPress: async () => {
             try {
               // Delete all likes associated with the post
-              const likesCollectionRef = collection(db, "constituency", id, "likes");
+              const likesCollectionRef = collection(
+                db,
+                "constituency",
+                id,
+                "likes"
+              );
               const likesSnapshot = await getDocs(likesCollectionRef);
               const deleteLikesPromises = likesSnapshot.docs.map((likeDoc) =>
                 deleteDoc(likeDoc.ref)
@@ -395,7 +403,7 @@ const MediaSize = () => {
         typeof citeInput === "string"
       ) {
         try {
-          await addDoc(collection(db, "constituency", userData?.constituency, "posts"), {
+          await addDoc(collection(db, "constituency"), {
             uid: user?.id,
             text: postData.text,
             citeInput: citeInput,
@@ -475,19 +483,16 @@ const MediaSize = () => {
 
     setLoadingComments(true); // Show loader when sending comment
     try {
-      await addDoc(
-        collection(db, "constituency", userData?.constituency, "posts", postID, "comments"),
-        {
-          uid: user.id,
-          comment: input.trim(),
-          timestamp: serverTimestamp(),
-          email: user?.primaryEmailAddress?.emailAddress,
-          name: userData.name,
-          lastname: userData.lastname,
-          nickname: userData.nickname,
-          userImg: userData.userImg || null,
-        }
-      );
+      await addDoc(collection(db, "constituency", postID, "comments"), {
+        uid: user.id,
+        comment: input.trim(),
+        timestamp: serverTimestamp(),
+        email: user?.primaryEmailAddress?.emailAddress,
+        name: userData.name,
+        lastname: userData.lastname,
+        nickname: userData.nickname,
+        userImg: userData.userImg || null,
+      });
       setInput("");
       // Clear the input
     } catch (error) {
@@ -507,7 +512,7 @@ const MediaSize = () => {
               name="arrow-back"
               size={24}
               color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
-              onPress={() => router.push("/(drawer)/(tabs)")}
+              onPress={() => router.push("/(drawer)/(tabs)/constituency")}
             />
           </View>
           <Avatar
@@ -677,7 +682,7 @@ const MediaSize = () => {
                         alignSelf: "center",
                       }}
                       resizeMode={ResizeMode.CONTAIN}
-                      className="w-full"
+                      className="w-full relative"
                     />
                   )}
                 </View>
@@ -767,6 +772,7 @@ const MediaSize = () => {
                       alignSelf: "center",
                     }}
                     resizeMode={ResizeMode.CONTAIN}
+                    className="relative"
                   />
                 )}
               </View>

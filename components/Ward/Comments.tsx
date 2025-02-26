@@ -144,7 +144,7 @@ const Comments = ({ id, comment }) => {
 
               // Delete the comment document
               await deleteDoc(
-                doc(db, "ward", userData?.ward, "posts", postID, "comments", id)
+                doc(db, "ward", postID, "comments", id)
               );
             } catch (error) {
               console.error("Error deleting comment:", error);
@@ -200,6 +200,9 @@ const Comments = ({ id, comment }) => {
             backgroundColor: getColorFromName(comment?.data()?.name),
             borderRadius: 5,
           }} // Consistent color per user
+          avatarStyle={{
+            borderRadius: 5, // This affects the actual image
+          }}
         />
 
         <View className="flex-row gap-2 items-center ">

@@ -14,7 +14,6 @@ import {
   Pressable,
   Alert,
   useWindowDimensions,
-  Image,
 } from "react-native";
 import {
   addDoc,
@@ -34,24 +33,25 @@ import BottomSheet, {
   BottomSheetFlashList,
   BottomSheetView,
 } from "@gorhom/bottom-sheet";
-import { FontAwesome, Ionicons } from "@expo/vector-icons";
+import { Feather, FontAwesome, Ionicons } from "@expo/vector-icons";
 import { useUserInfo } from "@/components/UserContext";
 import { useRecoilState } from "recoil";
-import { modalWardComment } from "@/atoms/modalAtom";
 import { useUser } from "@clerk/clerk-expo";
 import Comments from "./Comments";
 import { router } from "expo-router";
-import Header from "./Header";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
+import { Image } from "react-native";
+import { ResizeMode, Video } from "expo-av";
 import * as ImagePicker from "expo-image-picker";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
-import { ResizeMode, Video } from "expo-av";
 import { Avatar } from "react-native-elements";
+import { modalWardComment } from "@/atoms/modalAtom";
 
 const Feed = () => {
   const [loadingPosts, setLoadingPosts] = useState(false);
   const [loadingComments, setLoadingComments] = useState(false); // Separate loading state for comments
   const [posts, setPosts] = useState([]);
+  const [input, setInput] = useState("");
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
   const bottomSheetRef = useRef(null);
   const [comments, setComments] = useState([]);
@@ -64,30 +64,17 @@ const Feed = () => {
   const openBottomSheet = useCallback(() => setIsBottomSheetOpen(true), []);
   const [userData, setUserData] = useState(null);
   const colorScheme = useColorScheme();
-  const [input, setInput] = useState("");
+
   const [loading, setLoading] = useState(false);
-  const [media, setMedia] = useState(null);
+  const [media, setMedia] = useState({ uri: null, type: null });
   const [isMuted, setIsMuted] = useState(true);
   const [isPaused, setIsPaused] = useState(false);
-  const videoRef = useRef(null);
   const { width } = useWindowDimensions();
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      if (!user?.id) return;
-      const q = query(collection(db, "userPosts"), where("uid", "==", user.id));
-      const querySnapshot = await getDocs(q);
-      if (!querySnapshot.empty) {
-        setUserData(querySnapshot.docs[0].data());
-      }
-    };
-    fetchUserData();
-  }, [user]);
-
-  const pickMedia = useCallback(async (type) => {
+  const pickMedia = useCallback(async (type: "Images" | "Videos") => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes:
-        type === "image"
+        type === "Images"
           ? ImagePicker.MediaTypeOptions.Images
           : ImagePicker.MediaTypeOptions.Videos,
       allowsEditing: true,
@@ -99,16 +86,35 @@ const Feed = () => {
     }
   }, []);
 
-  const uploadMedia = async (docRefId) => {
-    if (!media?.uri) return;
+  const uploadMedia = async (docRefId: string) => {
+    if (!media.uri) return;
+
     const blob = await (await fetch(media.uri)).blob();
     const mediaRef = ref(storage, `ward/${docRefId}/${media.type}`);
     await uploadBytes(mediaRef, blob);
+
     const downloadUrl = await getDownloadURL(mediaRef);
-    await updateDoc(doc(db, "ward", userData?.ward, "posts", docRefId), {
-      [media.type]: downloadUrl,
-    });
+    await updateDoc(
+      doc(db, "ward", userData?.ward, "posts", docRefId),
+      {
+        [media.type.toLowerCase()]: downloadUrl,
+      }
+    );
   };
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (!user?.id) return;
+
+      const q = query(collection(db, "userPosts"), where("uid", "==", user.id));
+      const querySnapshot = await getDocs(q);
+      if (!querySnapshot.empty) {
+        setUserData(querySnapshot.docs[0].data());
+      }
+    };
+
+    fetchUserData();
+  }, [user]);
 
   const sendPost = async () => {
     setLoading(true);
@@ -117,13 +123,11 @@ const Feed = () => {
       return;
     }
 
+    // Ensure user and userData exist
     if (!user || !userData) {
       Alert.alert("Error", "User not authenticated. Please log in again.");
       return;
     }
-
-    // setLoading(true);
-
     const docRef = await addDoc(
       collection(db, "ward", userData?.ward, "posts"),
       {
@@ -138,13 +142,12 @@ const Feed = () => {
       }
     );
 
-    if (media) await uploadMedia(docRef.id);
+    if (media.uri) await uploadMedia(docRef.id);
 
     setInput("");
-    setMedia(null);
+    setMedia({ uri: null, type: null });
     setLoading(false);
   };
-
   const getColorFromName = (name) => {
     if (!name) return "#ccc"; // Default color if no name exists
 
@@ -170,6 +173,18 @@ const Feed = () => {
     // Pick a color consistently based on the hash value
     return colors[Math.abs(hash) % colors.length];
   };
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (!user?.id) return;
+      const q = query(collection(db, "userPosts"), where("uid", "==", user.id));
+      const querySnapshot = await getDocs(q);
+      if (!querySnapshot.empty) {
+        setUserData(querySnapshot.docs[0].data());
+      }
+    };
+    fetchUserData();
+  }, [user]);
 
   // Fetch posts
   useEffect(() => {
@@ -204,7 +219,7 @@ const Feed = () => {
     setLoadingComments(true); // Set loading state for comments
     try {
       const q = query(
-        collection(db, "ward", userData?.ward, "posts", postID, "comments"),
+        collection(db, "ward", postID, "comments"),
         orderBy("timestamp", "desc")
       );
       const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -245,19 +260,16 @@ const Feed = () => {
 
     setLoadingComments(true); // Show loader when sending comment
     try {
-      await addDoc(
-        collection(db, "ward", userData?.ward, "posts", postID, "comments"),
-        {
-          uid: user?.id,
-          comment: input.trim(),
-          timestamp: serverTimestamp(),
-          email: user?.primaryEmailAddress?.emailAddress,
-          name: userData.name,
-          lastname: userData.lastname,
-          nickname: userData.nickname,
-          userImg: userData.userImg || null,
-        }
-      );
+      await addDoc(collection(db, "ward", postID, "comments"), {
+        uid: user?.id,
+        comment: input.trim(),
+        timestamp: serverTimestamp(),
+        email: user?.primaryEmailAddress?.emailAddress,
+        name: userData.name,
+        lastname: userData.lastname,
+        nickname: userData.nickname,
+        userImg: userData.userImg || null,
+      });
       setInput("");
       // Clear the input
     } catch (error) {
@@ -289,12 +301,11 @@ const Feed = () => {
   // }
 
   return (
-    <View className="flex-1 dark:bg-gray-800">
-      <View className="shadow-md p-4 ">
-        {/* Header */}
+    <View className="flex-1  dark:bg-gray-800">
+      <View className="shadow-md p-4">
         <View className="flex-row items-center justify-between">
           <Text className="font-extrabold text-2xl dark:text-white">
-            {userData?.ward} Ward
+            {userData?.ward} ward
           </Text>
           <Avatar
             size={40}
@@ -304,25 +315,28 @@ const Feed = () => {
               backgroundColor: getColorFromName(userData?.name),
               borderRadius: 5,
             }} // Consistent color per user
+            avatarStyle={{
+              borderRadius: 5, // This affects the actual image
+            }}
           />
         </View>
 
-        {/* Input & Post Button */}
         <View className="w-full flex-row items-center mt-4">
           <TextInput
             placeholder="What's on your mind?"
             placeholderTextColor={
               colorScheme === "dark" ? "#FFFFFF" : "#808080"
-            }
+            } // Light gray for light mode, white for dark mode
             value={input}
             onChangeText={setInput}
             multiline
+            numberOfLines={3}
             style={{
               width: "88%",
               padding: 8,
               borderBottomWidth: 1,
               borderBottomColor: "gray",
-              color: colorScheme === "dark" ? "#FFFFFF" : "#000000",
+              color: colorScheme === "dark" ? "#FFFFFF" : "#000000", // Text color
             }}
           />
           {loading ? (
@@ -336,35 +350,31 @@ const Feed = () => {
             </Pressable>
           )}
         </View>
-
-        {/* Media Preview */}
         {media?.uri && (
           <View className="relative mt-4 w-full items-center ">
             {media.type === "video" ? (
-              <>
-                <Pressable onPress={() => setIsPaused((prev) => !prev)}>
-                  <Video
-                    source={{ uri: media.uri }}
-                    style={{
-                      width: width,
-                      height: width * 0.56, // 16:9 aspect ratio
-                      borderRadius: 10,
-                    }}
-                    useNativeControls={false}
-                    isLooping
-                    shouldPlay={!isPaused}
-                    resizeMode={ResizeMode.CONTAIN}
-                    isMuted={isMuted}
-                  />
+              <Pressable onPress={() => setIsPaused((prev) => !prev)}>
+                <Video
+                  source={{ uri: media.uri }}
+                  style={{
+                    width: width,
+                    height: width * 0.56, // 16:9 aspect ratio
+                    borderRadius: 10,
+                  }}
+                  useNativeControls={false}
+                  isLooping
+                  shouldPlay={!isPaused}
+                  resizeMode={ResizeMode.CONTAIN}
+                  isMuted={isMuted}
+                />
 
-                  <Pressable
-                    onPress={() => setIsMuted(!isMuted)}
-                    className="absolute bottom-2 right-2 bg-gray-700 p-2 rounded-full"
-                  >
-                    <FontAwesome name="volume-down" size={24} color="white" />
-                  </Pressable>
+                <Pressable
+                  onPress={() => setIsMuted(!isMuted)}
+                  className="absolute bottom-2 right-2 bg-gray-700 p-2 rounded-full"
+                >
+                  <FontAwesome name="volume-down" size={24} color="white" />
                 </Pressable>
-              </>
+              </Pressable>
             ) : (
               <Image
                 source={{ uri: media.uri }}
@@ -386,17 +396,15 @@ const Feed = () => {
             </Pressable>
           </View>
         )}
-
-        {/* Media Picker Buttons */}
         <View className="flex-row mt-4 justify-center gap-3">
-          <Pressable onPress={() => pickMedia("image")}>
+          <Pressable onPress={() => pickMedia("Images")}>
             <Ionicons
               name="image-outline"
               size={24}
               color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
             />
           </Pressable>
-          <Pressable onPress={() => pickMedia("video")}>
+          <Pressable onPress={() => pickMedia("Videos")}>
             <Ionicons
               name="videocam-outline"
               size={24}
@@ -456,10 +464,7 @@ const Feed = () => {
         <View className="flex-1 bg-gray-50 dark:bg-gray-800  z-50 dark:text-white">
           {loadingComments ? (
             <View className="hidden w-full h-full justify-center items-center flex-1">
-              <ActivityIndicator
-                size="large"
-                color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
-              />
+              <ActivityIndicator size="large" color="#0000ff" />
             </View>
           ) : (
             <BottomSheetFlashList

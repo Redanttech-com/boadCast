@@ -188,7 +188,6 @@ const County = () => {
                       <View className="flex-row items-center gap-3">
                         <Avatar
                           size={40}
-                          rounded
                           source={
                             userData?.userImg
                               ? { uri: userData?.userImg }
@@ -199,6 +198,10 @@ const County = () => {
                             backgroundColor: userData?.name
                               ? "#3498DB"
                               : "#ccc",
+                            borderRadius: 5,
+                          }}
+                          avatarStyle={{
+                            borderRadius: 5, // This affects the actual image
                           }}
                         />
                         <Text className="text-sm dark:text-white font-semibold">

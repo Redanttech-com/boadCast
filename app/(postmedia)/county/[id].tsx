@@ -43,7 +43,7 @@ import {
   where,
 } from "firebase/firestore";
 import { useUserInfo } from "@/components/UserContext";
-import { Link, router, useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { deleteObject, ref } from "firebase/storage";
 import { useRecoilState } from "recoil";
 import { useUser } from "@clerk/clerk-expo";
@@ -112,10 +112,10 @@ const MediaSize = () => {
 
   useEffect(() => {
     const fetchUserData = async () => {
-      if (!id) return; // Ensure ID is present
+      if (!id || !userData?.county) return; // Ensure ID is present
 
       try {
-        const docRef = doc(db, "county", id);
+        const docRef = doc(db, "county", userData?.county, "posts", id);
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
@@ -130,7 +130,7 @@ const MediaSize = () => {
     setLoading(false);
 
     fetchUserData();
-  }, [id]);
+  }, [id, userData?.county]);
 
   useEffect(() => {
     if (post?.images) {
@@ -154,7 +154,7 @@ const MediaSize = () => {
   }, [user]);
 
   useEffect(() => {
-    if (!id) {
+    if (!id ) {
       return;
     }
     const unsubscribe = onSnapshot(
@@ -162,7 +162,7 @@ const MediaSize = () => {
       (snapshot) => setComments(snapshot.docs)
     );
     return () => unsubscribe();
-  }, [db]);
+  }, [id]);
 
   useEffect(() => {
     if (!id) {
@@ -245,7 +245,10 @@ const MediaSize = () => {
                   ...(postData.video && { video: postData.video }),
                 };
 
-                await addDoc(collection(db, "county", userData?.county, "posts"), newPostData);
+                await addDoc(
+                  collection(db, "county", userData?.county, "posts"),
+                  newPostData
+                );
                 console.log("Post successfully reposted.");
               } catch (error) {
                 console.error("Error reposting the post:", error);
@@ -283,7 +286,7 @@ const MediaSize = () => {
           }
 
           // Increment the post's view count
-          const postRef = doc(db, "county", userData?.county, "posts", id);
+          const postRef = doc(db, "county", id);
           const postSnap = await getDoc(postRef);
 
           if (postSnap.exists()) {
@@ -327,12 +330,7 @@ const MediaSize = () => {
           onPress: async () => {
             try {
               // Delete all likes associated with the post
-              const likesCollectionRef = collection(
-                db,
-                "county",
-                id,
-                "likes"
-              );
+              const likesCollectionRef = collection(db, "county", id, "likes");
               const likesSnapshot = await getDocs(likesCollectionRef);
               const deleteLikesPromises = likesSnapshot.docs.map((likeDoc) =>
                 deleteDoc(likeDoc.ref)
@@ -340,7 +338,7 @@ const MediaSize = () => {
               await Promise.all(deleteLikesPromises);
 
               // Delete the post document
-              await deleteDoc(doc(db, "county", userData?.county, "posts", id));
+              await deleteDoc(doc(db, "county", id));
 
               // Delete the video associated with the post, if it exists
               const vidRef = ref(storage, `county/${id}/video`);
@@ -477,16 +475,19 @@ const MediaSize = () => {
 
     setLoadingComments(true); // Show loader when sending comment
     try {
-      await addDoc(collection(db, "county", userData?.county,"posts", postID, "comments"), {
-        uid: user.id,
-        comment: input.trim(),
-        timestamp: serverTimestamp(),
-        email: user?.primaryEmailAddress?.emailAddress,
-        name: userData.name,
-        lastname: userData.lastname,
-        nickname: userData.nickname,
-        userImg: userData.userImg || null,
-      });
+      await addDoc(
+        collection(db, "county", postID, "comments"),
+        {
+          uid: user.id,
+          comment: input.trim(),
+          timestamp: serverTimestamp(),
+          email: user?.primaryEmailAddress?.emailAddress,
+          name: userData.name,
+          lastname: userData.lastname,
+          nickname: userData.nickname,
+          userImg: userData.userImg || null,
+        }
+      );
       setInput("");
       // Clear the input
     } catch (error) {
@@ -506,7 +507,7 @@ const MediaSize = () => {
               name="arrow-back"
               size={24}
               color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
-              onPress={() => router.push("/(drawer)/(tabs)")}
+              onPress={() => router.push("/(drawer)/(tabs)/county")}
             />
           </View>
           <Avatar
@@ -646,38 +647,24 @@ const MediaSize = () => {
                         isLooping
                         shouldPlay={!isPaused}
                         resizeMode={ResizeMode.CONTAIN}
-                        isMuted={isMuted}
                         className="relative"
                       />
-                      <Pressable
-                        onPress={() => setIsMuted(!isMuted)}
-                        className="absolute flex-1 w-full h-full"
-                      >
-                        <View className="ml-auto mt-auto m-2">
-                          <FontAwesome5
-                            name={isMuted ? "volume-mute" : "volume-down"}
-                            size={24}
-                            color={
-                              colorScheme === "dark" ? "#FFFFFF" : "#1F2937"
-                            }
-                          />
-                        </View>
-                      </Pressable>
+                      
                     </View>
                   )}
 
                   {/* Image Handling */}
                   {post?.images && (
-                      <Image
-                        source={{ uri: post.images }}
-                        style={{
-                          width: mediaSize.width,
-                          height: mediaSize.height,
-                          alignSelf: "center",
-                        }}
-                        resizeMode={ResizeMode.CONTAIN}
-                        className="w-full"
-                      />
+                    <Image
+                      source={{ uri: post.images }}
+                      style={{
+                        width: mediaSize.width,
+                        height: mediaSize.height,
+                        alignSelf: "center",
+                      }}
+                      resizeMode={ResizeMode.CONTAIN}
+                      className="w-full relative"
+                    />
                   )}
                 </View>
               )}
@@ -690,7 +677,7 @@ const MediaSize = () => {
         ) : (
           <>
             <View className=" p-2 mb-4 gap-3">
-                <Text className="text-md dark:text-white">{post?.text}</Text>
+              <Text className="text-md dark:text-white">{post?.text}</Text>
               {post?.fromNickname && (
                 <Text className="text-gray-500 mb-3">
                   Reposted by @{post?.fromNickname}
@@ -748,11 +735,7 @@ const MediaSize = () => {
                       </Pressable>
                     </Pressable>
 
-                    {/* Navigate on separate click */}
-                    <Pressable
-                      className="absolute top-0 left-0 w-full h-full"
-                      onPress={() => router.push(`/view/${id}`)}
-                    />
+                
                   </View>
                 )}
 
@@ -766,6 +749,7 @@ const MediaSize = () => {
                       alignSelf: "center",
                     }}
                     resizeMode={ResizeMode.CONTAIN}
+                    className="relative"
                   />
                 )}
               </View>
@@ -793,7 +777,7 @@ const MediaSize = () => {
             />
             <View>
               <Text className="dark:text-white">
-                {comments.length > 0 ? formatNumber(comments.length) : ""}
+                {comments?.length > 0 ? formatNumber(comments?.length) : ""}
               </Text>
             </View>
           </Pressable>

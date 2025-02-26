@@ -20,6 +20,7 @@ import {
 import {
   addDoc,
   collection,
+  doc,
   getDocs,
   onSnapshot,
   orderBy,
@@ -55,14 +56,12 @@ const Feed = () => {
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
   const bottomSheetRef = useRef(null);
   const [comments, setComments] = useState([]);
-
   const [postID] = useRecoilState(modalCountyComment);
   const { user } = useUser();
   const { formatNumber } = useUserInfo();
   const [isMuted, setIsMuted] = useState(true);
   const [isPaused, setIsPaused] = useState(false);
   const { width } = useWindowDimensions();
-
   const snapPoints = useMemo(() => ["100%", "100%"], []);
   const openBottomSheet = useCallback(() => setIsBottomSheetOpen(true), []);
   const [userData, setUserData] = useState(null);
@@ -136,10 +135,20 @@ const Feed = () => {
         name: userData?.name,
         nickname: userData?.nickname,
         county: userData?.county,
+        mediaUrl: null,
       }
     );
-
-    if (media.uri) await uploadMedia(docRef.id);
+      if (media.uri) {
+        const mediaUrl = await uploadMedia(docRef.id);
+        if (mediaUrl) {
+          await updateDoc(
+            doc(db, "county", userData?.county, "posts", docRef.id),
+            {
+              mediaUrl: mediaUrl,
+            }
+          );
+        }
+      }
 
     setInput("");
     setMedia({ uri: null, type: null });
@@ -209,12 +218,12 @@ const Feed = () => {
 
   // Fetch comments for a specific post
   const fetchComments = useCallback(async () => {
-    if (!postID) return;
+    if (!postID || !userData?.county) return;
 
     setLoadingComments(true); // Set loading state for comments
     try {
       const q = query(
-        collection(db, "county", userData?.county, "posts", postID, "comments"),
+        collection(db, "county", postID, "comments"),
         orderBy("timestamp", "desc")
       );
       const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -227,7 +236,7 @@ const Feed = () => {
       console.error("Error fetching comments:", error);
       setLoadingComments(false);
     }
-  }, [postID]);
+  }, [postID, userData?.county]);
 
   // Trigger fetching comments when bottom sheet opens
   useEffect(() => {
@@ -256,7 +265,7 @@ const Feed = () => {
     setLoadingComments(true); // Show loader when sending comment
     try {
       await addDoc(
-        collection(db, "county", userData?.county, "posts", postID, "comments"),
+        collection(db, "county",  postID, "comments"),
         {
           uid: user?.id,
           comment: input.trim(),
@@ -313,6 +322,9 @@ const Feed = () => {
               backgroundColor: getColorFromName(userData?.name),
               borderRadius: 5,
             }} // Consistent color per user
+            avatarStyle={{
+              borderRadius: 5, // This affects the actual image
+            }}
           />
         </View>
 

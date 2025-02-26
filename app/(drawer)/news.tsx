@@ -13,6 +13,7 @@ import { FetchKenyanNews } from "@/utils/cryptoapi";
 import { heightPercentageToDP as hp } from "react-native-responsive-screen";
 import { router } from "expo-router";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
+import { StatusBar } from "expo-status-bar";
 
 const NewsScreen = () => {
     const colorScheme = useColorScheme();
@@ -76,6 +77,7 @@ const NewsScreen = () => {
 
   return (
     <SafeAreaView className="space-x-2 bg-white dark:bg-gray-800  flex-1">
+      <StatusBar style="auto" />
       <View className="w-full flex-row justify-between items-center px-4 pb-4">
         <View className="w-3/4 flex-row space-x-2 items-center">
           <Text className="font-bold text-3xl dark:text-white">
@@ -99,7 +101,7 @@ const NewsScreen = () => {
             showsVerticalScrollIndicator={false}
             keyExtractor={(item, index) => index.toString()}
             renderItem={renderItem}
-            estimatedItemSize={10}
+            initialNumToRender={10}
           />
         )}
       </View>

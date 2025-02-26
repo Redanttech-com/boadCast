@@ -121,7 +121,7 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
       (snapshot) => setComments(snapshot.docs)
     );
     return () => unsubscribe();
-  }, [db]);
+  }, [id]);
 
   useEffect(() => {
     if (!id) {
@@ -485,6 +485,9 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
             backgroundColor: getColorFromName(post?.name),
             borderRadius: 5, // Adjust this value for more or less roundness
           }}
+          avatarStyle={{
+            borderRadius: 5, // This affects the actual image
+          }}
         />
 
         <View className="flex-row gap-2 items-center ">
@@ -581,6 +584,9 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
                 containerStyle={{
                   backgroundColor: getColorFromName(post?.name),
                 }} // Consistent color per user
+                avatarStyle={{
+                  borderRadius: 5, // This affects the actual image
+                }}
               />
               <View className="flex-row  w-full mx-auto">
                 <Text

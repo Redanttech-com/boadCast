@@ -143,7 +143,6 @@ const UserContextData = ({ children }) => {
           followerId: userDetails?.uid,
           followingId: postId,
           timeStamp: new Date(),
-          userImg: userDetails?.userImg || null,
         });
 
         // Update state to reflect DB changes

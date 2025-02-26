@@ -190,16 +190,17 @@ const Comments = ({ id, comment }) => {
       <View className="flex-row items-center gap-3">
         <Avatar
           size={40}
-          source={
-            comment?.data()?.userImg ? { uri: comment?.data()?.userImg } : null
-          }
+          source={comment?.data()?.userImg && { uri: comment?.data()?.userImg }}
           title={
-            comment?.data()?.name ? comment?.data()?.name[0].toUpperCase() : "?"
+            comment?.data()?.name && comment?.data()?.name[0].toUpperCase()
           }
           containerStyle={{
             backgroundColor: getColorFromName(comment?.data()?.name),
             borderRadius: 5,
           }} // Consistent color per user
+          avatarStyle={{
+            borderRadius: 5, // This affects the actual image
+          }}
         />
 
         <View className="flex-row gap-2 items-center ">

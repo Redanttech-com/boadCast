@@ -43,7 +43,7 @@ import {
   where,
 } from "firebase/firestore";
 import { useUserInfo } from "@/components/UserContext";
-import { Link, router, useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { deleteObject, ref } from "firebase/storage";
 import { useRecoilState } from "recoil";
 import { useUser } from "@clerk/clerk-expo";
@@ -579,7 +579,7 @@ const MediaSize = () => {
 
         {post?.citeInput ? (
           <View className="gap-3">
-              <Text className="ml-12 dark:text-white">{post?.citeInput}</Text>
+            <Text className="ml-12 dark:text-white">{post?.citeInput}</Text>
             <View className="bg-gray-100 ml-20 gap-3 p-2 rounded-md dark:bg-gray-600">
               <View className="flex-row items-center gap-1">
                 <Avatar
@@ -668,16 +668,16 @@ const MediaSize = () => {
 
                   {/* Image Handling */}
                   {post?.images && (
-                      <Image
-                        source={{ uri: post.images }}
-                        style={{
-                          width: mediaSize.width,
-                          height: mediaSize.height,
-                          alignSelf: "center",
-                        }}
-                        resizeMode={ResizeMode.CONTAIN}
-                        className="w-full"
-                      />
+                    <Image
+                      source={{ uri: post.images }}
+                      style={{
+                        width: mediaSize.width,
+                        height: mediaSize.height,
+                        alignSelf: "center",
+                      }}
+                      resizeMode={ResizeMode.CONTAIN}
+                      className="w-full relative"
+                    />
                   )}
                 </View>
               )}
@@ -690,7 +690,7 @@ const MediaSize = () => {
         ) : (
           <>
             <View className=" p-2 mb-4 gap-3">
-                <Text className="text-md dark:text-white">{post?.text}</Text>
+              <Text className="text-md dark:text-white">{post?.text}</Text>
               {post?.fromNickname && (
                 <Text className="text-gray-500 mb-3">
                   Reposted by @{post?.fromNickname}
@@ -758,15 +758,16 @@ const MediaSize = () => {
 
                 {/* Image Handling */}
                 {post?.images && (
-                    <Image
-                      source={{ uri: post.images }}
-                      style={{
-                        width: mediaSize.width,
-                        height: mediaSize.height,
-                        alignSelf: "center",
-                      }}
-                      resizeMode={ResizeMode.CONTAIN}
-                    />
+                  <Image
+                    source={{ uri: post.images }}
+                    style={{
+                      width: mediaSize.width,
+                      height: mediaSize.height,
+                      alignSelf: "center",
+                    }}
+                    resizeMode={ResizeMode.CONTAIN}
+                    className="relative" 
+                  />
                 )}
               </View>
             )}

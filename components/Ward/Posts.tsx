@@ -36,7 +36,7 @@ import {
   where,
 } from "firebase/firestore";
 import { useUserInfo } from "@/components/UserContext";
-import { router } from "expo-router";
+import { Link, router } from "expo-router";
 import { deleteObject, ref } from "firebase/storage";
 import { useRecoilState } from "recoil";
 import { useUser } from "@clerk/clerk-expo";
@@ -91,16 +91,16 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
   // like
 
   useEffect(() => {
-    if (!id || !userData?.ward) {
+    if (!id) {
       return;
     }
     const unsubscribe = onSnapshot(
-      collection(db, "ward", userData?.ward, "posts", id, "comments"),
+      collection(db, "ward", id, "comments"),
       (snapshot) => setComments(snapshot.docs)
     );
 
     return () => unsubscribe();
-  }, [id || userData?.ward]);
+  }, [id]);
 
   useEffect(() => {
     try {
@@ -451,8 +451,8 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
   }, [pstId, userId]);
 
   return (
-    <View className="mb-1 rounded-md  border-gray-200  shadow-md bg-white  dark:bg-gray-800">
-      <View className="flex-row items-center gap-1">
+    <View className="mb-1 rounded-md  border-gray-200  shadow-md bg-white  dark:bg-gray-700">
+      <View className="flex-row items-center gap-1 p-2">
         <Avatar
           size={40}
           source={post?.userImg && { uri: post?.userImg }}
@@ -461,7 +461,11 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
             backgroundColor: getColorFromName(post?.name),
             borderRadius: 5, // Adjust this value for more or less roundness
           }}
+          avatarStyle={{
+            borderRadius: 5, // This affects the actual image
+          }}
         />
+
         <View className="flex-row gap-2 items-center ">
           <Text
             className="text-md max-w-20 min-w-12 font-bold dark:text-white  "
@@ -543,7 +547,9 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
 
       {post?.citeInput ? (
         <View className="gap-3">
-          <Text className="ml-12 dark:text-white">{post?.citeInput}</Text>
+          <Link href={`/const/${id}`} className="ml-12">
+            <Text className="ml-12 dark:text-white">{post?.citeInput}</Text>
+          </Link>
           <View className="bg-gray-100 ml-20 gap-3 p-2 rounded-md dark:bg-gray-600">
             <View className="flex-row items-center gap-1">
               <Avatar
@@ -554,6 +560,9 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
                 containerStyle={{
                   backgroundColor: getColorFromName(post?.name),
                 }} // Consistent color per user
+                avatarStyle={{
+                  borderRadius: 5, // This affects the actual image
+                }}
               />
               <View className="flex-row  w-full mx-auto">
                 <Text
@@ -580,68 +589,155 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
                 </Text>
               </View>
             </View>
-            <View className="w-full ">
+
+            {loading ? (
+              <ActivityIndicator />
+            ) : (
+              <View className="bg-gray-100 rounded-md dark:bg-gray-800 w-full">
+                {/* Video Handling */}
+                {post?.videos && (
+                  <View
+                    onLayout={(event) => {
+                      const { width: videoWidth } = event.nativeEvent.layout;
+                      const videoHeight = videoWidth * 0.56; // Default 16:9 ratio
+                      const minHeight = 300; // Minimum height for videos
+
+                      setMediaSize({
+                        width: "100%",
+                        height:
+                          videoHeight > minHeight ? videoHeight : minHeight, // Ensure the video height is at least the minimum value
+                      });
+                    }}
+                  >
+                    <Video
+                      ref={videoRef}
+                      source={{ uri: post?.videos }}
+                      style={{
+                        width: mediaSize.width,
+                        height: mediaSize.height,
+                      }}
+                      isLooping
+                      shouldPlay={!isPaused}
+                      resizeMode={ResizeMode.CONTAIN}
+                      isMuted={isMuted}
+                      className="relative"
+                    />
+                    <Pressable
+                      onPress={() => setIsMuted(!isMuted)}
+                      className="absolute flex-1 w-full h-full"
+                    >
+                      <View className="ml-auto mt-auto m-2">
+                        <FontAwesome5
+                          name={isMuted ? "volume-mute" : "volume-down"}
+                          size={24}
+                          color={colorScheme === "dark" ? "#FFFFFF" : "#1F2937"}
+                        />
+                      </View>
+                    </Pressable>
+                  </View>
+                )}
+
+                {/* Image Handling */}
+                {post?.images && (
+                  <Link href={`/ward/${id}`}>
+                    <Image
+                      source={{ uri: post.images }}
+                      style={{
+                        width: mediaSize.width,
+                        height: mediaSize.height,
+                        alignSelf: "center",
+                      }}
+                      resizeMode={ResizeMode.CONTAIN}
+                      className="w-full"
+                    />
+                  </Link>
+                )}
+              </View>
+            )}
+
+            <View className="w-full">
               <Text className="ml-12 dark:text-white ">{post?.text}</Text>
             </View>
           </View>
         </View>
       ) : (
         <>
-          <View className="ml-12 mb-2">
-            <Text className="text-md dark:text-white ">{post?.text}</Text>
+          <View className="ml-12 mb-4 gap-3">
+            <Link href={`/ward/${id}`}>
+              <Text className="text-md dark:text-white ">{post?.text}</Text>
+            </Link>
             {post?.fromNickname && (
-              <Text className="text-gray-500 ">
+              <Text className="text-gray-500 mb-3">
                 Reposted by @{post?.fromNickname}
               </Text>
             )}
           </View>
-          <View className="bg-gray-100 rounded-md dark:bg-gray-800 w-full">
-            {/* Video Handling */}
-            {post?.videos && (
-              <View
-                onLayout={(event) => {
-                  const { width: videoWidth } = event.nativeEvent.layout;
-                  setMediaSize({ width: "100%", height: videoWidth * 0.56 }); // 16:9 ratio
-                }}
-              >
-                <Video
-                  ref={videoRef}
-                  source={{ uri: post?.videos }}
-                  style={{ width: mediaSize.width, height: mediaSize.height }}
-                  isLooping
-                  shouldPlay={!isPaused}
-                  resizeMode={ResizeMode.CONTAIN}
-                  isMuted={isMuted}
-                  className="relative"
-                />
-                <Pressable
-                  onPress={() => setIsMuted(!isMuted)}
-                  className="absolute flex-1 w-full h-full"
-                >
-                  <View className="ml-auto mt-auto m-2">
-                    <FontAwesome5
-                      name={isMuted ? "volume-mute" : "volume-down"}
-                      size={24}
-                      color={colorScheme === "dark" ? "#FFFFFF" : "#1F2937"}
-                    />
-                  </View>
-                </Pressable>
-              </View>
-            )}
+          {loading ? (
+            <ActivityIndicator />
+          ) : (
+            <View className="bg-gray-100 rounded-md dark:bg-gray-800 w-screen">
+              {/* Video Handling */}
+              {post?.videos && (
+                <View
+                  onLayout={(event) => {
+                    const { width: videoWidth } = event.nativeEvent.layout;
+                    const videoHeight = videoWidth * 0.56; // Default 16:9 ratio
+                    const minHeight = 300; // Minimum height for videos
 
-            {/* Image Handling */}
-            {post?.images && (
-              <Image
-                source={{ uri: post.images }}
-                style={{
-                  width: mediaSize.width,
-                  height: mediaSize.height,
-                  alignSelf: "center",
-                }}
-                resizeMode={ResizeMode.CONTAIN}
-              />
-            )}
-          </View>
+                    setMediaSize({
+                      width: "100%",
+                      height: videoHeight > minHeight ? videoHeight : minHeight, // Ensure the video height is at least the minimum value
+                    });
+                  }}
+                >
+                  <Video
+                    ref={videoRef}
+                    source={{ uri: post?.videos }}
+                    style={{
+                      width: "100%",
+                      height: 300,
+                    }}
+                    isLooping
+                    shouldPlay={!isPaused}
+                    resizeMode={ResizeMode.COVER}
+                    isMuted={isMuted}
+                    className="h-96"
+                  />
+
+                  <Pressable
+                    className="absolute w-full h-full "
+                    onPress={() => router.push(`/const/${id}`)}
+                  >
+                    <Pressable
+                      onPress={() => setIsMuted(!isMuted)}
+                      className=" w-10 h-10 ml-auto mt-auto mr-4"
+                    >
+                      <FontAwesome5
+                        name={isMuted ? "volume-mute" : "volume-down"}
+                        size={24}
+                        color={colorScheme === "dark" ? "#FFFFFF" : "#1F2937"}
+                      />
+                    </Pressable>
+                  </Pressable>
+                </View>
+              )}
+
+              {/* Image Handling */}
+              {post?.images && (
+                <Link href={`/const/${id}`}>
+                  <Image
+                    source={{ uri: post.images }}
+                    style={{
+                      width: "100%",
+                      height: 300,
+                      alignSelf: "center",
+                    }}
+                    resizeMode={ResizeMode.COVER}
+                  />
+                </Link>
+              )}
+            </View>
+          )}
         </>
       )}
 
@@ -750,6 +846,7 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
             name="sharealt"
             size={20}
             color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
+            // onPress={onShare}
           />
         </TouchableOpacity>
       </View>

@@ -40,7 +40,6 @@ import { modalConstituencyComment } from "@/atoms/modalAtom";
 import { useUser } from "@clerk/clerk-expo";
 import Comments from "./Comments";
 import { router } from "expo-router";
-import Header from "./Header";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
 import { Image } from "react-native";
 import { ResizeMode, Video } from "expo-av";
@@ -223,8 +222,6 @@ const Feed = () => {
         collection(
           db,
           "constituency",
-          userData?.constituency,
-          "posts",
           postID,
           "comments"
         ),
@@ -272,8 +269,6 @@ const Feed = () => {
         collection(
           db,
           "constituency",
-          userData?.constituency,
-          "posts",
           postID,
           "comments"
         ),
@@ -333,6 +328,9 @@ const Feed = () => {
               backgroundColor: getColorFromName(userData?.name),
               borderRadius: 5,
             }} // Consistent color per user
+            avatarStyle={{
+              borderRadius: 5, // This affects the actual image
+            }}
           />
         </View>
 

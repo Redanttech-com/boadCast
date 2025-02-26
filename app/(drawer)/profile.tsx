@@ -1,5 +1,12 @@
-import { View, Text, Image, Pressable, FlatList } from "react-native";
-import React, { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  Image,
+  Pressable,
+  FlatList,
+  Dimensions,
+} from "react-native";
+import React, { useCallback, useEffect, useState } from "react";
 import { useUserInfo } from "@/components/UserContext";
 import {
   collection,
@@ -21,8 +28,10 @@ import { router } from "expo-router";
 import { Avatar } from "react-native-elements";
 import { useUser } from "@clerk/clerk-expo";
 import { StatusBar } from "expo-status-bar";
+import * as ImagePicker from "expo-image-picker";
 
-const Profile = ({ bookmarks}) => {
+
+const Profile = ({ bookmarks }) => {
   const { formatNumber } = useUserInfo();
   const [followingCount, setFollowingCount] = useState(0);
   const [followerCount, setFollowerCount] = useState(0);
@@ -34,6 +43,25 @@ const Profile = ({ bookmarks}) => {
   const [userBookMark, setUserBookMark] = useState([]);
   const [loading, setLoading] = useState(false);
   const [post, setPost] = useState([]);
+  const numColumns = 3; // Change to 2 or 3 as needed
+  const screenWidth = Dimensions.get("window").width;
+  const imageSize = (screenWidth - 40) / numColumns; // Adjust width dynamically
+  const [backImg, setBackImg] = useState(null);
+  const [userImg, setUserImg] = useState(null);
+
+  const pickMedia = useCallback(async (type) => {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes:
+          type === "Images"
+            ? ImagePicker.MediaTypeOptions.Images
+            : ImagePicker.MediaTypeOptions.Videos,
+        allowsEditing: true,
+        quality: 1,
+      });
+      if (!result.canceled) {
+        setUserImg({ uri: result.assets[0].uri, type });
+      }
+    }, []);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -191,44 +219,66 @@ const Profile = ({ bookmarks}) => {
     return colors[Math.abs(hash) % colors.length];
   };
 
- const renderBookMark = ({ item }) => (
-   <View className="flex-row items-center justify-between m-2 gap-2">
-     <View className="flex-row items-center gap-3">
-       <Image
-         source={{ uri: item.images }}
-         className="h-14 w-14 rounded-full border border-red-500 p-[1.5px]"
-       />
-       <Text className="dark:text-white">{item?.text}</Text>
-     </View>
-   </View>
- );
+  // user image and back image
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (userData) {
+        const q = query(
+          collection(db, "userPosts"),
+          where("uid", "==", userData?.uid)
+        );
+        const querySnapshot = await getDocs(q);
+        if (!querySnapshot.empty) {
+          const userData = querySnapshot.docs[0].data(); // Store the document data
+          setPost(userData); // Set the post data to state
+          // setBackImg(userData.backImg || null);
+          setUserImg(userData.userImg || null);
+        }
+      }
+    };
 
- const renderPostItem = ({ item }) => (
-   <View className="flex-row   m-2 gap-2 p-3  border-gray-300">
-     <View className="flex-row items-center gap-3">
-       <Image
-         source={{ uri: item.images }}
-         style={{height: 200, width: 200, borderRadius: 10}}
-       />
-     </View>
-   </View>
- );
+    fetchUserData();
+  }, [userData]);
 
- const renderList = (data, renderItem) => (
-   <FlatList
-     data={data}
-     keyExtractor={(item) => item.id}
-     initialNumToRender={10}
-     showsVerticalScrollIndicator={false}
-     renderItem={renderItem}
-     ListEmptyComponent={
-       <View className="flex-1 items-center justify-center">
-         <Text className="dark:text-white">No Posts Found</Text>
-       </View>
-     }
-   />
- );
+  const renderBookMark = ({ item }) => (
+    <View className="flex-row items-center justify-between m-2 gap-2">
+      <View className="flex-row items-center gap-3">
+        <Image
+          source={{ uri: item.images }}
+          className="h-14 w-14 rounded-full border border-red-500 p-[1.5px]"
+        />
+        <Text className="dark:text-white">{item?.text}</Text>
+      </View>
+    </View>
+  );
 
+  const renderPostItem = ({ item }) => (
+    <View style={{ margin: 5 }}>
+      {item.images && (
+        <Image
+          source={{ uri: item.images }}
+          style={{ height: imageSize, width: imageSize, borderRadius: 10 }}
+        />
+      )}
+    </View>
+  );
+
+  const renderList = (data, renderItem) => (
+    <FlatList
+      data={data}
+      keyExtractor={(item) => item.id}
+      initialNumToRender={10}
+      showsVerticalScrollIndicator={false}
+      renderItem={renderItem}
+      contentContainerStyle={{ paddingBottom: 20 }}
+      numColumns={3}
+      ListEmptyComponent={
+        <View className="flex-1 items-center justify-center">
+          <Text className="dark:text-white">No Posts Found</Text>
+        </View>
+      }
+    />
+  );
 
   return (
     <View className="flex-1 relative  dark:bg-gray-800 ">
@@ -241,6 +291,20 @@ const Profile = ({ bookmarks}) => {
         </Pressable>
       </View>
       {/* Profile Image */}
+      {/* <View className="justify-center items-center w-full">
+        <Avatar
+          size={200}
+          source={userData?.userImg && { uri: userData?.userImg }}
+          title={userData?.name && userData?.name[0].toUpperCase()}
+          containerStyle={{
+            backgroundColor: getColorFromName(userData?.name),
+            borderRadius: 5,
+          }} // Consistent color per user
+          avatarStyle={{
+            borderRadius: 5, // This affects the actual image
+          }}
+        />
+      </View> */}
       <View className="mt-20 justify-center items-center">
         <Avatar
           size={100}
@@ -250,6 +314,9 @@ const Profile = ({ bookmarks}) => {
             backgroundColor: getColorFromName(userData?.name),
             borderRadius: 5,
           }} // Consistent color per user
+          avatarStyle={{
+            borderRadius: 5, // This affects the actual image
+          }}
         />
       </View>
       {/* Profile Info */}
@@ -263,7 +330,10 @@ const Profile = ({ bookmarks}) => {
           <Text className="font-bold text-slate-900 dark:text-white">
             {userData?.name}
           </Text>
-          <Pressable className="border p-2 rounded-md dark:border-white">
+          <Pressable
+            onPress={() => pickMedia("Images")}
+            className="border p-2 rounded-md dark:border-white"
+          >
             <Text className="dark:text-white">Edit profile</Text>
           </Pressable>
           <Pressable className="border p-2 rounded-md dark:border-white">

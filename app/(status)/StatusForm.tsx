@@ -152,6 +152,9 @@ const Status = () => {
               containerStyle={{
                 backgroundColor: getColorFromName(userData?.name),
               }} // Consistent color per user
+              avatarStyle={{
+                borderRadius: 5, // This affects the actual image
+              }}
             />
           )}
         </View>

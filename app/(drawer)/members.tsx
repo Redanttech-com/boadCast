@@ -115,12 +115,15 @@ const Members = () => {
       <View className="flex-row items-center gap-3">
         <Avatar
           size={40}
-          source={userDetails?.userImg && { uri: userDetails?.userImg }}
-          title={userDetails?.name && userDetails?.name[0].toUpperCase()}
+          source={item?.userImg && { uri: item?.userImg }}
+          title={item?.name && item?.name[0].toUpperCase()}
           containerStyle={{
-            backgroundColor: getColorFromName(userDetails?.name),
+            backgroundColor: getColorFromName(item?.name),
             borderRadius: 5,
           }} // Consistent color per user
+          avatarStyle={{
+            borderRadius: 5, // This affects the actual image
+          }}
         />
         <Text>
           <Text className="font-bold dark:text-white">{item.name}</Text>
@@ -178,7 +181,7 @@ const Members = () => {
               className={`${
                 activeTab === tab
                   ? "underline font-bold text-2xl  text-blue-950 dark:text-white"
-                  : "text-xl text-gray-200"
+                  : "text-xl"
               }`}
             >
               {tab.charAt(0).toUpperCase() + tab.slice(1)}

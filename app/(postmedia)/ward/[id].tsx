@@ -43,13 +43,12 @@ import {
   where,
 } from "firebase/firestore";
 import { useUserInfo } from "@/components/UserContext";
-import { Link, router, useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { deleteObject, ref } from "firebase/storage";
 import { useRecoilState } from "recoil";
 import { useUser } from "@clerk/clerk-expo";
 import Popover from "react-native-popover-view";
 import { ResizeMode, Video } from "expo-av";
-import { modalWardComment } from "@/atoms/modalAtom";
 import moment from "moment";
 import { Avatar } from "react-native-elements";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
@@ -57,6 +56,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { FontAwesome5 } from "@expo/vector-icons";
 import Comments from "@/components/Ward/Comments";
+import { modalWardComment } from "@/atoms/modalAtom";
 
 const MediaSize = () => {
   const { id } = useLocalSearchParams();
@@ -112,10 +112,10 @@ const MediaSize = () => {
 
   useEffect(() => {
     const fetchUserData = async () => {
-      if (!id) return; // Ensure ID is present
+      if (!id || !userData?.ward) return; // Ensure ID is present
 
       try {
-        const docRef = doc(db, "ward", id);
+        const docRef = doc(db, "ward", userData?.ward, "posts", id);
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
@@ -130,7 +130,7 @@ const MediaSize = () => {
     setLoading(false);
 
     fetchUserData();
-  }, [id]);
+  }, [id, userData?.ward]);
 
   useEffect(() => {
     if (post?.images) {
@@ -162,7 +162,7 @@ const MediaSize = () => {
       (snapshot) => setComments(snapshot.docs)
     );
     return () => unsubscribe();
-  }, [db]);
+  }, [id]);
 
   useEffect(() => {
     if (!id) {
@@ -246,12 +246,7 @@ const MediaSize = () => {
                 };
 
                 await addDoc(
-                  collection(
-                    db,
-                    "ward",
-                    userData?.ward,
-                    "posts"
-                  ),
+                  collection(db, "ward", userData?.ward, "posts"),
                   newPostData
                 );
                 console.log("Post successfully reposted.");
@@ -291,13 +286,7 @@ const MediaSize = () => {
           }
 
           // Increment the post's view count
-          const postRef = doc(
-            db,
-            "ward",
-            userData?.ward,
-            "posts",
-            id
-          );
+          const postRef = doc(db, "ward", id);
           const postSnap = await getDoc(postRef);
 
           if (postSnap.exists()) {
@@ -341,12 +330,7 @@ const MediaSize = () => {
           onPress: async () => {
             try {
               // Delete all likes associated with the post
-              const likesCollectionRef = collection(
-                db,
-                "ward",
-                id,
-                "likes"
-              );
+              const likesCollectionRef = collection(db, "ward", id, "likes");
               const likesSnapshot = await getDocs(likesCollectionRef);
               const deleteLikesPromises = likesSnapshot.docs.map((likeDoc) =>
                 deleteDoc(likeDoc.ref)
@@ -354,9 +338,7 @@ const MediaSize = () => {
               await Promise.all(deleteLikesPromises);
 
               // Delete the post document
-              await deleteDoc(
-                doc(db, "ward", userData?.ward, "posts", id)
-              );
+              await deleteDoc(doc(db, "ward", id));
 
               // Delete the video associated with the post, if it exists
               const vidRef = ref(storage, `ward/${id}/video`);
@@ -413,29 +395,26 @@ const MediaSize = () => {
         typeof citeInput === "string"
       ) {
         try {
-          await addDoc(
-            collection(db, "ward", userData?.ward, "posts"),
-            {
-              uid: user?.id,
-              text: postData.text,
-              citeInput: citeInput,
-              userImg: userData.userImg || null,
-              lastname: userData.lastname,
-              timestamp: serverTimestamp(),
-              citetimestamp: postData.timestamp.toDate(),
-              name: userData.name,
-              fromUser: postData.name,
-              nickname: userData.nickname,
-              fromNickname: postData.nickname,
-              fromlastname: postData.lastname,
-              citeUserImg: postData.userImg,
-              // Include image and video only if they are defined
+          await addDoc(collection(db, "ward", userData?.ward, "posts"), {
+            uid: user?.id,
+            text: postData.text,
+            citeInput: citeInput,
+            userImg: userData.userImg || null,
+            lastname: userData.lastname,
+            timestamp: serverTimestamp(),
+            citetimestamp: postData.timestamp.toDate(),
+            name: userData.name,
+            fromUser: postData.name,
+            nickname: userData.nickname,
+            fromNickname: postData.nickname,
+            fromlastname: postData.lastname,
+            citeUserImg: postData.userImg,
+            // Include image and video only if they are defined
 
-              ...(postData.category && { fromCategory: postData.category }),
-              ...(postData.images && { images: postData.images }),
-              ...(postData.video && { video: postData.video }),
-            }
-          );
+            ...(postData.category && { fromCategory: postData.category }),
+            ...(postData.images && { images: postData.images }),
+            ...(postData.video && { video: postData.video }),
+          });
         } catch (error) {
           console.error("Error reposting the post:", error);
         }
@@ -496,26 +475,16 @@ const MediaSize = () => {
 
     setLoadingComments(true); // Show loader when sending comment
     try {
-      await addDoc(
-        collection(
-          db,
-          "ward",
-          userData?.ward,
-          "posts",
-          postID,
-          "comments"
-        ),
-        {
-          uid: user.id,
-          comment: input.trim(),
-          timestamp: serverTimestamp(),
-          email: user?.primaryEmailAddress?.emailAddress,
-          name: userData.name,
-          lastname: userData.lastname,
-          nickname: userData.nickname,
-          userImg: userData.userImg || null,
-        }
-      );
+      await addDoc(collection(db, "ward", postID, "comments"), {
+        uid: user.id,
+        comment: input.trim(),
+        timestamp: serverTimestamp(),
+        email: user?.primaryEmailAddress?.emailAddress,
+        name: userData.name,
+        lastname: userData.lastname,
+        nickname: userData.nickname,
+        userImg: userData.userImg || null,
+      });
       setInput("");
       // Clear the input
     } catch (error) {
@@ -535,7 +504,7 @@ const MediaSize = () => {
               name="arrow-back"
               size={24}
               color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
-              onPress={() => router.push("/(drawer)/(tabs)")}
+              onPress={() => router.push("/(drawer)/(tabs)/ward")}
             />
           </View>
           <Avatar
@@ -675,23 +644,8 @@ const MediaSize = () => {
                         isLooping
                         shouldPlay={!isPaused}
                         resizeMode={ResizeMode.CONTAIN}
-                        isMuted={isMuted}
                         className="relative"
                       />
-                      <Pressable
-                        onPress={() => setIsMuted(!isMuted)}
-                        className="absolute flex-1 w-full h-full"
-                      >
-                        <View className="ml-auto mt-auto m-2">
-                          <FontAwesome5
-                            name={isMuted ? "volume-mute" : "volume-down"}
-                            size={24}
-                            color={
-                              colorScheme === "dark" ? "#FFFFFF" : "#1F2937"
-                            }
-                          />
-                        </View>
-                      </Pressable>
                     </View>
                   )}
 
@@ -705,7 +659,7 @@ const MediaSize = () => {
                         alignSelf: "center",
                       }}
                       resizeMode={ResizeMode.CONTAIN}
-                      className="w-full"
+                      className="w-full relative"
                     />
                   )}
                 </View>
@@ -776,12 +730,6 @@ const MediaSize = () => {
                         />
                       </Pressable>
                     </Pressable>
-
-                    {/* Navigate on separate click */}
-                    <Pressable
-                      className="absolute top-0 left-0 w-full h-full"
-                      onPress={() => router.push(`/view/${id}`)}
-                    />
                   </View>
                 )}
 
@@ -795,6 +743,7 @@ const MediaSize = () => {
                       alignSelf: "center",
                     }}
                     resizeMode={ResizeMode.CONTAIN}
+                    className="relative"
                   />
                 )}
               </View>
@@ -822,7 +771,7 @@ const MediaSize = () => {
             />
             <View>
               <Text className="dark:text-white">
-                {comments.length > 0 ? formatNumber(comments.length) : ""}
+                {comments?.length > 0 ? formatNumber(comments?.length) : ""}
               </Text>
             </View>
           </Pressable>

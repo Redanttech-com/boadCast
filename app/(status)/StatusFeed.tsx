@@ -1,5 +1,13 @@
-import { View, Text, FlatList, ActivityIndicator } from "react-native";
-import React, { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  FlatList,
+  ActivityIndicator,
+  Animated,
+  Easing,
+  Image,
+} from "react-native";
+import React, { useEffect, useRef, useState } from "react";
 import {
   collection,
   onSnapshot,
@@ -13,12 +21,40 @@ import { db } from "@/firebase";
 import StatusPost from "./StatusPost";
 import dayjs from "dayjs";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
+import { ResizeMode } from "expo-av";
 
 const StatusFeed = () => {
   const [loadingStatus, setLoadingStatus] = useState(true);
   const [posts, setPosts] = useState([]);
   const { user } = useUser();
   const colorScheme = useColorScheme();
+
+  const borderColorAnim = useRef(new Animated.Value(0)).current; // Create Animated Value
+  useEffect(() => {
+    // Animate border color between blue and purple
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(borderColorAnim, {
+          toValue: 1,
+          duration: 1000, // 1 second to switch colors
+          easing: Easing.linear,
+          useNativeDriver: false,
+        }),
+        Animated.timing(borderColorAnim, {
+          toValue: 0,
+          duration: 1000,
+          easing: Easing.linear,
+          useNativeDriver: false,
+        }),
+      ])
+    ).start();
+  }, []);
+
+  // Interpolating border color
+  const borderColor = borderColorAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["#3b82f6", "#bd124e"], // Blue to Purple
+  });
 
   const deletePostAfter24Hours = async (id, timestamp) => {
     if (!timestamp) return;
@@ -88,7 +124,20 @@ const StatusFeed = () => {
       renderItem={({ item }) => <StatusPost post={item} id={item.id} />}
       ListEmptyComponent={
         <View className="flex-1 justify-center items-center">
-          <Text className="dark:text-white">No Status</Text>
+          <Animated.View
+            style={{
+              borderWidth: 2,
+              borderColor, // Animated border color
+              borderRadius: 50,
+              padding: 2,
+            }}
+          >
+            <Image
+              source={require("@/assets/images/brLogo.jpg")}
+              style={{ width: 50, height: 50, borderRadius: 100 }}
+              resizeMode={ResizeMode.COVER}
+            />
+          </Animated.View>
         </View>
       }
       initialNumToRender={10}
