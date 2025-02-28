@@ -16,33 +16,33 @@ const ProductList = ({ id, item }) => {
   };
 
   return (
-    <ScrollView>
-      <TouchableOpacity onPress={handlePress} className="">
-        <View className="gap-1">
-          <Image
-            source={{ uri: item.image }}
-            style={{
-              width: "100%",
-              height: 200,
-              borderTopLeftRadius: 10,
-              borderTopRightRadius: 10,
-            }}
-          />
+      <ScrollView className="mb-2">
+        <Pressable onPress={handlePress} className="">
+          <View className="gap-1">
+            <Image
+              source={{ uri: item.image }}
+              style={{
+                width: "100%",
+                height: 200,
+                borderTopLeftRadius: 10,
+                borderTopRightRadius: 10,
+              }}
+            />
 
-          <View className="m-3 ">
-            <Text style={{ marginTop: 10, fontSize: 16 }}>
-              {item.productname}
-            </Text>
-            <Text style={{ fontSize: 14, color: "#555" }}>
-              Price: KES {Number(item.cost).toLocaleString("en-KE")}
-            </Text>
-            <Text style={{ fontSize: 14, color: "#555" }}>
-              {item.description}lirejhi
-            </Text>
+            <View className="m-3 ">
+              <Text style={{ marginTop: 10, fontSize: 16 }}>
+                {item.productname}
+              </Text>
+              <Text style={{ fontSize: 14, color: "#555" }}>
+                Price: KES {Number(item.cost).toLocaleString("en-KE")}
+              </Text>
+              <Text style={{ fontSize: 14, color: "#555" }}>
+                {item.description}
+              </Text>
+            </View>
           </View>
-        </View>
-      </TouchableOpacity>
-    </ScrollView>
+        </Pressable>
+      </ScrollView>
   );
 };
 

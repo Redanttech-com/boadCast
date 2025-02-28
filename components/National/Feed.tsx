@@ -153,7 +153,7 @@ const Feed = () => {
     }
   };
   const sendNational = async () => {
-    setLoading(true)
+    setLoading(true);
     if (!input.trim()) {
       Alert.alert("Error", "Post content cannot be empty.");
       return;
@@ -176,7 +176,7 @@ const Feed = () => {
     setInput("");
     setMedia({ uri: null, type: null });
 
-    setLoading(false)
+    setLoading(false);
   };
 
   const getColorFromName = (name) => {
@@ -322,7 +322,8 @@ const Feed = () => {
   if (loadingPosts) {
     return (
       <View className="flex-1 justify-center items-center dark:bg-gray-800">
-        <ActivityIndicator size={"large"}
+        <ActivityIndicator
+          size={"large"}
           color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
         />
       </View>
@@ -350,10 +351,10 @@ const Feed = () => {
               }}
             />
           </View>
-          <View className="mt-3  h-15 ">
+          <View className="mt-3 h-15">
             <StatusFeed />
           </View>
-          <View className="w-full flex-row items-center mt-2">
+          <View className="w-full flex-row px-4 items-center mt-4">
             <TextInput
               placeholder="What's on your mind?"
               placeholderTextColor={
@@ -372,10 +373,7 @@ const Feed = () => {
               }}
             />
             {loading ? (
-              <ActivityIndicator
-                size="small"
-                color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
-              />
+              <ActivityIndicator size="small" color="blue" />
             ) : (
               <Pressable
                 onPress={sendNational}

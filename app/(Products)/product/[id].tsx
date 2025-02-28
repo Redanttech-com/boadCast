@@ -135,10 +135,7 @@ export default function ProductDetail() {
     <SafeAreaView className="flex-1 bg-white dark:bg-gray-800">
       <StatusBar style="auto" />
       <View className="flex-row items-center justify-between px-2 w-full">
-        <Pressable
-          onPress={() => router.replace("/(drawer)/market")}
-          className="m-2"
-        >
+        <Pressable onPress={() => router.back()} className="m-2">
           <Feather name="arrow-left" size={28} color="gray" />
         </Pressable>
         <Text className="text-2xl font-bold dark:text-white">
@@ -157,57 +154,63 @@ export default function ProductDetail() {
         </View>
         <View></View>
       </View>
-
-      <View className="mt-5">
-        <Image
-          source={{ uri: product?.image }}
-          style={{ width: "100%", height: 250 }}
-        />
-
-        <View className="flex-row justify-between items-center p-5 w-full">
-          <View>
-            <Text className="text-gray-500">
-              <MaterialCommunityIcons
-                name="clock-check-outline"
-                size={14}
-                color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
-              />{" "}
-              {product?.timestamp
-                ? moment(product.timestamp.toDate()).fromNow()
-                : "Unknown time"}
-            </Text>
-            <Text className="text-2xl dark:text-white">
-              KES {Number(product?.cost).toLocaleString("en-KE")}
-            </Text>
-          </View>
-
-          <View className="flex-row items-center gap-2 m-3">
+      {loading ? (
+        <ActivityIndicator />
+      ) : (
+        <>
+          <View className="mt-5">
             <Image
-              source={{ uri: product?.userImg }}
-              className="rounded-full h-20 w-20"
+              source={{ uri: product?.image }}
+              style={{ width: "100%", height: 250 }}
             />
-            <View>
-              <Text className="font-bold dark:text-white">
-                {product?.name} {product?.lastname}
-              </Text>
-              <Text className="dark:text-gray-400">@{product?.nickname}</Text>
+
+            <View className="flex-row justify-between items-center p-5 w-full">
+              <View>
+                <Text className="text-gray-500">
+                  <MaterialCommunityIcons
+                    name="clock-check-outline"
+                    size={14}
+                    color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
+                  />{" "}
+                  {product?.timestamp
+                    ? moment(product.timestamp.toDate()).fromNow()
+                    : "Unknown time"}
+                </Text>
+                <Text className="text-2xl dark:text-white">
+                  KES {Number(product?.cost).toLocaleString("en-KE")}
+                </Text>
+              </View>
+
+              <View className="flex-row items-center gap-2 m-3">
+                <Image
+                  source={{ uri: product?.userImg }}
+                  className="rounded-full h-20 w-20"
+                />
+                <View>
+                  <Text className="font-bold dark:text-white">
+                    {product?.name} {product?.lastname}
+                  </Text>
+                  <Text className="dark:text-gray-400">
+                    @{product?.nickname}
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            <View className="m-5">
+              <Text className="dark:text-white">{product?.description}</Text>
             </View>
           </View>
-        </View>
-
-        <View className="m-5">
-          <Text className="dark:text-white">{product?.description}</Text>
-        </View>
-      </View>
-
-      <View className="w-full mt-5 p-5">
-        <Pressable
-          onPress={onPress}
-          className="p-3 rounded-md items-center bg-slate-800 dark:bg-slate-600"
-        >
-          <Text className="text-white">Chat</Text>
-        </Pressable>
-      </View>
+          <View className="w-full mt-5 p-5">
+            <Pressable
+              onPress={onPress}
+              className="p-3 rounded-md items-center bg-slate-800 dark:bg-slate-600"
+            >
+              <Text className="text-white">Chat</Text>
+            </Pressable>
+          </View>
+        </>
+      )}
     </SafeAreaView>
   );
 }

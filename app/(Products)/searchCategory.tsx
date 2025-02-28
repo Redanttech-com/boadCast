@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, Image, ScrollView } from "react-native";
+import { View, Text, TouchableOpacity, Image, ScrollView, Pressable } from "react-native";
 import React from "react";
 import { router } from "expo-router";
 
@@ -9,8 +9,8 @@ const SearchCategory = ({ id, item }) => {
   };
 
   return (
-    <ScrollView>
-      <TouchableOpacity
+    <ScrollView className="mb-2">
+      <Pressable
         onPress={handlePress}
         style={{
           backgroundColor: "#fff",
@@ -38,7 +38,7 @@ const SearchCategory = ({ id, item }) => {
             </Text>
           </View>
         </View>
-      </TouchableOpacity>
+      </Pressable>
     </ScrollView>
   );
 };

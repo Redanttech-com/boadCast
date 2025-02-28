@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, Image, ScrollView } from "react-native";
+import { View, Text, TouchableOpacity, Image, ScrollView, Pressable } from "react-native";
 import React from "react";
 import { router } from "expo-router";
 
@@ -9,8 +9,8 @@ const SearchProduct = ({ id, item, product }) => {
   };
 
   return (
-    <ScrollView>
-      <TouchableOpacity
+    <ScrollView className="mb-2">
+      <Pressable
         onPress={handlePress}
         className="dark:bg-gray-600 rounded-md"
       >
@@ -34,7 +34,7 @@ const SearchProduct = ({ id, item, product }) => {
             </Text>
           </View>
         </View>
-      </TouchableOpacity>
+      </Pressable>
     </ScrollView>
   );
 };

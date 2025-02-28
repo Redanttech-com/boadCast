@@ -182,6 +182,7 @@ function ProductFeed() {
                     minHeight: 40,
                     justifyContent: "center",
                     alignItems: "center",
+                    zIndex: 50,
                   }}
                 >
                   <Text style={{ color: "white" }}>{category}</Text>
@@ -212,12 +213,14 @@ function ProductFeed() {
               }
             }}
             showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ marginBottom: 10, paddingVertical: 50 }}
             ListEmptyComponent={
               <View
                 style={{
                   flex: 1,
                   justifyContent: "center",
                   alignItems: "center",
+                  marginTop: 50,
                 }}
               >
                 <Text className="dark:text-white">No posts available</Text>

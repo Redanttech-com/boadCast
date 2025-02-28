@@ -29,7 +29,7 @@ import { Avatar } from "react-native-elements";
 import { useUser } from "@clerk/clerk-expo";
 import { StatusBar } from "expo-status-bar";
 import * as ImagePicker from "expo-image-picker";
-
+import { Video } from "expo-av";
 
 const Profile = ({ bookmarks }) => {
   const { formatNumber } = useUserInfo();
@@ -50,18 +50,18 @@ const Profile = ({ bookmarks }) => {
   const [userImg, setUserImg] = useState(null);
 
   const pickMedia = useCallback(async (type) => {
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes:
-          type === "Images"
-            ? ImagePicker.MediaTypeOptions.Images
-            : ImagePicker.MediaTypeOptions.Videos,
-        allowsEditing: true,
-        quality: 1,
-      });
-      if (!result.canceled) {
-        setUserImg({ uri: result.assets[0].uri, type });
-      }
-    }, []);
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes:
+        type === "Images"
+          ? ImagePicker.MediaTypeOptions.Images
+          : ImagePicker.MediaTypeOptions.Videos,
+      allowsEditing: true,
+      quality: 1,
+    });
+    if (!result.canceled) {
+      setUserImg({ uri: result.assets[0].uri, type });
+    }
+  }, []);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -253,11 +253,18 @@ const Profile = ({ bookmarks }) => {
   );
 
   const renderPostItem = ({ item }) => (
-    <View style={{ margin: 5 }}>
-      {item.images && (
+    <View style={{ margin: 2 }}>
+      {item.images ? (
         <Image
           source={{ uri: item.images }}
-          style={{ height: imageSize, width: imageSize, borderRadius: 10 }}
+          style={{ height: 120, width: 120 }}
+        />
+      ) : (
+        <Video
+          source={{ uri: item.videos }}
+          style={{ height: 120, width: 120 }}
+          shouldPlay
+          isMuted
         />
       )}
     </View>
@@ -267,10 +274,9 @@ const Profile = ({ bookmarks }) => {
     <FlatList
       data={data}
       keyExtractor={(item) => item.id}
-      initialNumToRender={10}
       showsVerticalScrollIndicator={false}
       renderItem={renderItem}
-      contentContainerStyle={{ paddingBottom: 20 }}
+      contentContainerStyle={{ paddingBottom: 20, alignSelf: "center" }}
       numColumns={3}
       ListEmptyComponent={
         <View className="flex-1 items-center justify-center">

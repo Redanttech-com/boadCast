@@ -816,7 +816,7 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
             </TouchableOpacity>
           }
         >
-          <View className="p-4  min-w-96 bg-white dark:bg-slate-900 rounded-md shadow-md">
+          <View className="p-4 px-4  min-w-96 bg-white dark:bg-slate-900 rounded-md shadow-md">
             <TextInput
               onChangeText={setCiteInput}
               value={citeInput}

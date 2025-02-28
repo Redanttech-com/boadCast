@@ -4,7 +4,7 @@ import { useUserInfo } from "@/components/UserContext";
 import { db } from "@/firebase";
 import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Video } from "expo-av";
+import { ResizeMode, Video } from "expo-av";
 
 const Media = () => {
   const [activeTab, setActiveTab] = useState("national");
@@ -74,7 +74,7 @@ const Media = () => {
     }
 
     return () => {
-      unsubNational?. ();
+      unsubNational?.();
       unsubCounty?.();
       unsubConstituency?.();
       unsubWard?.();
@@ -87,28 +87,28 @@ const Media = () => {
     if (!item.images && !item.videos) return null;
 
     return (
-      <View className="flex-row items-center justify-between m-2 gap-2 dark:bg-gray-600">
-        <View className="flex-row gap-3">
-          {item.images && (
+      <View className="flex-row items-center justify-between m-2 dark:bg-gray-600">
+        <View className="flex-row">
+          {item.images ? (
             <Image
               source={{ uri: item.images }}
-              className="h-32 w-48 rounded-md border border-gray-500"
+              style={{ height: 180, width: 180 }}
             />
-          )}
-          {item.videos && (
+          ) : (
             <Video
               source={{ uri: item.videos }}
-              className="h-32 w-48 rounded-md border border-gray-500"
+              style={{ height: 180, width: 180 }}
+              shouldPlay
+              isMuted
             />
           )}
-          <Text className="absolute bottom-1 ml-2 text-white font-bold">
-            {item.name} {item.lastname} @{item.nickname}
+          <Text className="absolute text-white font-bold bg-gray-500 w-fit">
+            {item.name}
           </Text>
         </View>
       </View>
     );
   };
-
 
   // ✅ Render the active tab's content
   const renderTabContent = (data) => (
@@ -118,6 +118,7 @@ const Media = () => {
       renderItem={renderPost}
       numColumns={2}
       showsVerticalScrollIndicator={false}
+      contentContainerStyle={{ paddingBottom: 5, alignSelf: "center" }}
       ListEmptyComponent={
         <View className="flex-1 items-center justify-center">
           <Text className="dark:text-white">No Posts</Text>
@@ -127,7 +128,7 @@ const Media = () => {
   );
 
   return (
-    <SafeAreaView className="flex-1 gap-5 dark:bg-gray-800">
+    <SafeAreaView className="flex-1 gap-2  dark:bg-gray-800">
       {/* 🔥 Tab Selector */}
       <View className="flex-row justify-between p-3 px-5 bg-gray-200 dark:bg-gray-700  items-center">
         {["national", "county", "constituency", "ward"].map((tab) => (
