@@ -93,11 +93,11 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
   // like
 
   useEffect(() => {
-    if (!id ) {
+    if (!id) {
       return;
     }
     const unsubscribe = onSnapshot(
-      collection(db, "county",  id, "comments"),
+      collection(db, "county", id, "comments"),
       (snapshot) => setComments(snapshot.docs)
     );
 
@@ -269,44 +269,51 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
           style: "destructive",
           onPress: async () => {
             try {
-              // Delete all likes associated with the post
-              const likesCollectionRef = collection(db, "county", id, "likes");
-              const likesSnapshot = await getDocs(likesCollectionRef);
-              const deleteLikesPromises = likesSnapshot.docs.map((likeDoc) =>
-                deleteDoc(likeDoc.ref)
-              );
-              await Promise.all(deleteLikesPromises);
+              // Reference to comments under the post
+              const commentsRef = collection(db, "county", id, "comments");
+              const commentsSnapshot = await getDocs(commentsRef);
+              const countyLikesRef = collection(db, "county", id, "likes");
 
-              // Delete the post document
+              const countyLikesSnapshot = await getDocs(countyLikesRef);
+              const deleteCountyLikes = countyLikesSnapshot.docs.map(
+                (likeDoc) => deleteDoc(likeDoc.ref)
+              );
+
+              // Iterate through each comment to delete its likes and the comment itself
+              const deleteCommentPromises = commentsSnapshot.docs.map(
+                async (commentDoc) => {
+                  const commentId = commentDoc.id;
+
+                  // Reference to likes inside the comment
+                  const likesRef = collection(db, "county", commentId, "likes");
+                  const likesSnapshot = await getDocs(likesRef);
+
+                  // Delete all likes inside the comment
+                  const deleteLikesPromises = likesSnapshot.docs.map(
+                    (likeDoc) => deleteDoc(likeDoc.ref)
+                  );
+                  await Promise.all([
+                    ...deleteCountyLikes,
+                    ...deleteLikesPromises,
+                  ]);
+
+                  // Delete the comment itself
+                  await deleteDoc(commentDoc.ref);
+                }
+              );
+
+              // Wait for all comments and their likes to be deleted
+              await Promise.all(deleteCommentPromises);
+
+              // Finally, delete the main post
               await deleteDoc(doc(db, "county", userData?.county, "posts", id));
 
-              // Delete the video associated with the post, if it exists
-              const vidRef = ref(storage, `county/${id}/video`);
-              try {
-                await deleteObject(vidRef);
-              } catch (videoError) {
-                console.warn(
-                  "Video could not be deleted (may not exist):",
-                  videoError
-                );
-              }
-
-              // Delete the image associated with the post, if it exists
-              const imageRef = ref(storage, `county/${id}/image`);
-              try {
-                await deleteObject(imageRef);
-              } catch (imageError) {
-                console.warn(
-                  "Image could not be deleted (may not exist):",
-                  imageError
-                );
-              }
-
-              console.log(
-                "Post and associated resources deleted successfully."
-              );
+              console.log("Post, comments, and likes deleted successfully!");
             } catch (error) {
-              console.error("An error occurred during deletion:", error);
+              console.error(
+                "Error deleting post with comments and likes:",
+                error
+              );
             }
           },
         },
@@ -510,7 +517,7 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
         </View>
         <View className="flex-row items-center ml-auto gap-2">
           {user?.id === post?.uid && (
-            <Pressable onPress={deletePost}>
+            <Pressable onPress={deletePost} className="p-4">
               <Feather
                 name="trash-2"
                 size={20}
@@ -754,7 +761,7 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
                     openBottomSheet();
                   }
             }
-            className="flex-row items-center p-3"
+            className="flex-row items-center p-4"
           >
             <Ionicons
               name="chatbubble-ellipses-outline"
@@ -773,7 +780,7 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
           {loading ? (
             <ActivityIndicator color="blue" />
           ) : (
-            <Pressable onPress={repost} className="p-3">
+            <Pressable onPress={repost} className="p-4">
               <Feather
                 name="corner-up-left"
                 size={20}
@@ -785,7 +792,7 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
 
         <Popover
           from={
-            <TouchableOpacity className="p-3">
+            <TouchableOpacity className="p-4">
               <Feather
                 name="edit"
                 size={20}
@@ -818,7 +825,7 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
 
         <TouchableOpacity
           onPress={likePost}
-          className="flex-row items-center gap-2"
+          className="flex-row items-center gap-2 p-4"
         >
           <AntDesign
             name={hasLiked ? "heart" : "hearto"}

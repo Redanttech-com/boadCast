@@ -219,12 +219,7 @@ const Feed = () => {
     setLoadingComments(true); // Set loading state for comments
     try {
       const q = query(
-        collection(
-          db,
-          "constituency",
-          postID,
-          "comments"
-        ),
+        collection(db, "constituency", postID, "comments"),
         orderBy("timestamp", "desc")
       );
       const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -265,24 +260,16 @@ const Feed = () => {
 
     setLoadingComments(true); // Show loader when sending comment
     try {
-      await addDoc(
-        collection(
-          db,
-          "constituency",
-          postID,
-          "comments"
-        ),
-        {
-          uid: user?.id,
-          comment: input.trim(),
-          timestamp: serverTimestamp(),
-          email: user?.primaryEmailAddress?.emailAddress,
-          name: userData.name,
-          lastname: userData.lastname,
-          nickname: userData.nickname,
-          userImg: userData.userImg || null,
-        }
-      );
+      await addDoc(collection(db, "constituency", postID, "comments"), {
+        uid: user?.id,
+        comment: input.trim(),
+        timestamp: serverTimestamp(),
+        email: user?.primaryEmailAddress?.emailAddress,
+        name: userData.name,
+        lastname: userData.lastname,
+        nickname: userData.nickname,
+        userImg: userData.userImg || null,
+      });
       setInput("");
       // Clear the input
     } catch (error) {
@@ -410,14 +397,20 @@ const Feed = () => {
           </View>
         )}
         <View className="flex-row mt-4 justify-center gap-3">
-          <Pressable onPress={() => pickMedia("Images")}>
+          <Pressable
+            onPress={() => pickMedia("Images")}
+            className="p-4 rounded-full border-gray-400 border-2"
+          >
             <Ionicons
               name="image-outline"
               size={24}
               color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
             />
           </Pressable>
-          <Pressable onPress={() => pickMedia("Videos")}>
+          <Pressable
+            onPress={() => pickMedia("Videos")}
+            className="p-4 rounded-full border-gray-400 border-2"
+          >
             <Ionicons
               name="videocam-outline"
               size={24}

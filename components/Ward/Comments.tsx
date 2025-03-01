@@ -189,7 +189,6 @@ const Comments = ({ id, comment }) => {
       <View className="flex-row items-center gap-3">
         <Avatar
           size={40}
-          rounded
           source={
             comment?.data()?.userImg ? { uri: comment?.data()?.userImg } : null
           }

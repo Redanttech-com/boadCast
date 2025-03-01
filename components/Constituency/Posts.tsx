@@ -264,7 +264,7 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
   }, [id, userData?.uid]);
 
   //delete post
-  async function deletePost() {
+ async function deletePost() {
     if (!id) {
       console.log("No post document reference available to delete.");
       return;
@@ -283,51 +283,51 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
           style: "destructive",
           onPress: async () => {
             try {
-              // Delete all likes associated with the post
-              const likesCollectionRef = collection(
-                db,
-                "constituency",
-                id,
-                "likes"
-              );
-              const likesSnapshot = await getDocs(likesCollectionRef);
-              const deleteLikesPromises = likesSnapshot.docs.map((likeDoc) =>
-                deleteDoc(likeDoc.ref)
-              );
-              await Promise.all(deleteLikesPromises);
+              // Reference to comments under the post
+              const commentsRef = collection(db, "constituency", id, "comments");
+              const commentsSnapshot = await getDocs(commentsRef);
+              const constituencyLikesRef = collection(db, "constituency", id, "likes");
 
-              // Delete the post document
-              await deleteDoc(
-                doc(db, "constituency", userData?.constituency, "posts", id)
+              const constituencyLikesSnapshot = await getDocs(constituencyLikesRef);
+              const deleteconstituencyLikes = constituencyLikesSnapshot.docs.map(
+                (likeDoc) => deleteDoc(likeDoc.ref)
               );
 
-              // Delete the video associated with the post, if it exists
-              const vidRef = ref(storage, `posts/${id}/video`);
-              try {
-                await deleteObject(vidRef);
-              } catch (videoError) {
-                console.warn(
-                  "Video could not be deleted (may not exist):",
-                  videoError
-                );
-              }
+              // Iterate through each comment to delete its likes and the comment itself
+              const deleteCommentPromises = commentsSnapshot.docs.map(
+                async (commentDoc) => {
+                  const commentId = commentDoc.id;
 
-              // Delete the image associated with the post, if it exists
-              const imageRef = ref(storage, `posts/${id}/image`);
-              try {
-                await deleteObject(imageRef);
-              } catch (imageError) {
-                console.warn(
-                  "Image could not be deleted (may not exist):",
-                  imageError
-                );
-              }
+                  // Reference to likes inside the comment
+                  const likesRef = collection(db, "constituency", commentId, "likes");
+                  const likesSnapshot = await getDocs(likesRef);
 
-              console.log(
-                "Post and associated resources deleted successfully."
+                  // Delete all likes inside the comment
+                  const deleteLikesPromises = likesSnapshot.docs.map(
+                    (likeDoc) => deleteDoc(likeDoc.ref)
+                  );
+                  await Promise.all([
+                    ...deleteconstituencyLikes,
+                    ...deleteLikesPromises,
+                  ]);
+
+                  // Delete the comment itself
+                  await deleteDoc(commentDoc.ref);
+                }
               );
+
+              // Wait for all comments and their likes to be deleted
+              await Promise.all(deleteCommentPromises);
+
+              // Finally, delete the main post
+              await deleteDoc(doc(db, "constituency", userData?.constituency, "posts", id));
+
+              console.log("Post, comments, and likes deleted successfully!");
             } catch (error) {
-              console.error("An error occurred during deletion:", error);
+              console.error(
+                "Error deleting post with comments and likes:",
+                error
+              );
             }
           },
         },
@@ -532,7 +532,7 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
             </Text>
           </View>
         </View>
-        <View className="flex-row items-center ml-auto gap-2">
+        <View className="flex-row items-center ml-auto  p-4">
           {user?.id === post?.uid && (
             <Pressable onPress={deletePost}>
               <Feather
@@ -778,7 +778,7 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
                     openBottomSheet();
                   }
             }
-            className="flex-row items-center p-3"
+            className="flex-row items-center p-4"
           >
             <Ionicons
               name="chatbubble-ellipses-outline"
@@ -797,7 +797,7 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
           {loading ? (
             <ActivityIndicator color="blue" />
           ) : (
-            <Pressable onPress={repost} className="p-3">
+            <Pressable onPress={repost} className="p-4">
               <Feather
                 name="corner-up-left"
                 size={20}
@@ -809,7 +809,7 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
 
         <Popover
           from={
-            <TouchableOpacity className="p-3">
+            <TouchableOpacity className="p-4">
               <Feather
                 name="edit"
                 size={20}
@@ -840,9 +840,9 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
           </View>
         </Popover>
 
-        <TouchableOpacity
+        <Pressable
           onPress={likePost}
-          className="flex-row items-center gap-2"
+          className="flex-row items-center gap-2  p-4"
         >
           <AntDesign
             name={hasLiked ? "heart" : "hearto"}
@@ -858,7 +858,7 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
               </Text>
             </View>
           )}
-        </TouchableOpacity>
+        </Pressable>
         <View className="flex-row items-center gap-2">
           <Feather
             name="eye"

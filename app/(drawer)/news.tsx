@@ -23,7 +23,7 @@ const NewsScreen = () => {
     queryFn: FetchKenyanNews,
   });
 
-  console.log(NewsData)
+  // console.log(NewsData)
 
   const renderItem = ({ item, index }) => {
     return (

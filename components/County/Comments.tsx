@@ -55,24 +55,9 @@ const Comments = ({ id, comment }) => {
   const { user } = useUser();
   const [postID] = useRecoilState(modalCountyComment);
   const [loading, setLoading] = useState(false);
-
-  // like
-
-  const [userData, setUserData] = useState(null);
   const colorScheme = useColorScheme();
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      if (!user?.id) return;
-      const q = query(collection(db, "userPosts"), where("uid", "==", user.id));
-      const querySnapshot = await getDocs(q);
-      if (!querySnapshot.empty) {
-        setUserData(querySnapshot.docs[0].data());
-      }
-    };
-    fetchUserData();
-  }, [user]);
-
+  
   useEffect(() => {
     try {
       if (!id) {
@@ -98,14 +83,14 @@ const Comments = ({ id, comment }) => {
   async function likePost() {
     try {
       // Check if userData, userData.uid, and id exist
-      if (user?.id && id && postID) {
+      if (user?.id  &&  id) {
         if (hasLiked) {
           // Unlike the post
           await deleteDoc(doc(db, "county", id, "likes", user.id));
         } else {
           // Like the post
           await setDoc(doc(db, "county", id, "likes", user.id), {
-            id: user.id || "Anonymous",
+            commentUserId: user.id || "Anonymous",
           });
         }
       } else {
@@ -118,7 +103,7 @@ const Comments = ({ id, comment }) => {
   }
 
   async function deleteComment() {
-    if (!id) {
+    if (!postID && !id) {
       console.log("No post document reference available to delete.");
       return;
     }
@@ -139,7 +124,12 @@ const Comments = ({ id, comment }) => {
 
             try {
               // Delete all likes associated with the comment
-              const likesCollectionRef = collection(db, "county", id, "likes");
+              const likesCollectionRef = collection(
+                db,
+                "county",
+                id,
+                "likes"
+              );
               const likesSnapshot = await getDocs(likesCollectionRef);
               const deleteLikesPromises = likesSnapshot.docs.map((likeDoc) =>
                 deleteDoc(likeDoc.ref)
@@ -147,15 +137,7 @@ const Comments = ({ id, comment }) => {
               await Promise.all(deleteLikesPromises);
 
               // Delete the comment document
-              await deleteDoc(
-                doc(
-                  db,
-                  "county",
-                  postID,
-                  "comments",
-                  id
-                )
-              );
+              await deleteDoc(doc(db, "county", postID, "comments", id));
             } catch (error) {
               console.error("Error deleting comment:", error);
             } finally {
@@ -255,7 +237,7 @@ const Comments = ({ id, comment }) => {
           </View>
         </View>
 
-        <View className="flex-row items-center ml-auto gap-1">
+        <View className="flex-row items-center ml-auto">
           {user?.id === comment?.data()?.uid && (
             <Pressable onPress={deleteComment} className="p-3">
               <Feather
@@ -265,9 +247,9 @@ const Comments = ({ id, comment }) => {
               />
             </Pressable>
           )}
-          <TouchableOpacity
+          <Pressable
             onPress={likePost}
-            className="flex-row items-center gap-2 min-w-14 max-w-14"
+            className="flex-row justify-start flex items-center gap-1 min-w-16 max-w-16 p-4"
           >
             <AntDesign
               name={hasLiked ? "heart" : "hearto"}
@@ -283,7 +265,7 @@ const Comments = ({ id, comment }) => {
                 </Text>
               </View>
             )}
-          </TouchableOpacity>
+          </Pressable>
         </View>
       </View>
 

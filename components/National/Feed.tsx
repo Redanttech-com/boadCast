@@ -430,17 +430,22 @@ const Feed = () => {
             </View>
           )}
 
-          <View className="flex-row mt-4 gap-2 justify-between w-full items-center">
-            <View className="flex-row  justify-center gap-3">
-              <Pressable onPress={() => pickMedia("Images")}>
+          <View className="flex-row mt-4 gap-1  justify-between w-full items-center">
+            <View className="flex-row  justify-center gap-1">
+              <Pressable
+                onPress={() => pickMedia("Images")}
+                className="p-4 rounded-full border-gray-400 border-2 items-center"
+              >
                 <Ionicons
                   name="image-outline"
                   size={24}
                   color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
                 />
               </Pressable>
-
-              <Pressable onPress={() => pickMedia("Videos")}>
+              <Pressable
+                onPress={() => pickMedia("Videos")}
+                className="p-4 rounded-full border-gray-400 border-2 items-center"
+              >
                 <Ionicons
                   name="videocam-outline"
                   size={24}
@@ -456,7 +461,7 @@ const Feed = () => {
                   setSelectedLevel(level);
                   setModalVisible(true);
                 }}
-                className="px-4 py-2 rounded-full bg-gray-200"
+                className="px-2 py-4 rounded-full bg-gray-200"
               >
                 <Text
                   className={`font-bold ${

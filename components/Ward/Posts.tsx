@@ -248,7 +248,7 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
   }, [id, userData?.uid]);
 
   //delete post
-  async function deletePost() {
+async function deletePost() {
     if (!id) {
       console.log("No post document reference available to delete.");
       return;
@@ -267,44 +267,51 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
           style: "destructive",
           onPress: async () => {
             try {
-              // Delete all likes associated with the post
-              const likesCollectionRef = collection(db, "ward", id, "likes");
-              const likesSnapshot = await getDocs(likesCollectionRef);
-              const deleteLikesPromises = likesSnapshot.docs.map((likeDoc) =>
-                deleteDoc(likeDoc.ref)
-              );
-              await Promise.all(deleteLikesPromises);
+              // Reference to comments under the post
+              const commentsRef = collection(db, "ward", id, "comments");
+              const commentsSnapshot = await getDocs(commentsRef);
+              const wardLikesRef = collection(db, "ward", id, "likes");
 
-              // Delete the post document
+              const wardLikesSnapshot = await getDocs(wardLikesRef);
+              const deletewardLikes = wardLikesSnapshot.docs.map(
+                (likeDoc) => deleteDoc(likeDoc.ref)
+              );
+
+              // Iterate through each comment to delete its likes and the comment itself
+              const deleteCommentPromises = commentsSnapshot.docs.map(
+                async (commentDoc) => {
+                  const commentId = commentDoc.id;
+
+                  // Reference to likes inside the comment
+                  const likesRef = collection(db, "ward", commentId, "likes");
+                  const likesSnapshot = await getDocs(likesRef);
+
+                  // Delete all likes inside the comment
+                  const deleteLikesPromises = likesSnapshot.docs.map(
+                    (likeDoc) => deleteDoc(likeDoc.ref)
+                  );
+                  await Promise.all([
+                    ...deletewardLikes,
+                    ...deleteLikesPromises,
+                  ]);
+
+                  // Delete the comment itself
+                  await deleteDoc(commentDoc.ref);
+                }
+              );
+
+              // Wait for all comments and their likes to be deleted
+              await Promise.all(deleteCommentPromises);
+
+              // Finally, delete the main post
               await deleteDoc(doc(db, "ward", userData?.ward, "posts", id));
 
-              // Delete the video associated with the post, if it exists
-              const vidRef = ref(storage, `posts/${id}/video`);
-              try {
-                await deleteObject(vidRef);
-              } catch (videoError) {
-                console.warn(
-                  "Video could not be deleted (may not exist):",
-                  videoError
-                );
-              }
-
-              // Delete the image associated with the post, if it exists
-              const imageRef = ref(storage, `posts/${id}/image`);
-              try {
-                await deleteObject(imageRef);
-              } catch (imageError) {
-                console.warn(
-                  "Image could not be deleted (may not exist):",
-                  imageError
-                );
-              }
-
-              console.log(
-                "Post and associated resources deleted successfully."
-              );
+              console.log("Post, comments, and likes deleted successfully!");
             } catch (error) {
-              console.error("An error occurred during deletion:", error);
+              console.error(
+                "Error deleting post with comments and likes:",
+                error
+              );
             }
           },
         },

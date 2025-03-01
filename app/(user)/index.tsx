@@ -67,6 +67,24 @@ const Form = () => {
   const [error, setError] = useState("");
   const [userDetails, setUserDetails] = useState(null);
   const colorScheme = useColorScheme();
+  const [userData, setUserData] = useState(null);
+  const [userDataId, setUserDataId] = useState(null);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (!user?.id) return;
+
+      const q = query(collection(db, "userPosts"), where("uid", "==", user.id));
+      const querySnapshot = await getDocs(q);
+      if (!querySnapshot.empty) {
+        setUserData(querySnapshot.docs[0].data());
+        const userData = querySnapshot.docs[0]; // ✅ Get first matching post
+        setUserDataId(userData.id); // ✅
+      }
+    };
+
+    fetchUserData();
+  }, [user]);
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -177,72 +195,79 @@ const Form = () => {
   const submit = async () => {
     try {
       if (loading) return;
-      <View className="flex-1 justify-center items-center">
-        <ActivityIndicator />
-      </View>;
       setLoading(true);
 
-      const docRef = await addDoc(collection(db, "userPosts"), {
-        uid: user?.id,
-        email: user?.primaryEmailAddress?.emailAddress,
+      let docRef;
+      const updatedFields = {
+        name: name || userData?.name,
+        lastname: lname || userData?.lastname,
+        nickname: nName || userData?.nickname,
+        category: selectData || userData?.category,
+        county: selectedCounty || userData?.county,
+        constituency: selectedConstituency || userData?.constituency,
+        ward: selectedWard || userData?.ward,
         timestamp: serverTimestamp(),
-        name: name,
-        lastname: lname,
-        nickname: nName,
-        category: selectData,
-        county: selectedCounty,
-        constituency: selectedConstituency,
-        ward: selectedWard,
-      });
+      };
 
-      const uploadImage = async (imageUri, docRef) => {
+      // ✅ Remove undefined or null values
+      Object.keys(updatedFields).forEach(
+        (key) =>
+          (updatedFields[key] === null || updatedFields[key] === undefined) &&
+          delete updatedFields[key]
+      );
+
+      if (userDataId) {
+        // ✅ Update only changed fields
+        docRef = doc(db, "userPosts", userDataId);
+        await updateDoc(docRef, updatedFields);
+      } else {
+        // ✅ Create a new post
+        docRef = await addDoc(collection(db, "userPosts"), {
+          uid: user?.id,
+          email: user?.primaryEmailAddress?.emailAddress,
+          ...updatedFields, // ✅ Use filtered data
+        });
+
+        setUserData(docRef.id);
+      }
+
+      // ✅ Upload Image Function
+      const uploadImage = async (imageUri) => {
         try {
-          // Convert image URI to Blob
           const response = await fetch(imageUri);
           const blob = await response.blob();
-
-          // Reference to the storage location
           const imageRef = ref(storage, `userPosts/${docRef.id}/userImg`);
 
-          // Upload the Blob
           await uploadBytes(imageRef, blob);
-
-          // Get the download URL
           const downloadUrl = await getDownloadURL(imageRef);
 
-          // Update Firestore document with the image URL
-          await updateDoc(doc(db, "userPosts", docRef.id), {
-            userImg: downloadUrl || user?.imageUrl,
-          });
-
-          console.log("Image uploaded and Firestore updated successfully!");
+          await updateDoc(docRef, { userImg: downloadUrl || user?.imageUrl });
         } catch (error) {
-          console.error("Error uploading image or updating Firestore:", error);
+          console.error("Error uploading image:", error);
         }
       };
 
       if (image) {
-        await uploadImage(image, docRef);
+        await uploadImage(image);
       }
 
+      // ✅ Reset Form
       setImage(null);
       setName("");
       setselectedData([]);
       setSelectedCounty(null);
       setSelectedConstituency(null);
       setSelectedWard(null);
-
       setLoading(false);
-
       router.push("/(drawer)/(tabs)");
     } catch (error) {
-      console.log(error);
+      console.error("Error submitting:", error);
     }
+
     if (!name.trim() || !lname.trim() || !nName.trim()) {
       setError("Required!");
     } else {
       setError("");
-      // Proceed with form submission
     }
   };
 
@@ -255,13 +280,16 @@ const Form = () => {
 
         if (!querySnapshot.empty) {
           // ✅ Map through all user posts
-          const allUsers = querySnapshot.docs.map((doc) => doc.data());
+          const allUsers = querySnapshot.docs.map((doc) => ({
+            id: doc.id, // ✅ Include document ID to identify the current user
+            ...doc.data(),
+          }));
 
           setUserDetails(allUsers); // Save all user data in state
 
-          // ✅ Check if any existing nickname matches nName
+          // ✅ Check if any existing nickname matches nName (excluding current user)
           const nicknameExists = allUsers.some(
-            (user) => user.nickname === nName
+            (user) => user.nickname === nName && user.id !== userDataId
           );
 
           if (nicknameExists) {
@@ -277,8 +305,10 @@ const Form = () => {
       }
     };
 
-    fetchUserDetails();
-  }, [nName]); // ✅ Only re-run when nickname input changes
+    if (nName) {
+      fetchUserDetails();
+    }
+  }, [nName, userDataId]); // ✅ Re-run when nickname or userDataId changes
 
   return (
     <SafeAreaView className="flex-1 p-5 justify-center dark:bg-gray-800">
@@ -304,7 +334,7 @@ const Form = () => {
           <TextInput
             value={name}
             onChangeText={setName}
-            placeholder="Enter Name"
+            placeholder={(userData && userData?.name) || "Enter Name"}
             placeholderTextColor={
               colorScheme === "dark" ? "#FFFFFF" : "#808080"
             } // Light gray for light mode, white for dark mode
@@ -324,7 +354,7 @@ const Form = () => {
           <TextInput
             value={lname}
             onChangeText={setlName}
-            placeholder="Enter Last Name"
+            placeholder={(userData && userData?.lastname) || "Enter Last Name"}
             placeholderTextColor={
               colorScheme === "dark" ? "#FFFFFF" : "#808080"
             } // Light gray for light mode, white for dark mode
@@ -344,7 +374,7 @@ const Form = () => {
           <TextInput
             value={nName}
             onChangeText={setnName}
-            placeholder="Enter Nick Name"
+            placeholder={(userData && userData?.nickname) || "Enter nickname"}
             placeholderTextColor={
               colorScheme === "dark" ? "#FFFFFF" : "#808080"
             } // Light gray for light mode, white for dark mode
@@ -367,7 +397,7 @@ const Form = () => {
             data={data}
             labelField="label"
             valueField="value"
-            placeholder="Select Category"
+            placeholder={(userData && userData?.category) || "Select Category"}
             value={selectData}
             onChange={(item) => setSelectData(item.value)}
             renderItem={renderDropdownItem}
@@ -379,7 +409,7 @@ const Form = () => {
             data={counties}
             labelField="label"
             valueField="value"
-            placeholder="Select County"
+            placeholder={(userData && userData?.county) || "Select County"}
             value={selectedCounty}
             onChange={(item) => setSelectedCounty(item.value)}
             renderItem={renderDropdownItem}
@@ -391,7 +421,9 @@ const Form = () => {
             data={constituencies}
             labelField="label"
             valueField="value"
-            placeholder="Select Constituency"
+            placeholder={
+              (userData && userData?.constituency) || "Select Constituency"
+            }
             value={selectedConstituency}
             onChange={(item) => setSelectedConstituency(item.value)}
             renderItem={renderDropdownItem}
@@ -403,7 +435,7 @@ const Form = () => {
             data={wards}
             labelField="label"
             valueField="value"
-            placeholder="Select Ward"
+            placeholder={(userData && userData?.ward) || "Select Ward"}
             value={selectedWard}
             onChange={(item) => setSelectedWard(item.value)}
             renderItem={renderDropdownItem}
@@ -415,24 +447,46 @@ const Form = () => {
           <Pressable
             onPress={submit}
             disabled={
-              !name ||
-              !nName ||
-              !lname ||
-              !selectData ||
-              !selectedCounty ||
-              !selectedConstituency ||
-              !selectedWard
+              !userData // If no userData, require all fields
+                ? !name ||
+                  !nName ||
+                  !lname ||
+                  !selectData ||
+                  !selectedCounty ||
+                  !selectedConstituency ||
+                  !selectedWard
+                : !(
+                    name !== userData?.name ||
+                    nName !== userData?.nickname ||
+                    lname !== userData?.lastname ||
+                    selectData !== userData?.category ||
+                    selectedCounty !== userData?.county ||
+                    selectedConstituency !== userData?.constituency ||
+                    selectedWard !== userData?.ward
+                  )
             }
             className={`${
-              !name ||
-              !nName ||
-              !lname ||
-              !selectData ||
-              !selectedCounty ||
-              !selectedConstituency ||
-              !selectedWard
+              !userData
+                ? !name ||
+                  !nName ||
+                  !lname ||
+                  !selectData ||
+                  !selectedCounty ||
+                  !selectedConstituency ||
+                  !selectedWard
+                  ? "bg-gray-700 p-4 rounded-full items-center"
+                  : "justify-center items-center border-2 p-4 bg-blue-950 rounded-full"
+                : !(
+                    name !== userData?.name ||
+                    nName !== userData?.nickname ||
+                    lname !== userData?.lastname ||
+                    selectData !== userData?.category ||
+                    selectedCounty !== userData?.county ||
+                    selectedConstituency !== userData?.constituency ||
+                    selectedWard !== userData?.ward
+                  )
                 ? "bg-gray-700 p-4 rounded-full items-center"
-                : "justify-center items-center border-2 p-4 bg-blue-950 rounded-full "
+                : "justify-center items-center border-2 p-4 bg-blue-950 rounded-full"
             }`}
           >
             <Text className="text-white">Submit</Text>

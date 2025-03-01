@@ -62,11 +62,11 @@ const Comments = ({ id, comment }) => {
 
   useEffect(() => {
     try {
-      if (!db || !id || !postID) {
+      if (!db || !id ) {
         return;
       }
       const unsubscribe = onSnapshot(
-        collection(db, "national", postID, "comments", id, "likes"),
+        collection(db, "national",  id, "likes"),
         (snapshot) => setLikes(snapshot.docs)
       );
 
@@ -89,12 +89,12 @@ const Comments = ({ id, comment }) => {
         if (hasLiked) {
           // Unlike the post
           await deleteDoc(
-            doc(db, "national", postID, "comments", id, "likes", user.id)
+            doc(db, "national", id, "likes", user.id)
           );
         } else {
           // Like the post
           await setDoc(
-            doc(db, "national", postID, "comments", id, "likes", user.id),
+            doc(db, "national", id, "likes", user.id),
             {
               id: user.id || "Anonymous",
             }
@@ -134,8 +134,6 @@ const Comments = ({ id, comment }) => {
               const likesCollectionRef = collection(
                 db,
                 "national",
-                postID,
-                "comments",
                 id,
                 "likes"
               );
@@ -244,7 +242,7 @@ const Comments = ({ id, comment }) => {
           </View>
         </View>
 
-        <View className="flex-row items-center ml-auto gap-1">
+        <View className="flex-row items-center ml-auto">
           {user?.id === comment?.data()?.uid && (
             <Pressable onPress={deleteComment} className="p-3">
               <Feather
@@ -254,9 +252,9 @@ const Comments = ({ id, comment }) => {
               />
             </Pressable>
           )}
-          <TouchableOpacity
+          <Pressable
             onPress={likePost}
-            className="flex-row items-center gap-2 min-w-14 max-w-14"
+            className="flex-row items-center  min-w-14 max-w-14 gap-1  p-3"
           >
             <AntDesign
               name={hasLiked ? "heart" : "hearto"}
@@ -272,7 +270,7 @@ const Comments = ({ id, comment }) => {
                 </Text>
               </View>
             )}
-          </TouchableOpacity>
+          </Pressable>
         </View>
       </View>
 

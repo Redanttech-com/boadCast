@@ -134,20 +134,18 @@ const Members = () => {
       <Pressable
         onPress={() => followMember(item.uid)}
         disabled={followLoading[item.uid]}
-        className={`p-3 rounded-lg ${
-          userDetails?.uid === item.uid
-            ? "bg-gray-300"
-            : hasFollowed[item.uid]
-            ? "bg-red-500 text-white"
-            : "bg-blue-500 text-white"
-        }`}
+        className="p-3 rounded-lg"
       >
         {userDetails?.uid === item.uid ? (
-          <Text className="font-bold">You</Text>
+          <Text className="font-bold dark:text-white">You</Text>
         ) : followLoading[item.uid] ? (
-          <ActivityIndicator size="small" color="#ffffff" />
+          <ActivityIndicator size="small" color="#000" />
         ) : (
-          <Text className="font-bold text-white">
+          <Text
+            className={`font-bold ${
+              hasFollowed[item.uid] ? "text-red-500" : "text-blue-500"
+            }`}
+          >
             {hasFollowed[item.uid] ? "Unfollow" : "Follow"}
           </Text>
         )}
@@ -181,7 +179,7 @@ const Members = () => {
               className={`${
                 activeTab === tab
                   ? "underline font-bold text-2xl  text-blue-950 dark:text-white"
-                  : "text-xl"
+                  : "text-xl dark:text-gray-300"
               }`}
             >
               {tab.charAt(0).toUpperCase() + tab.slice(1)}

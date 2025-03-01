@@ -94,12 +94,9 @@ const Feed = () => {
     await uploadBytes(mediaRef, blob);
 
     const downloadUrl = await getDownloadURL(mediaRef);
-    await updateDoc(
-      doc(db, "ward", userData?.ward, "posts", docRefId),
-      {
-        [media.type.toLowerCase()]: downloadUrl,
-      }
-    );
+    await updateDoc(doc(db, "ward", userData?.ward, "posts", docRefId), {
+      [media.type.toLowerCase()]: downloadUrl,
+    });
   };
 
   useEffect(() => {
@@ -397,14 +394,20 @@ const Feed = () => {
           </View>
         )}
         <View className="flex-row mt-4 justify-center gap-3">
-          <Pressable onPress={() => pickMedia("Images")}>
+          <Pressable
+            onPress={() => pickMedia("Images")}
+            className="p-4 rounded-full border-gray-400 border-2"
+          >
             <Ionicons
               name="image-outline"
               size={24}
               color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
             />
           </Pressable>
-          <Pressable onPress={() => pickMedia("Videos")}>
+          <Pressable
+            onPress={() => pickMedia("Videos")}
+            className="p-4 rounded-full border-gray-400 border-2"
+          >
             <Ionicons
               name="videocam-outline"
               size={24}

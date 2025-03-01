@@ -124,11 +124,15 @@ const FollowersScreen = () => {
   };
 
   // Handle Unfollow
+  // Handle Unfollow
   const handleUnfollow = async (userId) => {
     if (!currentUserId || !userId) return;
     try {
       const docRef = doc(db, "following", `${currentUserId}_${userId}`);
       await deleteDoc(docRef);
+
+      // Update state: remove user from local following list
+      setUsersFollowing((prev) => prev.filter((user) => user.uid !== userId));
     } catch (error) {
       console.error("Error unfollowing user:", error);
     }
@@ -182,20 +186,18 @@ const FollowersScreen = () => {
         <Pressable
           onPress={() => followMember(item.uid)}
           disabled={followLoading[item.uid]}
-          className={`p-3 rounded-lg ${
-            userDetails?.uid === item.uid
-              ? "bg-gray-300"
-              : hasFollowed[item.uid]
-              ? "bg-red-500 text-white"
-              : "bg-blue-500 text-white"
-          }`}
+          className="p-3 rounded-lg"
         >
           {userDetails?.uid === item.uid ? (
-            <Text className="font-bold">You</Text>
+            <Text className="font-bold dark:text-white">You</Text>
           ) : followLoading[item.uid] ? (
-            <ActivityIndicator size="small" color="#ffffff" />
+            <ActivityIndicator size="small" color="#000" />
           ) : (
-            <Text className="font-bold text-white">
+            <Text
+              className={`font-bold ${
+                hasFollowed[item.uid] ? "text-red-500" : "text-blue-500"
+              }`}
+            >
               {hasFollowed[item.uid] ? "Unfollow" : "Follow"}
             </Text>
           )}

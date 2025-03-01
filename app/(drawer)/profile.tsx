@@ -290,27 +290,7 @@ const Profile = ({ bookmarks }) => {
     <View className="flex-1 relative  dark:bg-gray-800 ">
       <StatusBar style="auto" />
       {/* Background Image */}
-      {/* Edit Profile Icon */}
-      <View className="absolute top-5 right-2 p-2 rounded-full h-12 w-12 items-center justify-center">
-        <Pressable>
-          <EvilIcons name="pencil" size={28} color="white" />
-        </Pressable>
-      </View>
-      {/* Profile Image */}
-      {/* <View className="justify-center items-center w-full">
-        <Avatar
-          size={200}
-          source={userData?.userImg && { uri: userData?.userImg }}
-          title={userData?.name && userData?.name[0].toUpperCase()}
-          containerStyle={{
-            backgroundColor: getColorFromName(userData?.name),
-            borderRadius: 5,
-          }} // Consistent color per user
-          avatarStyle={{
-            borderRadius: 5, // This affects the actual image
-          }}
-        />
-      </View> */}
+    
       <View className="mt-20 justify-center items-center">
         <Avatar
           size={100}
@@ -337,7 +317,7 @@ const Profile = ({ bookmarks }) => {
             {userData?.name}
           </Text>
           <Pressable
-            onPress={() => pickMedia("Images")}
+            onPress={() => router.push('/(user)')}
             className="border p-2 rounded-md dark:border-white"
           >
             <Text className="dark:text-white">Edit profile</Text>
