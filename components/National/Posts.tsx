@@ -73,16 +73,17 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
   const { width } = useWindowDimensions();
   const onShare = async () => {
     try {
-      const result = await Share.share({
-        message: "BroadCast:\n", // Properly formatted message
-      });
+      const url = `https://broadcast.com/view/${id}`; // Replace with your actual URL
+      const message = `${post?.nickname}/${id}\nCheck it out here: ${url}`;
+
+      const result = await Share.share({ message });
 
       if (result.action === Share.sharedAction) {
-        if (result.activityType) {
-          console.log("Shared with activity:", result.activityType);
-        } else {
-          console.log("Shared successfully");
-        }
+        console.log(
+          result.activityType
+            ? `Shared with: ${result.activityType}`
+            : "Shared successfully"
+        );
       } else if (result.action === Share.dismissedAction) {
         console.log("Share dismissed");
       }
@@ -267,76 +268,81 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
 
   //delete post
   async function deletePost() {
-      if (!id) {
-        console.log("No post document reference available to delete.");
-        return;
-      }
-  
-      Alert.alert(
-        "Delete Post",
-        "Are you sure you want to delete this post? This action cannot be undone.",
-        [
-          {
-            text: "Cancel",
-            style: "cancel",
-          },
-          {
-            text: "Delete",
-            style: "destructive",
-            onPress: async () => {
-              try {
-                // Reference to comments under the post
-                const commentsRef = collection(db, "national", id, "comments");
-                const commentsSnapshot = await getDocs(commentsRef);
-                const nationalLikesRef = collection(db, "national", id, "likes");
-  
-                const nationalLikesSnapshot = await getDocs(nationalLikesRef);
-                const deletenationalLikes = nationalLikesSnapshot.docs.map(
-                  (likeDoc) => deleteDoc(likeDoc.ref)
-                );
-  
-                // Iterate through each comment to delete its likes and the comment itself
-                const deleteCommentPromises = commentsSnapshot.docs.map(
-                  async (commentDoc) => {
-                    const commentId = commentDoc.id;
-  
-                    // Reference to likes inside the comment
-                    const likesRef = collection(db, "national", commentId, "likes");
-                    const likesSnapshot = await getDocs(likesRef);
-  
-                    // Delete all likes inside the comment
-                    const deleteLikesPromises = likesSnapshot.docs.map(
-                      (likeDoc) => deleteDoc(likeDoc.ref)
-                    );
-                    await Promise.all([
-                      ...deletenationalLikes,
-                      ...deleteLikesPromises,
-                    ]);
-  
-                    // Delete the comment itself
-                    await deleteDoc(commentDoc.ref);
-                  }
-                );
-  
-                // Wait for all comments and their likes to be deleted
-                await Promise.all(deleteCommentPromises);
-  
-                // Finally, delete the main post
-                await deleteDoc(doc(db, "national", id));
-  
-                console.log("Post, comments, and likes deleted successfully!");
-              } catch (error) {
-                console.error(
-                  "Error deleting post with comments and likes:",
-                  error
-                );
-              }
-            },
-          },
-        ],
-        { cancelable: true } // Allows the user to dismiss the alert by tapping outside
-      );
+    if (!id) {
+      console.log("No post document reference available to delete.");
+      return;
     }
+
+    Alert.alert(
+      "Delete Post",
+      "Are you sure you want to delete this post? This action cannot be undone.",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              // Reference to comments under the post
+              const commentsRef = collection(db, "national", id, "comments");
+              const commentsSnapshot = await getDocs(commentsRef);
+              const nationalLikesRef = collection(db, "national", id, "likes");
+
+              const nationalLikesSnapshot = await getDocs(nationalLikesRef);
+              const deletenationalLikes = nationalLikesSnapshot.docs.map(
+                (likeDoc) => deleteDoc(likeDoc.ref)
+              );
+
+              // Iterate through each comment to delete its likes and the comment itself
+              const deleteCommentPromises = commentsSnapshot.docs.map(
+                async (commentDoc) => {
+                  const commentId = commentDoc.id;
+
+                  // Reference to likes inside the comment
+                  const likesRef = collection(
+                    db,
+                    "national",
+                    commentId,
+                    "likes"
+                  );
+                  const likesSnapshot = await getDocs(likesRef);
+
+                  // Delete all likes inside the comment
+                  const deleteLikesPromises = likesSnapshot.docs.map(
+                    (likeDoc) => deleteDoc(likeDoc.ref)
+                  );
+                  await Promise.all([
+                    ...deletenationalLikes,
+                    ...deleteLikesPromises,
+                  ]);
+
+                  // Delete the comment itself
+                  await deleteDoc(commentDoc.ref);
+                }
+              );
+
+              // Wait for all comments and their likes to be deleted
+              await Promise.all(deleteCommentPromises);
+
+              // Finally, delete the main post
+              await deleteDoc(doc(db, "national", id));
+
+              console.log("Post, comments, and likes deleted successfully!");
+            } catch (error) {
+              console.error(
+                "Error deleting post with comments and likes:",
+                error
+              );
+            }
+          },
+        },
+      ],
+      { cancelable: true } // Allows the user to dismiss the alert by tapping outside
+    );
+  }
   //cite post
   const cite = async () => {
     if (!user?.id) {
