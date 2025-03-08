@@ -34,7 +34,7 @@ import BottomSheet, {
   BottomSheetFlashList,
   BottomSheetView,
 } from "@gorhom/bottom-sheet";
-import { Feather, FontAwesome, Ionicons } from "@expo/vector-icons";
+import { AntDesign, Feather, FontAwesome, Ionicons } from "@expo/vector-icons";
 import { useUserInfo } from "@/components/UserContext";
 import { useRecoilState } from "recoil";
 import { modalCountyComment } from "@/atoms/modalAtom";
@@ -47,6 +47,7 @@ import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { db, storage } from "@/firebase";
 import * as ImagePicker from "expo-image-picker";
 import { Avatar } from "react-native-elements";
+import { TouchableOpacity } from "react-native";
 
 const Feed = () => {
   const [loadingPosts, setLoadingPosts] = useState(false);
@@ -69,33 +70,7 @@ const Feed = () => {
   const [media, setMedia] = useState({ uri: null, type: null });
   const colorScheme = useColorScheme();
 
-  const pickMedia = useCallback(async (type: "Images" | "Videos") => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes:
-        type === "Images"
-          ? ImagePicker.MediaTypeOptions.Images
-          : ImagePicker.MediaTypeOptions.Videos,
-      allowsEditing: true,
-      quality: 1,
-    });
 
-    if (!result.canceled) {
-      setMedia({ uri: result.assets[0].uri, type });
-    }
-  }, []);
-
-  const uploadMedia = async (docRefId: string) => {
-    if (!media.uri) return;
-
-    const blob = await (await fetch(media.uri)).blob();
-    const mediaRef = ref(storage, `county/${docRefId}/${media.type}`);
-    await uploadBytes(mediaRef, blob);
-
-    const downloadUrl = await getDownloadURL(mediaRef);
-    await updateDoc(doc(db, "county", userData?.county, "posts", docRefId), {
-      [media.type.toLowerCase()]: downloadUrl,
-    });
-  };
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -111,49 +86,7 @@ const Feed = () => {
     fetchUserData();
   }, [user]);
 
-  const sendPost = async () => {
-    setLoading(true);
-    if (!input.trim()) {
-      Alert.alert("Error", "Post content cannot be empty.");
-      return;
-    }
-
-    // Ensure user and userData exist
-    if (!user || !userData) {
-      Alert.alert("Error", "User not authenticated. Please log in again.");
-      return;
-    }
-
-    const docRef = await addDoc(
-      collection(db, "county", userData?.county, "posts"),
-      {
-        uid: user?.id,
-        text: input.trim(),
-        userImg: userData?.userImg || null,
-        timestamp: serverTimestamp(),
-        lastname: userData?.lastname,
-        name: userData?.name,
-        nickname: userData?.nickname,
-        county: userData?.county,
-        mediaUrl: null,
-      }
-    );
-      if (media.uri) {
-        const mediaUrl = await uploadMedia(docRef.id);
-        if (mediaUrl) {
-          await updateDoc(
-            doc(db, "county", userData?.county, "posts", docRef.id),
-            {
-              mediaUrl: mediaUrl,
-            }
-          );
-        }
-      }
-
-    setInput("");
-    setMedia({ uri: null, type: null });
-    setLoading(false);
-  };
+ 
   const getColorFromName = (name) => {
     // Generate a hash number from the name
     let hash = 0;
@@ -223,7 +156,7 @@ const Feed = () => {
     setLoadingComments(true); // Set loading state for comments
     try {
       const q = query(
-        collection(db, "county",  postID, "comments"),
+        collection(db, "county", postID, "comments"),
         orderBy("timestamp", "desc")
       );
       const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -264,19 +197,16 @@ const Feed = () => {
 
     setLoadingComments(true); // Show loader when sending comment
     try {
-      await addDoc(
-        collection(db, "county",  postID, "comments"),
-        {
-          uid: user?.id,
-          comment: input.trim(),
-          timestamp: serverTimestamp(),
-          email: user?.primaryEmailAddress?.emailAddress,
-          name: userData.name,
-          lastname: userData.lastname,
-          nickname: userData.nickname,
-          userImg: userData.userImg || null,
-        }
-      );
+      await addDoc(collection(db, "county", postID, "comments"), {
+        uid: user?.id,
+        comment: input.trim(),
+        timestamp: serverTimestamp(),
+        email: user?.primaryEmailAddress?.emailAddress,
+        name: userData.name,
+        lastname: userData.lastname,
+        nickname: userData.nickname,
+        userImg: userData.userImg || null,
+      });
       setInput("");
       // Clear the input
     } catch (error) {
@@ -309,7 +239,7 @@ const Feed = () => {
 
   return (
     <View className="flex-1 dark:bg-gray-800">
-      <View className="shadow-md p-4">
+      <View className=" p-4">
         <View className="flex-row items-center justify-between">
           <Text className="font-extrabold text-2xl dark:text-white">
             {userData?.county} County
@@ -328,98 +258,7 @@ const Feed = () => {
           />
         </View>
 
-        <View className="w-full flex-row items-center mt-4">
-          <TextInput
-            placeholder="What's on your mind?"
-            placeholderTextColor={
-              colorScheme === "dark" ? "#FFFFFF" : "#808080"
-            } // Light gray for light mode, white for dark mode
-            value={input}
-            onChangeText={setInput}
-            multiline
-            numberOfLines={3}
-            style={{
-              width: "88%",
-              padding: 8,
-              borderBottomWidth: 1,
-              borderBottomColor: "gray",
-              color: colorScheme === "dark" ? "#FFFFFF" : "#000000", // Text color
-            }}
-          />
-          {loading ? (
-            <ActivityIndicator size="small" color="blue" />
-          ) : (
-            <Pressable
-              onPress={sendPost}
-              className="ml-2 bg-blue-500 p-2 rounded-md"
-            >
-              <Text className="text-white">Cast</Text>
-            </Pressable>
-          )}
-        </View>
-        {media?.uri && (
-          <View className="relative mt-4 w-full items-center ">
-            {media.type === "video" ? (
-              <Pressable onPress={() => setIsPaused((prev) => !prev)}>
-                <Video
-                  source={{ uri: media.uri }}
-                  style={{
-                    width: width,
-                    height: width * 0.56, // 16:9 aspect ratio
-                    borderRadius: 10,
-                  }}
-                  useNativeControls={false}
-                  isLooping
-                  shouldPlay={!isPaused}
-                  resizeMode={ResizeMode.CONTAIN}
-                  isMuted={isMuted}
-                />
-
-                <Pressable
-                  onPress={() => setIsMuted(!isMuted)}
-                  className="absolute bottom-2 right-2 bg-gray-700 p-2 rounded-full"
-                >
-                  <FontAwesome name="volume-down" size={24} color="white" />
-                </Pressable>
-              </Pressable>
-            ) : (
-              <Image
-                source={{ uri: media.uri }}
-                style={{
-                  width: width,
-                  height: width * 0.75, // 4:3 aspect ratio
-                  borderRadius: 10,
-                }}
-                resizeMode={ResizeMode.COVER}
-              />
-            )}
-
-            {/* Remove Media Button */}
-            <Pressable
-              onPress={() => setMedia(null)}
-              className="absolute top-2 right-2 bg-gray-700 p-2 rounded-full"
-            >
-              <FontAwesome name="times" size={16} color="white" />
-            </Pressable>
-          </View>
-        )}
-
-        <View className="flex-row mt-4 justify-center gap-3">
-          <Pressable onPress={() => pickMedia("Images")} className="p-4 rounded-full border-gray-400 border-2">
-            <Ionicons
-              name="image-outline"
-              size={24}
-              color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
-            />
-          </Pressable>
-          <Pressable onPress={() => pickMedia("Videos")} className="p-4 rounded-full border-gray-400 border-2">
-            <Ionicons
-              name="videocam-outline"
-              size={24}
-              color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
-            />
-          </Pressable>
-        </View>
+       
       </View>
       <FlatList
         data={posts}
@@ -514,6 +353,29 @@ const Feed = () => {
           </View>
         </BottomSheetView>
       </BottomSheet>
+      <View style={{ flex: 1 }}>
+        <TouchableOpacity
+          style={{
+            position: "absolute",
+            bottom: 10,
+            right: 20,
+            backgroundColor: "#3400be",
+            width: 56,
+            height: 56,
+            borderRadius: 50,
+            justifyContent: "center",
+            alignItems: "center",
+            elevation: 5, // For Android shadow
+            shadowColor: "blue", // For iOS shadow
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.3,
+            shadowRadius: 4,
+          }}
+          onPress={() => router.push("/(inputs)/countyInput")}
+        >
+          <AntDesign name="plus" size={24} color="white" />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };

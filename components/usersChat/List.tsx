@@ -66,6 +66,9 @@ const List = ({userChat}) => {
               backgroundColor: getColorFromName(userChat?.name),
               borderRadius: 5,
             }} // Consistent color per user
+            avatarStyle={{
+              borderRadius: 5, // This affects the actual image
+            }}
           />
           <View className="flex-row gap-2">
             <Text className="font-bold dark:text-white">{userChat?.name}</Text>

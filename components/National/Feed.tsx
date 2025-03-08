@@ -15,6 +15,7 @@ import {
   Alert,
   useWindowDimensions,
   Modal,
+  TouchableOpacity,
 } from "react-native";
 import {
   addDoc,
@@ -34,7 +35,7 @@ import BottomSheet, {
   BottomSheetFlashList,
   BottomSheetView,
 } from "@gorhom/bottom-sheet";
-import { FontAwesome, Ionicons } from "@expo/vector-icons";
+import { AntDesign, FontAwesome, Ionicons } from "@expo/vector-icons";
 import { useUserInfo } from "@/components/UserContext";
 import { useRecoilState } from "recoil";
 import { modalComment } from "@/atoms/modalAtom";
@@ -86,98 +87,6 @@ const Feed = () => {
     };
     fetchUserData();
   }, [user]);
-
-  const pickMedia = useCallback(async (type) => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes:
-        type === "Images"
-          ? ImagePicker.MediaTypeOptions.Images
-          : ImagePicker.MediaTypeOptions.Videos,
-      allowsEditing: true,
-      quality: 1,
-    });
-    if (!result.canceled) {
-      setMedia({ uri: result.assets[0].uri, type });
-    }
-  }, []);
-
-  const uploadMedia = async (docRefId) => {
-    if (!media.uri) return;
-    const blob = await (await fetch(media.uri)).blob();
-    const mediaRef = ref(storage, `national/${docRefId}/${media.type}`);
-    await uploadBytes(mediaRef, blob);
-    const downloadUrl = await getDownloadURL(mediaRef);
-    await updateDoc(doc(db, "national", docRefId), {
-      [media.type.toLowerCase()]: downloadUrl,
-    });
-  };
-
-  const handleConfirm = () => {
-    if (selectedLevel === "county") sendPost("county");
-    else if (selectedLevel === "constituency") sendPost("constituency");
-    else if (selectedLevel === "ward") sendPost("ward");
-    setModalVisible(false);
-  };
-
-  const sendPost = async (level) => {
-    if (!input.trim() || loading) {
-      Alert.alert("Error", "Post content cannot be empty.");
-      return;
-    }
-    if (!userData) {
-      Alert.alert("Error", "User data is still loading. Please try again.");
-      return;
-    }
-    setLoading(true);
-    try {
-      const docRef = await addDoc(
-        collection(db, level, userData[level], "posts"),
-        {
-          uid: userData?.uid,
-          text: input.trim(),
-          userImg: userData?.userImg || null,
-          timestamp: serverTimestamp(),
-          lastname: userData?.lastname,
-          name: userData?.name,
-          nickname: userData?.nickname,
-        }
-      );
-      if (media.uri) await uploadMedia(docRef.id);
-      setInput("");
-      setMedia({ uri: null, type: null });
-    } catch (error) {
-      Alert.alert("Error", "Failed to send post. Try again.");
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
-  const sendNational = async () => {
-    setLoading(true);
-    if (!input.trim()) {
-      Alert.alert("Error", "Post content cannot be empty.");
-      return;
-    }
-    if (!userData) {
-      Alert.alert("Error", "User data is still loading. Please try again.");
-      return;
-    }
-
-    const docRef = await addDoc(collection(db, "national"), {
-      uid: userData?.uid,
-      text: input.trim(),
-      userImg: userData?.userImg || null,
-      timestamp: serverTimestamp(),
-      lastname: userData?.lastname,
-      name: userData?.name,
-      nickname: userData?.nickname,
-    });
-    if (media.uri) await uploadMedia(docRef.id);
-    setInput("");
-    setMedia({ uri: null, type: null });
-
-    setLoading(false);
-  };
 
   const getColorFromName = (name) => {
     if (!name) return "#ccc"; // Default color if no name exists
@@ -332,184 +241,29 @@ const Feed = () => {
 
   return (
     <View className="flex-1  dark:bg-gray-800">
-      <View>
-        <View className="shadow-md p-2  dark:bg-gray-800">
-          <View className="flex-row items-center justify-between">
-            <Text className="font-extrabold text-3xl dark:text-white">
-              National
-            </Text>
-            <Avatar
-              size={40}
-              source={userData?.userImg && { uri: userData?.userImg }}
-              title={userData?.name && userData?.name[0].toUpperCase()}
-              containerStyle={{
-                backgroundColor: getColorFromName(userData?.name),
-                borderRadius: 5,
-              }} // Consistent color per user
-              avatarStyle={{
-                borderRadius: 5, // This affects the actual image
-              }}
-            />
-          </View>
-          <View className="mt-3 h-15">
-            <StatusFeed />
-          </View>
-          <View className="w-full flex-row px-4 items-center mt-4">
-            <TextInput
-              placeholder="What's on your mind?"
-              placeholderTextColor={
-                colorScheme === "dark" ? "#FFFFFF" : "#808080"
-              } // Light gray for light mode, white for dark mode
-              value={input}
-              onChangeText={setInput}
-              multiline
-              numberOfLines={3}
-              style={{
-                width: "88%",
-                padding: 8,
-                borderBottomWidth: 1,
-                borderBottomColor: "gray",
-                color: colorScheme === "dark" ? "#FFFFFF" : "#000000", // Text color
-              }}
-            />
-            {loading ? (
-              <ActivityIndicator size="small" color="blue" />
-            ) : (
-              <Pressable
-                onPress={sendNational}
-                className="ml-2 bg-blue-500 p-2 rounded-md"
-              >
-                <Text className="text-white">Cast</Text>
-              </Pressable>
-            )}
-          </View>
-          {media?.uri && (
-            <View className="relative mt-4 w-full items-center ">
-              {media.type === "video" ? (
-                <Pressable onPress={() => setIsPaused((prev) => !prev)}>
-                  <Video
-                    source={{ uri: media.uri }}
-                    style={{
-                      width: width,
-                      height: width * 0.56, // 16:9 aspect ratio
-                      borderRadius: 10,
-                    }}
-                    useNativeControls={false}
-                    isLooping
-                    shouldPlay={true}
-                    resizeMode={ResizeMode.CONTAIN}
-                    isMuted={isMuted}
-                  />
-
-                  <Pressable
-                    onPress={() => setIsMuted(!isMuted)}
-                    className="absolute bottom-2 right-2 bg-gray-700 p-2 rounded-full"
-                  >
-                    <FontAwesome name="volume-down" size={24} color="white" />
-                  </Pressable>
-                </Pressable>
-              ) : (
-                <Image
-                  source={{ uri: media.uri }}
-                  style={{
-                    width: width,
-                    height: width * 0.75, // 4:3 aspect ratio
-                    borderRadius: 10,
-                  }}
-                  resizeMode={ResizeMode.COVER}
-                />
-              )}
-
-              {/* Remove Media Button */}
-              <Pressable
-                onPress={() => setMedia(null)}
-                className="absolute top-2 right-2 bg-gray-700 p-2 rounded-full"
-              >
-                <FontAwesome name="times" size={16} color="white" />
-              </Pressable>
-            </View>
-          )}
-
-          <View className="flex-row mt-4 gap-1  justify-between w-full items-center">
-            <View className="flex-row  justify-center gap-1">
-              <Pressable
-                onPress={() => pickMedia("Images")}
-                className="p-4 rounded-full border-gray-400 border-2 items-center"
-              >
-                <Ionicons
-                  name="image-outline"
-                  size={24}
-                  color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
-                />
-              </Pressable>
-              <Pressable
-                onPress={() => pickMedia("Videos")}
-                className="p-4 rounded-full border-gray-400 border-2 items-center"
-              >
-                <Ionicons
-                  name="videocam-outline"
-                  size={24}
-                  color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
-                />
-              </Pressable>
-            </View>
-
-            {["county", "constituency", "ward"].map((level) => (
-              <Pressable
-                key={level}
-                onPress={() => {
-                  setSelectedLevel(level);
-                  setModalVisible(true);
-                }}
-                className="px-2 py-4 rounded-full bg-gray-200"
-              >
-                <Text
-                  className={`font-bold ${
-                    selectedLevel === level ? "text-blue-500" : "text-black"
-                  }`}
-                >
-                  {level.charAt(0).toUpperCase() + level.slice(1)}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
-          <Modal
-            visible={modalVisible}
-            transparent
-            animationType="fade"
-            onRequestClose={() => setModalVisible(false)}
-          >
-            <View className="flex-1 justify-center items-center bg-black/50 px-4">
-              <View className="bg-white p-6 rounded-lg w-11/12 max-w-sm shadow-lg">
-                <Text className="text-xl font-bold text-gray-800 text-center">
-                  Confirm Post
-                </Text>
-                <Text className="text-gray-600 text-center mt-2">
-                  Are you sure you want to post in your {selectedLevel}?
-                </Text>
-                <View className="flex-row justify-between mt-6">
-                  <Pressable
-                    onPress={() => setModalVisible(false)}
-                    className="flex-1 bg-gray-300 py-2 rounded-lg mr-2"
-                  >
-                    <Text className="text-center text-gray-800 font-semibold">
-                      Cancel
-                    </Text>
-                  </Pressable>
-                  <Pressable
-                    onPress={handleConfirm}
-                    className="flex-1 bg-blue-500 py-2 rounded-lg ml-2"
-                  >
-                    <Text className="text-center text-white font-semibold ">
-                      Confirm
-                    </Text>
-                  </Pressable>
-                </View>
-              </View>
-            </View>
-          </Modal>
+      <View className="shadow-md p-2  dark:bg-gray-800">
+        <View className="flex-row items-center justify-between">
+          <Text className="font-extrabold text-3xl dark:text-white">
+            National
+          </Text>
+          <Avatar
+            size={40}
+            source={userData?.userImg && { uri: userData?.userImg }}
+            title={userData?.name && userData?.name[0].toUpperCase()}
+            containerStyle={{
+              backgroundColor: getColorFromName(userData?.name),
+              borderRadius: 5,
+            }} // Consistent color per user
+            avatarStyle={{
+              borderRadius: 5, // This affects the actual image
+            }}
+          />
+        </View>
+        <View className="mt-3 h-15">
+          <StatusFeed />
         </View>
       </View>
+
       <FlatList
         data={posts}
         keyExtractor={(item) => item.id}
@@ -603,6 +357,29 @@ const Feed = () => {
           </View>
         </BottomSheetView>
       </BottomSheet>
+      <View style={{ flex: 1 }}>
+        <TouchableOpacity
+          style={{
+            position: "absolute",
+            bottom: 10,
+            right: 20,
+            backgroundColor: "#3400be",
+            width: 56,
+            height: 56,
+            borderRadius: 50,
+            justifyContent: "center",
+            alignItems: "center",
+            elevation: 5, // For Android shadow
+            shadowColor: "blue", // For iOS shadow
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.3,
+            shadowRadius: 4,
+          }}
+          onPress={() => router.push("/(inputs)/nationalInput")}
+        >
+          <AntDesign name="plus" size={24} color="white" />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };

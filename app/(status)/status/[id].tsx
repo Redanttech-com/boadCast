@@ -207,13 +207,20 @@ export default function StatusPage() {
             <Avatar
               size={40}
               rounded
-              source={userData?.userImg ? { uri: userData?.userImg } : null}
-              title={userData?.name && userData?.name[0].toUpperCase()}
+              source={
+                statuses[currentIndex]?.userImg
+                  ? { uri: statuses[currentIndex]?.userImg }
+                  : null
+              }
+              title={
+                statuses[currentIndex]?.name &&
+                statuses[currentIndex]?.name[0].toUpperCase()
+              }
               containerStyle={{ backgroundColor: "#3498DB" }} // Consistent color per user
             />
 
             <Text className="text-md max-w-20 min-w-12 font-bold dark:text-white">
-              {userData?.name}
+              {statuses[currentIndex]?.name}
             </Text>
           </View>
           <View>

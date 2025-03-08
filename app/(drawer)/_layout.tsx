@@ -99,6 +99,9 @@ function CustomDrawerContent(props) {
               backgroundColor: getColorFromName(userData?.name),
               borderRadius: 5, // Adjust this value for more or less roundness
             }}
+            avatarStyle={{
+              borderRadius: 5, // This affects the actual image
+            }}
           />
           <View>
             <Text
@@ -147,7 +150,7 @@ export default function DrawerLayout() {
       <Drawer.Screen
         name="(tabs)"
         options={{
-          title: "Broadcast",
+          title: "BroadCast",
           drawerIcon: ({ size, color }) => (
             <Ionicons name="home" size={size} color={color} />
           ),

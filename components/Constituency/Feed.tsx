@@ -14,6 +14,7 @@ import {
   Pressable,
   Alert,
   useWindowDimensions,
+  TouchableOpacity,
 } from "react-native";
 import {
   addDoc,
@@ -33,7 +34,7 @@ import BottomSheet, {
   BottomSheetFlashList,
   BottomSheetView,
 } from "@gorhom/bottom-sheet";
-import { Feather, FontAwesome, Ionicons } from "@expo/vector-icons";
+import { AntDesign, Feather, FontAwesome, Ionicons } from "@expo/vector-icons";
 import { useUserInfo } from "@/components/UserContext";
 import { useRecoilState } from "recoil";
 import { modalConstituencyComment } from "@/atoms/modalAtom";
@@ -320,104 +321,6 @@ const Feed = () => {
             }}
           />
         </View>
-
-        <View className="w-full flex-row items-center mt-4">
-          <TextInput
-            placeholder="What's on your mind?"
-            placeholderTextColor={
-              colorScheme === "dark" ? "#FFFFFF" : "#808080"
-            } // Light gray for light mode, white for dark mode
-            value={input}
-            onChangeText={setInput}
-            multiline
-            numberOfLines={3}
-            style={{
-              width: "88%",
-              padding: 8,
-              borderBottomWidth: 1,
-              borderBottomColor: "gray",
-              color: colorScheme === "dark" ? "#FFFFFF" : "#000000", // Text color
-            }}
-          />
-          {loading ? (
-            <ActivityIndicator size="small" color="blue" />
-          ) : (
-            <Pressable
-              onPress={sendPost}
-              className="ml-2 bg-blue-500 p-2 rounded-md"
-            >
-              <Text className="text-white">Cast</Text>
-            </Pressable>
-          )}
-        </View>
-        {media?.uri && (
-          <View className="relative mt-4 w-full items-center ">
-            {media.type === "video" ? (
-              <Pressable onPress={() => setIsPaused((prev) => !prev)}>
-                <Video
-                  source={{ uri: media.uri }}
-                  style={{
-                    width: width,
-                    height: width * 0.56, // 16:9 aspect ratio
-                    borderRadius: 10,
-                  }}
-                  useNativeControls={false}
-                  isLooping
-                  shouldPlay={!isPaused}
-                  resizeMode={ResizeMode.CONTAIN}
-                  isMuted={isMuted}
-                />
-
-                <Pressable
-                  onPress={() => setIsMuted(!isMuted)}
-                  className="absolute bottom-2 right-2 bg-gray-700 p-2 rounded-full"
-                >
-                  <FontAwesome name="volume-down" size={24} color="white" />
-                </Pressable>
-              </Pressable>
-            ) : (
-              <Image
-                source={{ uri: media.uri }}
-                style={{
-                  width: width,
-                  height: width * 0.75, // 4:3 aspect ratio
-                  borderRadius: 10,
-                }}
-                resizeMode={ResizeMode.COVER}
-              />
-            )}
-
-            {/* Remove Media Button */}
-            <Pressable
-              onPress={() => setMedia(null)}
-              className="absolute top-2 right-2 bg-gray-700 p-2 rounded-full"
-            >
-              <FontAwesome name="times" size={16} color="white" />
-            </Pressable>
-          </View>
-        )}
-        <View className="flex-row mt-4 justify-center gap-3">
-          <Pressable
-            onPress={() => pickMedia("Images")}
-            className="p-4 rounded-full border-gray-400 border-2"
-          >
-            <Ionicons
-              name="image-outline"
-              size={24}
-              color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
-            />
-          </Pressable>
-          <Pressable
-            onPress={() => pickMedia("Videos")}
-            className="p-4 rounded-full border-gray-400 border-2"
-          >
-            <Ionicons
-              name="videocam-outline"
-              size={24}
-              color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
-            />
-          </Pressable>
-        </View>
       </View>
       <FlatList
         data={posts}
@@ -512,6 +415,29 @@ const Feed = () => {
           </View>
         </BottomSheetView>
       </BottomSheet>
+      <View style={{ flex: 1 }}>
+        <TouchableOpacity
+          style={{
+            position: "absolute",
+            bottom: 10,
+            right: 20,
+            backgroundColor: "#3400be",
+            width: 56,
+            height: 56,
+            borderRadius: 50,
+            justifyContent: "center",
+            alignItems: "center",
+            elevation: 5, // For Android shadow
+            shadowColor: "blue", // For iOS shadow
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.3,
+            shadowRadius: 4,
+          }}
+          onPress={() => router.push("/(inputs)/constituencyInput")}
+        >
+          <AntDesign name="plus" size={24} color="white" />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };

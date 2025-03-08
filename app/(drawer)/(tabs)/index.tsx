@@ -7,7 +7,7 @@ import { useColorScheme } from "@/hooks/useColorScheme.web";
 const HomeScreen = () => {
   const colorScheme = useColorScheme();
   return (
-    <SafeAreaView className="flex-1  dark:bg-gray-800 ">
+    <SafeAreaView className="flex-1  dark:bg-gray-800" edges={["top"]}>
       <StatusBar style="auto" />
       <Feed />
     </SafeAreaView>

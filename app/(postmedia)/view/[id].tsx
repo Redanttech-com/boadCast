@@ -693,7 +693,7 @@ const MediaSize = () => {
               <Text className="text-md dark:text-white">{post?.text}</Text>
               {post?.fromNickname && (
                 <Text className="text-gray-500 mb-3">
-                  Reposted by @{post?.fromNickname}
+                  Recasted by @{post?.fromNickname}
                 </Text>
               )}
             </View>

@@ -180,22 +180,18 @@ const National = () => {
                         <Avatar
                           size={40}
                           source={
-                            item?.userImg
-                              ? { uri: item?.userImg }
-                              : undefined
+                            item?.userImg ? { uri: item?.userImg } : undefined
                           }
                           title={item?.name?.[0]?.toUpperCase()}
                           containerStyle={{
-                            backgroundColor: item?.name
-                              ? "#3498DB"
-                              : "#ccc",
+                            backgroundColor: item?.name ? "#3498DB" : "#ccc",
                             borderRadius: 5,
                           }}
                           avatarStyle={{
                             borderRadius: 5, // This affects the actual image
                           }}
                         />
-                       
+
                         <Text className="text-sm dark:text-white font-semibold">
                           @{item.nickname}
                         </Text>

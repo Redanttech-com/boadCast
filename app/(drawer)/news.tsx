@@ -16,14 +16,14 @@ import { useColorScheme } from "@/hooks/useColorScheme.web";
 import { StatusBar } from "expo-status-bar";
 
 const NewsScreen = () => {
-    const colorScheme = useColorScheme();
-  
+  const colorScheme = useColorScheme();
+
   const { data: NewsData = [], isLoading: IsNewsLoading } = useQuery({
     queryKey: ["cryptonews"],
     queryFn: FetchKenyanNews,
   });
 
-  // console.log(NewsData)
+  console.log(NewsData);
 
   const renderItem = ({ item, index }) => {
     return (

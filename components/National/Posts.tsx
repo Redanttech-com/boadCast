@@ -8,7 +8,6 @@ import React, {
 import {
   View,
   Text,
-  Image,
   TouchableOpacity,
   Pressable,
   Alert,
@@ -17,6 +16,7 @@ import {
   Button,
   useWindowDimensions,
   Share,
+  Image,
 } from "react-native";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import Feather from "@expo/vector-icons/Feather";
@@ -73,7 +73,7 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
   const { width } = useWindowDimensions();
   const onShare = async () => {
     try {
-      const url = `https://broadcast.com/view/${id}`; // Replace with your actual URL
+      const url = `https://redanttech.com/view/${id}`; // Replace with your actual URL
       const message = `${post?.nickname}/${id}\nCheck it out here: ${url}`;
 
       const result = await Share.share({ message });
@@ -482,32 +482,31 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
   }, [pstId, userId]);
 
   return (
-    <Link href={`/view/${id}`} asChild>
-      <View className="mb-1 rounded-md  border-gray-200  shadow-md bg-white  dark:bg-gray-700">
-        <View className="flex-row items-center gap-1 p-2">
-          <Avatar
-            size={40}
-            source={post?.userImg && { uri: post?.userImg }}
-            title={post?.name && post?.name[0].toUpperCase()}
-            containerStyle={{
-              backgroundColor: getColorFromName(post?.name),
-              borderRadius: 5, // Adjust this value for more or less roundness
-            }}
-            avatarStyle={{
-              borderRadius: 5, // This affects the actual image
-            }}
-          />
+    <View className="mb-1 rounded-md  border-gray-200  shadow-md bg-white  dark:bg-gray-700">
+      <View className="flex-row items-center gap-1 p-2">
+        <Avatar
+          size={40}
+          source={post?.userImg && { uri: post?.userImg }}
+          title={post?.name && post?.name[0].toUpperCase()}
+          containerStyle={{
+            backgroundColor: getColorFromName(post?.name),
+            borderRadius: 5, // Adjust this value for more or less roundness
+          }}
+          avatarStyle={{
+            borderRadius: 5, // This affects the actual image
+          }}
+        />
 
-          <View className="flex-row gap-2 items-center ">
-            <Text
-              className="text-md max-w-20 min-w-12 font-bold dark:text-white  "
-              numberOfLines={1}
-              ellipsizeMode="tail"
-            >
-              {post?.name}
-            </Text>
+        <View className="flex-row gap-2 items-center ">
+          <Text
+            className="text-md max-w-20 min-w-12 font-bold dark:text-white  "
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
+            {post?.name}
+          </Text>
 
-            {/* <Text
+          {/* <Text
             className="text-md max-w-20 min-w-12 font-bold"
             numberOfLines={1}
             ellipsizeMode="tail"
@@ -515,114 +514,115 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
             {post?.lastname}
           </Text> */}
 
+          <Text
+            className="text-md max-w-20 min-w-12 text-gray-400 dark:text-white "
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
+            @{post?.nickname}
+          </Text>
+
+          <View className="flex-row items-center gap-2  bg-gray-100 rounded-full p-2 dark:bg-gray-600">
+            <MaterialCommunityIcons
+              name="clock-check-outline"
+              size={14}
+              color="gray"
+            />
             <Text
-              className="text-md max-w-20 min-w-12 text-gray-400 dark:text-white "
+              className="text-gray-400 max-w-18 min-w-18 "
               numberOfLines={1}
               ellipsizeMode="tail"
             >
-              @{post?.nickname}
+              {moment(post?.timestamp?.toDate()).fromNow(true)}
             </Text>
-
-            <View className="flex-row items-center gap-2  bg-gray-100 rounded-full p-2 dark:bg-gray-600">
-              <MaterialCommunityIcons
-                name="clock-check-outline"
-                size={14}
-                color="gray"
-              />
-              <Text
-                className="text-gray-400 max-w-18 min-w-18 "
-                numberOfLines={1}
-                ellipsizeMode="tail"
-              >
-                {moment(post?.timestamp?.toDate()).fromNow(true)}
-              </Text>
-            </View>
           </View>
-          <View className="flex-row items-center ml-auto gap-2">
-            {user?.id === post?.uid && (
-              <Pressable onPress={deletePost} className="p-4">
+        </View>
+        <View className="flex-row items-center ml-auto gap-2">
+          {user?.id === post?.uid && (
+            <Pressable onPress={deletePost} className="p-4">
+              <Feather
+                name="trash-2"
+                size={20}
+                color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
+              />
+            </Pressable>
+          )}
+
+          <Popover
+            from={
+              <TouchableOpacity className="p-3">
                 <Feather
-                  name="trash-2"
+                  name="more-horizontal"
                   size={20}
                   color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
                 />
-              </Pressable>
-            )}
-
-            <Popover
-              from={
-                <TouchableOpacity className="p-3">
-                  <Feather
-                    name="more-horizontal"
-                    size={20}
-                    color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
-                  />
-                </TouchableOpacity>
-              }
+              </TouchableOpacity>
+            }
+          >
+            <Pressable
+              style={{ alignItems: "center", padding: 10 }}
+              onPress={toggleBookmark}
             >
-              <Pressable
-                style={{ alignItems: "center", padding: 10 }}
-                onPress={toggleBookmark}
-              >
-                {isBookmarked[pstId] ? (
-                  <Feather name="bookmark" size={24} color="blue" />
-                ) : (
-                  <Feather name="bookmark" size={24} color="gray" />
-                )}
-                <Text style={{ marginTop: 5 }}>
-                  {isBookmarked[pstId] ? "Remove Bookmark" : "Add Bookmark"}
-                </Text>
-              </Pressable>
-            </Popover>
-          </View>
-        </View>
-
-        {post?.citeInput ? (
-          <View className="gap-3">
-            <Text className="ml-12 dark:text-white">{post?.citeInput}</Text>
-            <View className="bg-gray-100 ml-20 gap-3 p-2 rounded-md dark:bg-gray-600">
-              <View className="flex-row items-center gap-1">
-                <Avatar
-                  size={40}
-                  rounded
-                  source={post?.citeUserImg ? { uri: post?.citeUserImg } : null}
-                  title={post?.name && post?.name[0].toUpperCase()}
-                  containerStyle={{
-                    backgroundColor: getColorFromName(post?.name),
-                  }} // Consistent color per user
-                  avatarStyle={{
-                    borderRadius: 5, // This affects the actual image
-                  }}
-                />
-                <View className="flex-row  w-full mx-auto">
-                  <Text
-                    className="text-gray-800  font-bold max-w-24 min-w-12 dark:text-white"
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
-                  >
-                    {post?.fromUser}
-                  </Text>
-                  <Text
-                    className="text-gray-800 font-bold max-w-24 min-w-12 dark:text-white"
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
-                  >
-                    {post?.fromlastname}
-                  </Text>
-                  <Text
-                    className="text-gray-600 max-w-24 min-w-12 dark:text-white "
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
-                  >
-                    {" "}
-                    @{post?.fromNickname}
-                  </Text>
-                </View>
-              </View>
-
-              {loading ? (
-                <ActivityIndicator />
+              {isBookmarked[pstId] ? (
+                <Feather name="bookmark" size={24} color="blue" />
               ) : (
+                <Feather name="bookmark" size={24} color="gray" />
+              )}
+              <Text style={{ marginTop: 5 }}>
+                {isBookmarked[pstId] ? "Remove Bookmark" : "Add Bookmark"}
+              </Text>
+            </Pressable>
+          </Popover>
+        </View>
+      </View>
+
+      {post?.citeInput ? (
+        <View className="gap-3">
+          <Text className="ml-12 dark:text-white">{post?.citeInput}</Text>
+          <View className="bg-gray-100 ml-20 gap-3 p-2 rounded-md dark:bg-gray-600">
+            <View className="flex-row items-center gap-1">
+              <Avatar
+                size={40}
+                rounded
+                source={post?.citeUserImg ? { uri: post?.citeUserImg } : null}
+                title={post?.name && post?.name[0].toUpperCase()}
+                containerStyle={{
+                  backgroundColor: getColorFromName(post?.name),
+                }} // Consistent color per user
+                avatarStyle={{
+                  borderRadius: 5, // This affects the actual image
+                }}
+              />
+              <View className="flex-row  w-full mx-auto">
+                <Text
+                  className="text-gray-800  font-bold max-w-24 min-w-12 dark:text-white"
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                >
+                  {post?.fromUser}
+                </Text>
+                <Text
+                  className="text-gray-800 font-bold max-w-24 min-w-12 dark:text-white"
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                >
+                  {post?.fromlastname}
+                </Text>
+                <Text
+                  className="text-gray-600 max-w-24 min-w-12 dark:text-white "
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                >
+                  {" "}
+                  @{post?.fromNickname}
+                </Text>
+              </View>
+            </View>
+
+            {loading ? (
+              <ActivityIndicator />
+            ) : (
+              <Link href={`/view/${id}`}>
                 <View className="bg-gray-100 rounded-md dark:bg-gray-800 w-full">
                   {/* Video Handling */}
                   {post?.videos && (
@@ -648,7 +648,7 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
                         }}
                         isLooping
                         shouldPlay={!isPaused}
-                        resizeMode={ResizeMode.CONTAIN}
+                        resizeMode={ResizeMode.COVER}
                         isMuted={isMuted}
                         className="relative"
                       />
@@ -675,83 +675,84 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
                       source={{ uri: post.images }}
                       style={{
                         width: mediaSize.width,
-                        height: mediaSize.height,
+                        height: 200,
                         alignSelf: "center",
                       }}
-                      resizeMode={ResizeMode.CONTAIN}
+                      resizeMode={ResizeMode.COVER}
                       className="w-full"
                     />
                   )}
                 </View>
-              )}
+              </Link>
+            )}
 
-              <View className="w-full">
-                <Text className="ml-12 dark:text-white ">{post?.text}</Text>
-              </View>
+            <View className="w-full">
+              <Text className="ml-12 dark:text-white ">{post?.text}</Text>
             </View>
           </View>
-        ) : (
-          <>
-            <View className="ml-12 mb-4 gap-3">
-              <Text className="text-md dark:text-white ">{post?.text}</Text>
-              {post?.fromNickname && (
-                <Text className="text-gray-500 mb-3">
-                  Reposted by @{post?.fromNickname}
-                </Text>
-              )}
-            </View>
-            {loading ? (
-              <ActivityIndicator />
-            ) : (
-              <View className="bg-gray-100 rounded-md dark:bg-gray-800 w-screen">
-                {/* Video Handling */}
-                {post?.videos && (
-                  <View
-                    onLayout={(event) => {
-                      const { width: videoWidth } = event.nativeEvent.layout;
-                      const videoHeight = videoWidth * 0.56; // Default 16:9 ratio
-                      const minHeight = 300; // Minimum height for videos
+        </View>
+      ) : (
+        <>
+          <View className="ml-12 mb-4 gap-3">
+            <Text className="text-md dark:text-white ">{post?.text}</Text>
+            {post?.fromNickname && (
+              <Text className="text-gray-500 mb-3">
+                Recasted by @{post?.fromNickname}
+              </Text>
+            )}
+          </View>
+          {loading ? (
+            <ActivityIndicator />
+          ) : (
+            <View className="bg-gray-100 rounded-md dark:bg-gray-800 w-screen">
+              {/* Video Handling */}
+              {post?.videos && (
+                <View
+                  onLayout={(event) => {
+                    const { width: videoWidth } = event.nativeEvent.layout;
+                    const videoHeight = videoWidth * 0.56; // Default 16:9 ratio
+                    const minHeight = 300; // Minimum height for videos
 
-                      setMediaSize({
-                        width: "100%",
-                        height:
-                          videoHeight > minHeight ? videoHeight : minHeight, // Ensure the video height is at least the minimum value
-                      });
+                    setMediaSize({
+                      width: "100%",
+                      height: videoHeight > minHeight ? videoHeight : minHeight, // Ensure the video height is at least the minimum value
+                    });
+                  }}
+                >
+                  <Video
+                    ref={videoRef}
+                    source={{ uri: post?.videos }}
+                    style={{
+                      width: "100%",
+                      height: 300,
                     }}
+                    isLooping
+                    shouldPlay={!isPaused}
+                    resizeMode={ResizeMode.COVER}
+                    isMuted={isMuted}
+                    className="h-96"
+                  />
+
+                  <Pressable
+                    className="absolute w-full h-full "
+                    onPress={() => router.push(`/view/${id}`)}
                   >
-                    <Video
-                      ref={videoRef}
-                      source={{ uri: post?.videos }}
-                      style={{
-                        width: "100%",
-                        height: 300,
-                      }}
-                      isLooping
-                      shouldPlay={!isPaused}
-                      resizeMode={ResizeMode.COVER}
-                      isMuted={isMuted}
-                      className="h-96"
-                    />
-
                     <Pressable
-                      className="absolute w-full h-full "
-                      onPress={() => router.push(`/view/${id}`)}
+                      onPress={() => setIsMuted(!isMuted)}
+                      className=" w-10 h-10 ml-auto mt-auto mr-4"
                     >
-                      <Pressable
-                        onPress={() => setIsMuted(!isMuted)}
-                        className=" w-10 h-10 ml-auto mt-auto mr-4"
-                      >
-                        <FontAwesome5
-                          name={isMuted ? "volume-mute" : "volume-down"}
-                          size={24}
-                          color={colorScheme === "dark" ? "#FFFFFF" : "#1F2937"}
-                        />
-                      </Pressable>
+                      <FontAwesome5
+                        name={isMuted ? "volume-mute" : "volume-down"}
+                        size={24}
+                        color={colorScheme === "dark" ? "#FFFFFF" : "#1F2937"}
+                      />
                     </Pressable>
-                  </View>
-                )}
+                  </Pressable>
+                </View>
+              )}
 
-                {/* Image Handling */}
+              {/* Image Handling */}
+              <Link href={`/view/${id}`}>
                 {post?.images && (
                   <Image
                     source={{ uri: post.images }}
@@ -763,124 +764,124 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
                     resizeMode={ResizeMode.COVER}
                   />
                 )}
-              </View>
-            )}
-          </>
-        )}
+              </Link>
+            </View>
+          )}
+        </>
+      )}
 
-        <View className="items-center justify-between  flex-row m-5 ">
-          <TouchableOpacity>
-            <Pressable
-              onPress={
-                !user?.id
-                  ? () => router.push("/(auth)")
-                  : () => {
-                      setPostID(id);
-                      openBottomSheet();
-                    }
-              }
-              className="flex-row items-center p-4"
-            >
-              <Ionicons
-                name="chatbubble-ellipses-outline"
-                size={24}
+      <View className="items-center justify-between  flex-row m-5 ">
+        <TouchableOpacity>
+          <Pressable
+            onPress={
+              !user?.id
+                ? () => router.push("/(auth)")
+                : () => {
+                    setPostID(id);
+                    openBottomSheet();
+                  }
+            }
+            className="flex-row items-center p-4"
+          >
+            <Ionicons
+              name="chatbubble-ellipses-outline"
+              size={24}
+              color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
+            />
+            <View>
+              <Text className="dark:text-white">
+                {comments.length > 0 ? formatNumber(comments.length) : ""}
+              </Text>
+            </View>
+          </Pressable>
+        </TouchableOpacity>
+
+        <View>
+          {loading ? (
+            <ActivityIndicator color="blue" />
+          ) : (
+            <Pressable onPress={repost} className="p-4">
+              <Feather
+                name="corner-up-left"
+                size={20}
                 color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
               />
-              <View>
-                <Text className="dark:text-white">
-                  {comments.length > 0 ? formatNumber(comments.length) : ""}
-                </Text>
-              </View>
             </Pressable>
-          </TouchableOpacity>
-
-          <View>
-            {loading ? (
-              <ActivityIndicator color="blue" />
-            ) : (
-              <Pressable onPress={repost} className="p-4">
-                <Feather
-                  name="corner-up-left"
-                  size={20}
-                  color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
-                />
-              </Pressable>
-            )}
-          </View>
-
-          <Popover
-            from={
-              <TouchableOpacity className="p-3">
-                <Feather
-                  name="edit"
-                  size={20}
-                  color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
-                />
-              </TouchableOpacity>
-            }
-          >
-            <View className="p-4 px-4  min-w-96 bg-white dark:bg-slate-900 rounded-md shadow-md">
-              <TextInput
-                onChangeText={setCiteInput}
-                value={citeInput}
-                placeholder="Cite this post..."
-                placeholderTextColor={
-                  colorScheme === "dark" ? "#FFFFFF" : "#808080"
-                }
-                className="w-full p-2 border border-gray-300 rounded-md   min-w-96"
-                style={{
-                  color: colorScheme === "dark" ? "#FFFFFF" : "#000000",
-                }}
-              />
-              <Pressable
-                className="mt-4 p-3 bg-blue-700 rounded-md w-full flex items-center   min-w-96"
-                onPress={cite}
-              >
-                <Text className="text-white font-semibold dark:text-white">
-                  {loading ? "Citing..." : "Cite"}
-                </Text>
-              </Pressable>
-            </View>
-          </Popover>
-
-          <TouchableOpacity
-            onPress={likePost}
-            className="flex-row items-center gap-2 p-4"
-          >
-            <AntDesign
-              name={hasLiked ? "heart" : "hearto"}
-              size={20}
-              color={
-                hasLiked ? "red" : colorScheme === "dark" ? "white" : "black"
-              }
-            />
-            {likes.length > 0 && (
-              <View>
-                <Text className="dark:text-white">
-                  {formatNumber(likes.length)}
-                </Text>
-              </View>
-            )}
-          </TouchableOpacity>
-          <View className="flex-row items-center gap-2">
-            <Feather
-              name="eye"
-              size={20}
-              color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
-            />
-            <Text>{formatNumber(post?.views)}</Text>
-          </View>
-          <TouchableOpacity className="p-3">
-            <AntDesign
-              name="sharealt"
-              size={20}
-              color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
-              onPress={onShare}
-            />
-          </TouchableOpacity>
+          )}
         </View>
+
+        <Popover
+          from={
+            <TouchableOpacity className="p-3">
+              <Feather
+                name="edit"
+                size={20}
+                color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
+              />
+            </TouchableOpacity>
+          }
+        >
+          <View className="p-4 px-4  min-w-96 bg-white dark:bg-slate-900 rounded-md shadow-md">
+            <TextInput
+              onChangeText={setCiteInput}
+              value={citeInput}
+              placeholder="Cite this post..."
+              placeholderTextColor={
+                colorScheme === "dark" ? "#FFFFFF" : "#808080"
+              }
+              className="w-full p-2 border border-gray-300 rounded-md   min-w-96"
+              style={{
+                color: colorScheme === "dark" ? "#FFFFFF" : "#000000",
+              }}
+            />
+            <Pressable
+              className="mt-4 p-3 bg-blue-700 rounded-md w-full flex items-center   min-w-96"
+              onPress={cite}
+            >
+              <Text className="text-white font-semibold dark:text-white">
+                {loading ? "Citing..." : "Cite"}
+              </Text>
+            </Pressable>
+          </View>
+        </Popover>
+
+        <TouchableOpacity
+          onPress={likePost}
+          className="flex-row items-center gap-2 p-4"
+        >
+          <AntDesign
+            name={hasLiked ? "heart" : "hearto"}
+            size={20}
+            color={
+              hasLiked ? "red" : colorScheme === "dark" ? "white" : "black"
+            }
+          />
+          {likes.length > 0 && (
+            <View>
+              <Text className="dark:text-white">
+                {formatNumber(likes.length)}
+              </Text>
+            </View>
+          )}
+        </TouchableOpacity>
+        <View className="flex-row items-center gap-2">
+          <Feather
+            name="eye"
+            size={20}
+            color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
+          />
+          <Text>{formatNumber(post?.views)}</Text>
+        </View>
+        <TouchableOpacity className="p-3">
+          <AntDesign
+            name="sharealt"
+            size={20}
+            color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
+            onPress={onShare}
+          />
+        </TouchableOpacity>
       </View>
-    </Link>
+    </View>
   );
 };
 
