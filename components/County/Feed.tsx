@@ -70,8 +70,6 @@ const Feed = () => {
   const [media, setMedia] = useState({ uri: null, type: null });
   const colorScheme = useColorScheme();
 
-
-
   useEffect(() => {
     const fetchUserData = async () => {
       if (!user?.id) return;
@@ -86,7 +84,6 @@ const Feed = () => {
     fetchUserData();
   }, [user]);
 
- 
   const getColorFromName = (name) => {
     // Generate a hash number from the name
     let hash = 0;
@@ -239,26 +236,31 @@ const Feed = () => {
 
   return (
     <View className="flex-1 dark:bg-gray-800">
-      <View className=" p-4">
-        <View className="flex-row items-center justify-between">
-          <Text className="font-extrabold text-2xl dark:text-white">
+      
+        <View className="flex-row items-center justify-between px-2">
+          <Text className="font-extrabold text-xl dark:text-white">
             {userData?.county} County
           </Text>
-          <Avatar
-            size={40}
-            source={userData?.userImg && { uri: userData?.userImg }}
-            title={userData?.name && userData?.name[0].toUpperCase()}
-            containerStyle={{
-              backgroundColor: getColorFromName(userData?.name),
-              borderRadius: 5,
-            }} // Consistent color per user
-            avatarStyle={{
-              borderRadius: 5, // This affects the actual image
-            }}
-          />
-        </View>
+          <View className="flex-row items-center gap-2">
+            <View>
+              <Text className="font-bold text-sm">{userData?.name}</Text>
+              <Text className="font-bold text-xs">@{userData?.nickname}</Text>
+            </View>
 
-       
+            <Avatar
+              size={40}
+              source={userData?.userImg && { uri: userData?.userImg }}
+              title={userData?.name && userData?.name[0].toUpperCase()}
+              containerStyle={{
+                backgroundColor: getColorFromName(userData?.name),
+                borderRadius: 5,
+                marginTop: 2,
+              }} // Consistent color per user
+              avatarStyle={{
+                borderRadius: 5, // This affects the actual image
+              }}
+            />
+          </View>
       </View>
       <FlatList
         data={posts}

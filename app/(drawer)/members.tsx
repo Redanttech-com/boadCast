@@ -169,8 +169,7 @@ const Members = () => {
   );
 
   return (
-    <SafeAreaView className="flex-1 gap-5 dark:bg-gray-800">
-      <StatusBar style="auto" />
+    <View className="flex-1 gap-5 dark:bg-gray-800">
       {/* Tab Selector */}
       <View className="flex-row justify-between p-3 px-5 bg-gray-200 dark:bg-gray-600 items-center">
         {["national", "county", "constituency", "ward"].map((tab) => (
@@ -195,7 +194,7 @@ const Members = () => {
         {activeTab === "constituency" && renderTabContent(constituencyMembers)}
         {activeTab === "ward" && renderTabContent(wardMembers)}
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 

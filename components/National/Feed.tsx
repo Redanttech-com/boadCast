@@ -240,24 +240,36 @@ const Feed = () => {
   }
 
   return (
-    <View className="flex-1  dark:bg-gray-800">
-      <View className="shadow-md p-2  dark:bg-gray-800">
+    <SafeAreaView
+      className="flex-1  dark:bg-gray-800"
+      edges={["left", "right", "bottom"]}
+    >
+      <StatusBar style="auto" />
+      <View className="shadow-md px-2 dark:bg-gray-800">
         <View className="flex-row items-center justify-between">
-          <Text className="font-extrabold text-3xl dark:text-white">
+          <Text className="font-extrabold text-xl dark:text-white">
             National
           </Text>
-          <Avatar
-            size={40}
-            source={userData?.userImg && { uri: userData?.userImg }}
-            title={userData?.name && userData?.name[0].toUpperCase()}
-            containerStyle={{
-              backgroundColor: getColorFromName(userData?.name),
-              borderRadius: 5,
-            }} // Consistent color per user
-            avatarStyle={{
-              borderRadius: 5, // This affects the actual image
-            }}
-          />
+          <View className="flex-row items-center gap-2">
+            <View>
+              <Text className="font-bold text-sm">{userData?.name}</Text>
+              <Text className="font-bold text-xs">@{userData?.nickname}</Text>
+            </View>
+
+            <Avatar
+              size={40}
+              source={userData?.userImg && { uri: userData?.userImg }}
+              title={userData?.name && userData?.name[0].toUpperCase()}
+              containerStyle={{
+                backgroundColor: getColorFromName(userData?.name),
+                borderRadius: 5,
+                marginTop: 2,
+              }} // Consistent color per user
+              avatarStyle={{
+                borderRadius: 5, // This affects the actual image
+              }}
+            />
+          </View>
         </View>
         <View className="mt-3 h-15">
           <StatusFeed />
@@ -380,7 +392,7 @@ const Feed = () => {
           <AntDesign name="plus" size={24} color="white" />
         </TouchableOpacity>
       </View>
-    </View>
+    </SafeAreaView>
   );
 };
 

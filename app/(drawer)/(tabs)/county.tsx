@@ -6,10 +6,9 @@ import { StatusBar } from "expo-status-bar";
 
 const County = () => {
   return (
-    <SafeAreaView className="flex-1 dark:bg-gray-800 bg-white">
-      <StatusBar style="auto" />
+    <View className="flex-1 dark:bg-gray-800 bg-white">
       <Feed />
-    </SafeAreaView>
+    </View>
   );
 };
 

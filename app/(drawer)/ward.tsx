@@ -27,6 +27,7 @@ import moment from "moment";
 import { ResizeMode, Video } from "expo-av";
 import { Avatar } from "react-native-elements";
 import { useUser } from "@clerk/clerk-expo";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const Ward = () => {
   const [posts, setPosts] = useState([]);
@@ -124,22 +125,22 @@ const Ward = () => {
     : [];
 
   return (
-    <View className="flex-1 dark:bg-gray-800">
-      <View className={`flex ${isDarkMode ? "bg-gray-900" : "bg-white"} p-2`}>
+    <View className="flex-1 bg-gray-100 dark:bg-gray-800">
+      <View className="flex bg-white dark:bg-gray-900 p-2">
         {loading ? (
           <View className="flex-1 justify-center items-center">
             <ActivityIndicator
               size="large"
               color={isDarkMode ? "white" : "blue"}
             />
-            <Text className="font-bold text-lg dark:text-white mt-2">
-              Loading National Trends...
+            <Text className="font-bold text-lg text-gray-900 dark:text-white mt-2">
+              Loading {userData?.ward} Trends...
             </Text>
           </View>
         ) : (
           <>
-            <Text className="text-xl font-bold dark:text-white mb-4 mt-10">
-              Trending Topics
+            <Text className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+              Trending {userData?.ward}Topics
             </Text>
 
             <FlatList
@@ -149,20 +150,20 @@ const Ward = () => {
               showsHorizontalScrollIndicator={false}
               ListEmptyComponent={
                 <View className="flex-1 justify-center items-center">
-                  <Text className="dark:text-white">No posts available</Text>
+                  <Text className="text-gray-700 dark:text-white">
+                    No posts available
+                  </Text>
                 </View>
               }
               renderItem={({ item }) => (
                 <TouchableOpacity
                   onPress={() => setSelectedTopic(item.topic)}
-                  className={`px-4 p-2 rounded-full mr-2 ${
-                    isDarkMode ? "bg-gray-700" : "bg-gray-200"
-                  }`}
+                  className="px-4 p-2 rounded-full mr-2 bg-gray-200 dark:bg-gray-700"
                 >
-                  <Text className="font-semibold dark:text-white">
+                  <Text className="font-semibold text-gray-900 dark:text-white">
                     #{item.topic}
                   </Text>
-                  <Text className="text-xs dark:text-gray-300 ">
+                  <Text className="text-xs text-gray-500 dark:text-gray-300">
                     {item.postCount} mentions
                   </Text>
                 </TouchableOpacity>
@@ -171,7 +172,7 @@ const Ward = () => {
 
             {selectedTopic && (
               <>
-                <Text className="text-xl font-bold mt-4 dark:text-white">
+                <Text className="text-xl font-bold mt-4 text-gray-900 dark:text-white">
                   Posts about #{selectedTopic}
                 </Text>
 
@@ -181,17 +182,13 @@ const Ward = () => {
                   showsVerticalScrollIndicator={false}
                   ListEmptyComponent={
                     <View className="flex-1 justify-center items-center">
-                      <Text className="dark:text-white">
+                      <Text className="text-gray-700 dark:text-white">
                         No posts available
                       </Text>
                     </View>
                   }
                   renderItem={({ item }) => (
-                    <View
-                      className={`p-4 my-2 rounded-lg mb-2 ${
-                        isDarkMode ? "bg-gray-800" : "bg-gray-100"
-                      }`}
-                    >
+                    <View className="p-4 my-2 rounded-lg bg-gray-100 dark:bg-gray-800">
                       <View className="flex-row items-center gap-3">
                         <Avatar
                           size={40}
@@ -208,18 +205,18 @@ const Ward = () => {
                             borderRadius: 5,
                           }}
                           avatarStyle={{
-                            borderRadius: 5, // This affects the actual image
+                            borderRadius: 5,
                           }}
                         />
-                        <Text className="text-sm dark:text-white font-semibold">
+                        <Text className="text-sm font-semibold text-gray-900 dark:text-white">
                           @{item.nickname}
                         </Text>
-                        <Text className="text-sm dark:text-white">
+                        <Text className="text-sm text-gray-500 dark:text-gray-300">
                           {moment(item.timestamp?.toDate()).fromNow()}
                         </Text>
                       </View>
 
-                      <Text className="text-base dark:text-white mt-2">
+                      <Text className="text-base mt-2 text-gray-900 dark:text-white">
                         {item.text}
                       </Text>
 

@@ -11,21 +11,14 @@ import { StatusBar } from "expo-status-bar";
 
 const market = () => {
   return (
-    <SafeAreaView className="flex-1 gap-3 bg-gray-100 dark:bg-gray-800">
-      <StatusBar style="auto" />
+    <View className="flex-1 gap-3 bg-gray-100 dark:bg-gray-800">
       <View className=" flex-row  px-4 justify-between items-center">
-        <Text className="font-bold text-2xl dark:text-white">Market</Text>
-
-        <Pressable onPress={() => router.push("/(Products)/ProductForm")}>
-          <Text className="border dark:border-gray-500 p-3 rounded-md font-bold dark:text-white">
-            Sell
-          </Text>
-        </Pressable>
+        
       </View>
       <View className="bg-white flex-1 dark:bg-gray-800">
         <ProductFeed />
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 

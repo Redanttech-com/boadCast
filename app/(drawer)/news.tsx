@@ -76,16 +76,7 @@ const NewsScreen = () => {
   // console.log({ NewsData });
 
   return (
-    <SafeAreaView className="space-x-2 bg-white dark:bg-gray-800  flex-1">
-      <StatusBar style="auto" />
-      <View className="w-full flex-row justify-between items-center px-4 pb-4">
-        <View className="w-3/4 flex-row space-x-2 items-center">
-          <Text className="font-bold text-3xl dark:text-white">
-            Trending News
-          </Text>
-        </View>
-      </View>
-
+    <View className="space-x-2 bg-white dark:bg-gray-800  flex-1">
       <View className="flex-1">
         {IsNewsLoading ? (
           <View className="flex-1 justify-center items-center">
@@ -105,7 +96,7 @@ const NewsScreen = () => {
           />
         )}
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 

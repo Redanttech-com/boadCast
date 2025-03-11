@@ -134,7 +134,7 @@ const National = () => {
           </View>
         ) : (
           <>
-            <Text className="text-xl font-bold dark:text-white mb-4 mt-10">
+            <Text className="text-xl font-bold dark:text-white mb-4">
               Trending Topics
             </Text>
 

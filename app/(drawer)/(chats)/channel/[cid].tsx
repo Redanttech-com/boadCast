@@ -82,7 +82,7 @@ export default function ChannelScreen() {
       <Stack.Screen
         options={{
           headerShown: true,
-          title: "Chat",
+          title: "",
           headerRight: () => (
             <Ionicons name="call" size={20} color="gray" onPress={joinCall} />
           ),

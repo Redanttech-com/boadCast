@@ -1,11 +1,18 @@
 import React, { useEffect, useState } from "react";
 import { createDrawerNavigator } from "@react-navigation/drawer";
-import { router, withLayoutContext } from "expo-router";
+import { router, useRouter, withLayoutContext } from "expo-router";
 import {
   DrawerContentScrollView,
   DrawerItemList,
 } from "@react-navigation/drawer";
-import { Image, Pressable, Text, TouchableOpacity, View } from "react-native";
+import {
+  Image,
+  Pressable,
+  Text,
+  TouchableOpacity,
+  useColorScheme,
+  View,
+} from "react-native";
 import { Avatar } from "react-native-elements";
 import {
   Feather,
@@ -16,7 +23,6 @@ import {
 } from "@expo/vector-icons";
 import "@/global.css";
 import { useUser } from "@clerk/clerk-expo";
-import { useColorScheme } from "@/hooks/useColorScheme";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "@/firebase";
 
@@ -137,8 +143,8 @@ export default function DrawerLayout() {
   return (
     <Drawer
       screenOptions={{
-        headerShown: false,
-        headerTransparent: true,
+        headerShown: true,
+        headerTransparent: false,
         drawerStyle: {
           backgroundColor: colorScheme === "dark" ? "#1F2937" : "#FFFFFF", // Dark mode background
         },
@@ -163,19 +169,37 @@ export default function DrawerLayout() {
           drawerIcon: ({ size, color }) => (
             <MaterialIcons name="bar-chart" size={size} color={color} />
           ),
-        }}
-      />
-
-      <Drawer.Screen
-        name="(chats)"
-        options={{
-          title: "Chats",
-          drawerIcon: ({ size, color }) => (
-            <MaterialIcons name="message" size={size} color={color} />
+          headerRight: () => (
+            <Pressable
+              onPress={() => router.push("/(Products)/ProductForm")}
+              className="mr-5"
+            >
+              <Text className="border dark:border-gray-500 p-3 rounded-md font-bold ">
+                Sell
+              </Text>
+            </Pressable>
           ),
         }}
       />
-
+      <Drawer.Screen
+        name="(chats)"
+        options={{
+            title: "Chats",
+            drawerIcon: ({ size, color }) => (
+              <MaterialIcons name="message" size={size} color={color} />
+            ),
+            headerRight: () => (
+              <Pressable
+                onPress={() => 
+                  router.push("/(drawer)/(chats)/users")
+                }
+                className="mr-5"
+              >
+                <Ionicons name="people" size={24} color="black" />
+              </Pressable>
+            ),
+        }}
+      />
       <Drawer.Screen
         name="media"
         options={{
@@ -203,7 +227,6 @@ export default function DrawerLayout() {
           ),
         }}
       />
-
       <Drawer.Screen
         name="national"
         options={{

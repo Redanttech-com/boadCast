@@ -7,10 +7,16 @@ import {
   useWindowDimensions,
   Modal,
   Image,
+  TouchableOpacity,
 } from "react-native";
 import React, { useCallback, useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { FontAwesome, Ionicons } from "@expo/vector-icons";
+import {
+  AntDesign,
+  FontAwesome,
+  Ionicons,
+  MaterialCommunityIcons,
+} from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import {
@@ -125,8 +131,7 @@ export default function nationalInput() {
     } finally {
       setLoading(false);
     }
-      router.push("/(drawer)/(tabs)");
-
+    router.push("/(drawer)/(tabs)");
   };
   const sendNational = async () => {
     setLoading(true);
@@ -153,8 +158,7 @@ export default function nationalInput() {
     setMedia({ uri: null, type: null });
 
     setLoading(false);
-      router.push("/(drawer)/(tabs)");
-
+    router.push("/(drawer)/(tabs)");
   };
 
   const getColorFromName = (name) => {
@@ -184,9 +188,9 @@ export default function nationalInput() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white dark:bg-gray-800">
+    <SafeAreaView className="flex-1 bg-white dark:bg-gray-800 ">
       <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
-      <View className="flex-row items-center p-4 gap-5">
+      <View className="flex-row items-center p-4 gap-5 pt-42">
         <Avatar
           size={40}
           source={userData?.userImg && { uri: userData?.userImg }}
@@ -208,7 +212,7 @@ export default function nationalInput() {
         </View>
       </View>
 
-      <View className="w-full items-center mt-4 mb-6">
+      <View className="w-full flex-row justify-between items-center px-2 mt-4 mb-6">
         <TextInput
           placeholder="What's on your mind?"
           placeholderTextColor={colorScheme === "dark" ? "#FFFFFF" : "#808080"} // Light gray for light mode, white for dark mode
@@ -217,25 +221,27 @@ export default function nationalInput() {
           multiline
           numberOfLines={3}
           style={{
-            width: "88%",
-            padding: 8,
-            borderBottomWidth: 1,
-            borderBottomColor: "gray",
+            width: "80%",  // 80% of the screen width  
+            padding: 15,
+            borderRadius: 10,
+            borderWidth: 1,
+            borderColor: "gray", // Border color
             color: colorScheme === "dark" ? "#FFFFFF" : "#000000", // Text color
           }}
         />
-      </View>
-      {loading ? (
-        <ActivityIndicator size="small" color="blue" />
-      ) : (
-        <Pressable
-          onPress={sendNational}
-          className="w-1/2  ml-auto mr-5 bg-blue-500 p-4 rounded-md"
-        >
-          <Text className="text-white text-center font-bold">Cast</Text>
-        </Pressable>
-      )}
 
+        {loading ? (
+          <ActivityIndicator size="small" color="blue" />
+        ) : (
+          <Pressable
+            onPress={sendNational}
+            className="w-80%  ml-auto bg-blue-500 p-4 rounded-md"
+          >
+            <Text className="text-white text-center font-bold">Cast</Text>
+          </Pressable>
+         
+        )}
+      </View>
       <View className="flex-row mt-4 gap-1  justify-between w-full items-center">
         <View className="flex-row  justify-center gap-1">
           <Pressable

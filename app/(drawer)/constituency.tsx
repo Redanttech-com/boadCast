@@ -125,7 +125,7 @@ const Constituency = () => {
 
   return (
     <View className="flex-1 dark:bg-gray-800">
-      <View className={`flex ${isDarkMode ? "bg-gray-900" : "bg-white"} p-2`}>
+      <View className={`flex-1 ${isDarkMode ? "bg-gray-900" : "bg-white"} p-2`}>
         {loading ? (
           <View className="flex-1 justify-center items-center">
             <ActivityIndicator
@@ -133,13 +133,13 @@ const Constituency = () => {
               color={isDarkMode ? "white" : "blue"}
             />
             <Text className="font-bold text-lg dark:text-white mt-2">
-              Loading National Trends...
+              Loading {userData?.constituency} Trends...
             </Text>
           </View>
         ) : (
           <>
-            <Text className="text-xl font-bold dark:text-white mb-4 mt-10">
-              Trending Topics
+            <Text className="text-xl font-bold dark:text-white mb-4">
+              {userData?.constituency} constituency Trends
             </Text>
 
             <FlatList

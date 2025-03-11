@@ -20,28 +20,12 @@ const index = () => {
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
-      <SafeAreaView className="flex-1 dark:bg-gray-800">
-        <StatusBar style="auto" />
-        <View className="flex-row justify-between p-4">
-          <AntDesign
-            onPress={() => router.push("/(drawer)/(tabs)")}
-            name="left"
-            size={24}
-            color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
-          />
-          <Text className="dark:text-white font-bold text-2xl">Chats</Text>
-          <Ionicons
-            onPress={() => router.push("/(drawer)/(chats)/users")}
-            name="people"
-            size={24}
-            color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
-          />
-        </View>
+      <View className="flex-1 dark:bg-gray-800">
         <ChannelList
           filters={{ members: { $in: [String(userDetails?.id)] } }}
           onSelect={(channel) => router.push(`/channel/${channel.cid}`)}
         />
-      </SafeAreaView>
+      </View>
     </>
   );
 };

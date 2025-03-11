@@ -168,7 +168,7 @@ const countyInput = () => {
       <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
       <View className="w-full  items-center mt-4">
         <View className="flex-row items-center justify-between w-full px-4">
-          <Pressable onPress={() => router.push("/(drawer)/(tabs)/county")}>
+          <Pressable onPress={() => router.push("/(drawer)/(tabs)/county")} className="p-3 rounded-full">
             <Ionicons
               name="arrow-back"
               size={24}
@@ -191,7 +191,7 @@ const countyInput = () => {
             }}
           />
         </View>
-        <View className="w-full items-center mt-4 mb-6">
+        <View className="w-full flex-row justify-between items-center px-2 mt-4 mb-6">
           <TextInput
             placeholder="What's on your mind?"
             placeholderTextColor={
@@ -202,13 +202,25 @@ const countyInput = () => {
             multiline
             numberOfLines={3}
             style={{
-              width: "88%",
-              padding: 8,
-              borderBottomWidth: 1,
-              borderBottomColor: "gray",
+              width: "80%", // 80% of the screen width
+              padding: 15,
+              borderRadius: 10,
+              borderWidth: 1,
+              borderColor: "gray", // Border color
               color: colorScheme === "dark" ? "#FFFFFF" : "#000000", // Text color
             }}
           />
+
+          {loading ? (
+            <ActivityIndicator size="small" color="blue" />
+          ) : (
+            <Pressable
+              onPress={sendPost}
+              className="w-80%  ml-auto bg-blue-500 p-4 rounded-md"
+            >
+              <Text className="text-white text-center font-bold">Cast</Text>
+            </Pressable>
+          )}
         </View>
         <View className="flex-row mt-4 justify-center gap-3">
           <Pressable
@@ -232,19 +244,6 @@ const countyInput = () => {
             />
           </Pressable>
 
-          {loading ? (
-            <ActivityIndicator
-              size="small"
-              color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
-            />
-          ) : (
-            <Pressable
-              onPress={sendPost}
-              className="w-1/2  ml-auto mr-5 bg-blue-500 p-4 rounded-md"
-            >
-              <Text className="text-white text-center font-bold">Cast</Text>
-            </Pressable>
-          )}
         </View>
       </View>
       {media?.uri && (

@@ -291,7 +291,7 @@ const Profile = ({ bookmarks }) => {
       <StatusBar style="auto" />
       {/* Background Image */}
     
-      <View className="mt-20 justify-center items-center">
+      <View className="mt-5 justify-center items-center">
         <Avatar
           size={100}
           source={userData?.userImg && { uri: userData?.userImg }}

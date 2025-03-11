@@ -482,6 +482,7 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
   }, [pstId, userId]);
 
   return (
+
     <View className="mb-1 rounded-md  border-gray-200  shadow-md bg-white  dark:bg-gray-700">
       <View className="flex-row items-center gap-1 p-2">
         <Avatar

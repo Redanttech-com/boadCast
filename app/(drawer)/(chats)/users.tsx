@@ -90,11 +90,10 @@ const UsersList = () => {
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
-      <SafeAreaView
+      <View
         style={{
           backgroundColor: colorScheme === "dark" ? "#1E1E1E" : "#FFFFFF",
           flex: 1,
-          paddingTop: 10,
         }}
       >
         <StatusBar style="auto" />
@@ -107,22 +106,8 @@ const UsersList = () => {
             marginTop: 10,
           }}
         >
-          <Entypo
-            onPress={() => router.push("/")}
-            name="chevron-with-circle-left"
-            size={32}
-            color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
-          />
-          <Text
-            style={{
-              color: colorScheme === "dark" ? "#FFFFFF" : "#000000",
-              fontSize: 20,
-              fontWeight: "bold",
-              textAlign: "center",
-            }}
-          >
-            Search Users
-          </Text>
+          
+        
           <View />
         </View>
 
@@ -133,11 +118,11 @@ const UsersList = () => {
             alignItems: "center",
             justifyContent: "space-between",
             paddingHorizontal: 16,
-            marginVertical: 10,
             borderWidth: 1,
             borderRadius: 25,
             borderColor: "#D3D3D3",
             backgroundColor: colorScheme === "dark" ? "#333" : "#F9F9F9",
+            paddingVertical: 5,
           }}
         >
           <TextInput
@@ -190,7 +175,7 @@ const UsersList = () => {
             </Text>
           )}
         />
-      </SafeAreaView>
+      </View>
     </>
   );
 };

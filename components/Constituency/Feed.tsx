@@ -303,11 +303,16 @@ const Feed = () => {
 
   return (
     <View className="flex-1  dark:bg-gray-800">
-      <View className="shadow-md p-4">
-        <View className="flex-row items-center justify-between">
-          <Text className="font-extrabold text-2xl dark:text-white">
-            {userData?.constituency} Constituency
-          </Text>
+      <View className="flex-row items-center justify-between px-2">
+        <Text className="font-extrabold text-xl dark:text-white">
+          {userData?.constituency} constituency
+        </Text>
+        <View className="flex-row items-center gap-2">
+          <View>
+            <Text className="font-bold text-sm">{userData?.name}</Text>
+            <Text className="font-bold text-xs">@{userData?.nickname}</Text>
+          </View>
+
           <Avatar
             size={40}
             source={userData?.userImg && { uri: userData?.userImg }}
@@ -315,6 +320,7 @@ const Feed = () => {
             containerStyle={{
               backgroundColor: getColorFromName(userData?.name),
               borderRadius: 5,
+              marginTop: 2,
             }} // Consistent color per user
             avatarStyle={{
               borderRadius: 5, // This affects the actual image

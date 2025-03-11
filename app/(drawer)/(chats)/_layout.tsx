@@ -35,19 +35,7 @@ const Message = () => {
                   />
                 </Pressable>
               ),
-              headerRight: () => (
-                <Pressable
-                  onPress={() => {
-                    router.push("/(drawer)/(chats)/users");
-                  }}
-                >
-                  <Ionicons
-                    name="people"
-                    size={24}
-                    color={isDarkMode ? "white" : "gray"}
-                  />
-                </Pressable>
-              ),
+              
             }}
           />
         </Stack>

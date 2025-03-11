@@ -133,13 +133,13 @@ const County = () => {
               color={isDarkMode ? "white" : "blue"}
             />
             <Text className="font-bold text-lg dark:text-white mt-2">
-              Loading National Trends...
+              Loading {userData?.county} Trends...
             </Text>
           </View>
         ) : (
           <>
-            <Text className="text-xl font-bold dark:text-white mb-4 mt-10">
-              Trending Topics
+            <Text className="text-xl font-bold dark:text-white mb-4">
+              {userData?.county} County Trends
             </Text>
 
             <FlatList
