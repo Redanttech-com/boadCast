@@ -6,14 +6,14 @@ import { useColorScheme } from "@/hooks/useColorScheme.web";
 
 const StatusPost = ({ id, post }) => {
   const colorScheme = useColorScheme(); // Detect theme
-  const borderColorAnim = useRef(new Animated.Value(0)).current; // Create Animated Value
+  const borderColorAnim = useRef(new Animated.Value(0)).current; // Animated Value for border
+
   useEffect(() => {
-    // Animate border color between blue and purple
     Animated.loop(
       Animated.sequence([
         Animated.timing(borderColorAnim, {
           toValue: 1,
-          duration: 1000, // 1 second to switch colors
+          duration: 1000,
           easing: Easing.linear,
           useNativeDriver: false,
         }),
@@ -27,11 +27,14 @@ const StatusPost = ({ id, post }) => {
     ).start();
   }, []);
 
-  // Interpolating border color
   const borderColor = borderColorAnim.interpolate({
     inputRange: [0, 1],
     outputRange: ["#3b82f6", "#bd124e"], // Blue to Purple
   });
+
+  // Check if post contains media
+  const hasImageOrVideo = post?.videos || post?.images;
+  const showInput = !hasImageOrVideo && post?.input;
 
   return (
     <Pressable
@@ -44,6 +47,10 @@ const StatusPost = ({ id, post }) => {
           borderColor, // Animated border color
           borderRadius: 50,
           padding: 2,
+          width: 54, // Ensure consistent size
+          height: 54,
+          justifyContent: "center",
+          alignItems: "center",
         }}
       >
         {post?.videos && (
@@ -61,24 +68,23 @@ const StatusPost = ({ id, post }) => {
             resizeMode={ResizeMode.COVER}
           />
         )}
-        {post?.input && (
+        {showInput && (
           <Text
             style={{
-              width: 50,
-              height: 50,
-              borderRadius: 100,
               textAlign: "center",
-              overflow: "hidden",
-              alignItems: 'center',
-              color: colorScheme === "dark" ? "white" : "black", // Change text color based on theme
+              color: colorScheme === "dark" ? "white" : "black",
+              fontSize: 12,
+              fontWeight: "bold",
             }}
-            numberOfLines={1} // Limits text to 1 line
-            ellipsizeMode="tail" // Adds "..." when text is too long
+            numberOfLines={2}
+            ellipsizeMode="tail"
           >
             {post?.input}
           </Text>
         )}
       </Animated.View>
+
+      {/* Username */}
       <Text
         className="min-w-14 max-w-14 text-sm text-center font-bold dark:text-white"
         numberOfLines={1}

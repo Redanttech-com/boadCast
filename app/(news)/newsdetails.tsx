@@ -26,7 +26,7 @@ const NewsDetails = () => {
           onPress={() => router.push("/news")}
           className="bg-gray-100 p-2 rounded-full dark:bg-gray-500"
         >
-          <Text className="dark:text-white">⬅ Back</Text>
+          <Text className="dark:text-white p-3">⬅ Back</Text>
         </Pressable>
       </View>
 

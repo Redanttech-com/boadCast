@@ -316,10 +316,10 @@ const Form = () => {
       <View className="h-32 mb-4">
         <TypeWriter
           typing={1}
-          className="m-5 text-2xl font-bold dark:text-white"
+          className="m-5 text-2xl font-bold dark:text-white text-center"
           numberOfLines={2}
         >
-          'Welcome to BroadCast', 'In pursuit of a perfect nation"
+          'Welcome to BroadCast', "In pursuit of a perfect nation"
         </TypeWriter>
       </View>
 
@@ -475,7 +475,7 @@ const Form = () => {
                   !selectedConstituency ||
                   !selectedWard
                   ? "bg-gray-700 p-4 rounded-full items-center"
-                  : "justify-center items-center border-2 p-4 bg-blue-950 rounded-full"
+                  : "justify-center items-center  p-4 bg-blue-950 rounded-full"
                 : !(
                     name !== userData?.name ||
                     nName !== userData?.nickname ||
@@ -486,7 +486,7 @@ const Form = () => {
                     selectedWard !== userData?.ward
                   )
                 ? "bg-gray-700 p-4 rounded-full items-center"
-                : "justify-center items-center border-2 p-4 bg-blue-950 rounded-full"
+                : "justify-center items-center  p-4 bg-blue-950 rounded-full"
             }`}
           >
             <Text className="text-white">Submit</Text>

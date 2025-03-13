@@ -239,41 +239,11 @@ const Feed = () => {
     );
   }
 
+  
   return (
-    <SafeAreaView
-      className="flex-1  dark:bg-gray-800"
-      edges={["left", "right", "bottom"]}
-    >
-      <StatusBar style="auto" />
-      <View className="shadow-md px-2 dark:bg-gray-800">
-        <View className="flex-row items-center justify-between">
-          <Text className="font-extrabold text-xl dark:text-white">
-            National
-          </Text>
-          <View className="flex-row items-center gap-2">
-            <View>
-              <Text className="font-bold text-sm">{userData?.name}</Text>
-              <Text className="font-bold text-xs">@{userData?.nickname}</Text>
-            </View>
-
-            <Avatar
-              size={40}
-              source={userData?.userImg && { uri: userData?.userImg }}
-              title={userData?.name && userData?.name[0].toUpperCase()}
-              containerStyle={{
-                backgroundColor: getColorFromName(userData?.name),
-                borderRadius: 5,
-                marginTop: 2,
-              }} // Consistent color per user
-              avatarStyle={{
-                borderRadius: 5, // This affects the actual image
-              }}
-            />
-          </View>
-        </View>
-        <View className="mt-3 h-15">
-          <StatusFeed />
-        </View>
+    <View className="flex-1  dark:bg-gray-800">
+      <View className="shadow-md px-2 dark:bg-gray-800 mt-3 mb-3 h-15">
+        <StatusFeed />
       </View>
 
       <FlatList
@@ -297,6 +267,29 @@ const Feed = () => {
         onViewableItemsChanged={onViewableItemsChanged}
         viewabilityConfig={viewabilityConfig}
       />
+
+      <TouchableOpacity
+        style={{
+          position: "absolute",
+          bottom: 70, // Adjusted to be behind input field
+          right: 20,
+          backgroundColor: "gray",
+          width: 56,
+          height: 56,
+          borderRadius: 50,
+          justifyContent: "center",
+          alignItems: "center",
+          elevation: 5, // Android shadow
+          shadowColor: "gray", // iOS shadow
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.3,
+          shadowRadius: 4,
+          zIndex: 100, // Ensures it is behind input
+        }}
+        onPress={() => router.push("/(inputs)/nationalInput")}
+      >
+        <AntDesign name="plus" size={24} color="white" />
+      </TouchableOpacity>
 
       <BottomSheet
         ref={bottomSheetRef}
@@ -347,7 +340,7 @@ const Feed = () => {
           )}
         </View>
 
-        <BottomSheetView className="px-4 z-50     fixed dark:bg-gray-800">
+        <BottomSheetView className="px-4 z-50  fixed dark:bg-gray-800">
           <View className="flex-row items-center justify-between px-4 mb-1 border rounded-full border-gray-500 ">
             <TextInput
               placeholder="Comment"
@@ -369,30 +362,7 @@ const Feed = () => {
           </View>
         </BottomSheetView>
       </BottomSheet>
-      <View style={{ flex: 1 }}>
-        <TouchableOpacity
-          style={{
-            position: "absolute",
-            bottom: 10,
-            right: 20,
-            backgroundColor: "#3400be",
-            width: 56,
-            height: 56,
-            borderRadius: 50,
-            justifyContent: "center",
-            alignItems: "center",
-            elevation: 5, // For Android shadow
-            shadowColor: "blue", // For iOS shadow
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.3,
-            shadowRadius: 4,
-          }}
-          onPress={() => router.push("/(inputs)/nationalInput")}
-        >
-          <AntDesign name="plus" size={24} color="white" />
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
+    </View>
   );
 };
 

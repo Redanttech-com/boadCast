@@ -303,31 +303,6 @@ const Feed = () => {
 
   return (
     <View className="flex-1  dark:bg-gray-800">
-      <View className="flex-row items-center justify-between px-2">
-        <Text className="font-extrabold text-xl dark:text-white">
-          {userData?.constituency} constituency
-        </Text>
-        <View className="flex-row items-center gap-2">
-          <View>
-            <Text className="font-bold text-sm">{userData?.name}</Text>
-            <Text className="font-bold text-xs">@{userData?.nickname}</Text>
-          </View>
-
-          <Avatar
-            size={40}
-            source={userData?.userImg && { uri: userData?.userImg }}
-            title={userData?.name && userData?.name[0].toUpperCase()}
-            containerStyle={{
-              backgroundColor: getColorFromName(userData?.name),
-              borderRadius: 5,
-              marginTop: 2,
-            }} // Consistent color per user
-            avatarStyle={{
-              borderRadius: 5, // This affects the actual image
-            }}
-          />
-        </View>
-      </View>
       <FlatList
         data={posts}
         keyExtractor={(item) => item.id}
@@ -349,6 +324,29 @@ const Feed = () => {
         onViewableItemsChanged={onViewableItemsChanged}
         viewabilityConfig={viewabilityConfig}
       />
+
+      <TouchableOpacity
+        style={{
+          position: "absolute",
+          bottom: 70, // Adjusted to be behind input field
+          right: 20,
+          backgroundColor: "gray",
+          width: 56,
+          height: 56,
+          borderRadius: 50,
+          justifyContent: "center",
+          alignItems: "center",
+          elevation: 5, // Android shadow
+          shadowColor: "gray", // iOS shadow
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.3,
+          shadowRadius: 4,
+          zIndex: 100, // Ensures it is behind input
+        }}
+        onPress={() => router.push("/(inputs)/constituencyInput")}
+      >
+        <AntDesign name="plus" size={24} color="white" />
+      </TouchableOpacity>
 
       <BottomSheet
         ref={bottomSheetRef}
@@ -421,29 +419,6 @@ const Feed = () => {
           </View>
         </BottomSheetView>
       </BottomSheet>
-      <View style={{ flex: 1 }}>
-        <TouchableOpacity
-          style={{
-            position: "absolute",
-            bottom: 10,
-            right: 20,
-            backgroundColor: "#3400be",
-            width: 56,
-            height: 56,
-            borderRadius: 50,
-            justifyContent: "center",
-            alignItems: "center",
-            elevation: 5, // For Android shadow
-            shadowColor: "blue", // For iOS shadow
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.3,
-            shadowRadius: 4,
-          }}
-          onPress={() => router.push("/(inputs)/constituencyInput")}
-        >
-          <AntDesign name="plus" size={24} color="white" />
-        </TouchableOpacity>
-      </View>
     </View>
   );
 };

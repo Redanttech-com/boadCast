@@ -96,7 +96,6 @@ const UsersList = () => {
           flex: 1,
         }}
       >
-        <StatusBar style="auto" />
         <View
           style={{
             flexDirection: "row",
@@ -123,6 +122,7 @@ const UsersList = () => {
             borderColor: "#D3D3D3",
             backgroundColor: colorScheme === "dark" ? "#333" : "#F9F9F9",
             paddingVertical: 5,
+            marginBottom: 10,
           }}
         >
           <TextInput

@@ -202,7 +202,6 @@ export default function GooglePage() {
 
   return (
     <View className="flex-1 p-2 dark:bg-gray-800">
-      <StatusBar style="auto" />
       <View className="flex-1 justify-center gap-3 items-center">
         <View className="w-full justify-center mt-16 flex-row items-center relative">
           <Animated.View

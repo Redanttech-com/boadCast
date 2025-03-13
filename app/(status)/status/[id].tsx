@@ -268,6 +268,7 @@ export default function StatusPage() {
             <Image
               source={{ uri: statuses[currentIndex].images }}
               style={{ width: "100%", height: 700 }}
+              resizeMode={ResizeMode.CONTAIN}
             />
           )}
         </View>

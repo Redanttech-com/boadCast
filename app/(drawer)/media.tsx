@@ -5,6 +5,7 @@ import { db } from "@/firebase";
 import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ResizeMode, Video } from "expo-av";
+import { StatusBar } from "expo-status-bar";
 
 const Media = () => {
   const [activeTab, setActiveTab] = useState("national");
@@ -87,7 +88,7 @@ const Media = () => {
     if (!item.images && !item.videos) return null;
 
     return (
-      <View className="flex-row items-center justify-between m-2 dark:bg-gray-600">
+      <View className="flex-row items-center justify-between m-1 dark:bg-gray-600 rounded-sm">
         <View className="flex-row">
           {item.images ? (
             <Image
@@ -118,7 +119,11 @@ const Media = () => {
       renderItem={renderPost}
       numColumns={2}
       showsVerticalScrollIndicator={false}
-      contentContainerStyle={{ paddingBottom: 5, alignSelf: "center" }}
+      contentContainerStyle={{
+        paddingBottom: 10,
+        alignSelf: "center",
+        marginBottom: 10,
+      }}
       ListEmptyComponent={
         <View className="flex-1 items-center justify-center">
           <Text className="dark:text-white">No Posts</Text>
@@ -128,7 +133,8 @@ const Media = () => {
   );
 
   return (
-    <SafeAreaView className="flex-1 gap-2  dark:bg-gray-800">
+    <SafeAreaView className="flex-1 gap-2  dark:bg-gray-800" edges={["bottom"]}>
+      <StatusBar style="auto" />
       {/* 🔥 Tab Selector */}
       <View className="flex-row justify-between p-3 px-5 bg-gray-200 dark:bg-gray-700  items-center">
         {["national", "county", "constituency", "ward"].map((tab) => (

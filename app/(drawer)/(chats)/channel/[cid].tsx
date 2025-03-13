@@ -14,15 +14,19 @@ import {
 } from "stream-chat-expo";
 import * as Crypto from "expo-crypto";
 import { StatusBar } from "expo-status-bar";
-import { useColorScheme } from "@/hooks/useColorScheme.web";
+import { useColorScheme } from "@/hooks/useColorScheme";
 
 export default function ChannelScreen() {
   const [channel, setChannel] = useState<ChannelType | null>(null);
   const { cid } = useLocalSearchParams<{ cid: string }>();
   const { client } = useChatContext();
   const videoClient = useStreamVideoClient();
-    const colorScheme = useColorScheme();
-  
+  const colorScheme = useColorScheme();
+  const [chatUserName, setChatUserName] = useState("Chat");
+
+  // Define background colors
+  const backgroundColor = colorScheme === "dark" ? "#1F2937" : "#FFFFFF"; // Dark mode: gray-800, Light mode: white
+  const textColor = colorScheme === "dark" ? "#FFFFFF" : "#000000"; // Adjust text color
 
   useEffect(() => {
     if (!cid) return;
@@ -30,11 +34,23 @@ export default function ChannelScreen() {
     const fetchChannel = async () => {
       try {
         const channels = await client.queryChannels({ cid });
-        setChannel(channels[0]);
+        const channel = channels[0];
+        setChannel(channel);
+
+        if (channel) {
+          const members = Object.values(channel.state.members);
+          const currentUserId = client.user.id;
+          const otherUser = members.find(
+            (member) => member.user_id !== currentUserId
+          );
+
+          setChatUserName(otherUser?.user?.name || "Chat");
+        }
       } catch (error) {
         console.error("Error fetching channel:", error);
       }
     };
+
     fetchChannel();
   }, [cid]);
 
@@ -51,7 +67,6 @@ export default function ChannelScreen() {
       data: { members },
     });
 
-    // Uncomment to navigate to the call screen after joining
     router.push(`/(drawer)/(chats)/call/${call.id}`);
   };
 
@@ -59,10 +74,11 @@ export default function ChannelScreen() {
     return (
       <>
         <Stack.Screen options={{ headerShown: false }} />
-        <View className="flex-1 justify-center items-center dark:bg-gray-800">
-          <ActivityIndicator
-            color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
-          />
+        <View
+          className="flex-1 justify-center items-center"
+          style={{ backgroundColor }}
+        >
+          <ActivityIndicator color={textColor} />
         </View>
       </>
     );
@@ -74,25 +90,38 @@ export default function ChannelScreen() {
   };
 
   return (
-    <Channel
-      channel={channel}
-      MessageAvatar={CustomAvatar}
-      audioRecordingEnabled
-    >
-      <Stack.Screen
-        options={{
-          headerShown: true,
-          title: "",
-          headerRight: () => (
-            <Ionicons name="call" size={20} color="gray" onPress={joinCall} />
-          ),
-        }}
-      />
-      <MessageList />
-      <SafeAreaView edges={["bottom"]}>
-        <StatusBar style="auto" />
-        <MessageInput />
-      </SafeAreaView>
-    </Channel>
+    <View style={{ flex: 1, backgroundColor }}>
+      <Channel
+        channel={channel}
+        MessageAvatar={CustomAvatar}
+        audioRecordingEnabled
+      >
+        <Stack.Screen
+          options={{
+            headerShown: true,
+            title: chatUserName,
+            headerStyle: { backgroundColor }, // Header background color
+            headerTintColor: textColor, // Header text color
+            headerRight: () => (
+              <Ionicons
+                name="call"
+                size={20}
+                color={textColor}
+                onPress={joinCall}
+              />
+            ),
+          }}
+        />
+
+        {/* MessageList with background color */}
+        <MessageList style={{ flex: 1, backgroundColor }} />
+
+
+        <SafeAreaView edges={["bottom"]} style={{ backgroundColor }}>
+          <StatusBar style="auto" />
+          <MessageInput />
+        </SafeAreaView>
+      </Channel>
+    </View>
   );
 }

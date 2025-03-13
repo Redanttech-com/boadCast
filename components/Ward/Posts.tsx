@@ -248,7 +248,7 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
   }, [id, userData?.uid]);
 
   //delete post
-async function deletePost() {
+  async function deletePost() {
     if (!id) {
       console.log("No post document reference available to delete.");
       return;
@@ -273,8 +273,8 @@ async function deletePost() {
               const wardLikesRef = collection(db, "ward", id, "likes");
 
               const wardLikesSnapshot = await getDocs(wardLikesRef);
-              const deletewardLikes = wardLikesSnapshot.docs.map(
-                (likeDoc) => deleteDoc(likeDoc.ref)
+              const deletewardLikes = wardLikesSnapshot.docs.map((likeDoc) =>
+                deleteDoc(likeDoc.ref)
               );
 
               // Iterate through each comment to delete its likes and the comment itself
@@ -457,9 +457,13 @@ async function deletePost() {
     checkBookmark();
   }, [pstId, userId]);
 
+  const uid = post?.uid;
   return (
     <View className="mb-1 rounded-md  border-gray-200  shadow-md bg-white  dark:bg-gray-700">
-      <View className="flex-row items-center gap-1 p-2">
+      <Pressable
+        className="flex-row items-center gap-1 p-2 "
+        onPress={() => router.push(`/(userProfile)/${uid}`)}
+      >
         <Avatar
           size={40}
           source={post?.userImg && { uri: post?.userImg }}
@@ -515,7 +519,7 @@ async function deletePost() {
         </View>
         <View className="flex-row items-center ml-auto gap-2">
           {user?.id === post?.uid && (
-            <Pressable onPress={deletePost}>
+            <Pressable onPress={deletePost} className="p-4">
               <Feather
                 name="trash-2"
                 size={20}
@@ -550,52 +554,54 @@ async function deletePost() {
             </Pressable>
           </Popover>
         </View>
-      </View>
+      </Pressable>
 
       {post?.citeInput ? (
         <View className="gap-3">
-          <Link href={`/const/${id}`} className="ml-12">
+          <Link href={`/ward/${id}`} className="ml-12">
             <Text className="ml-12 dark:text-white">{post?.citeInput}</Text>
           </Link>
           <View className="bg-gray-100 ml-20 gap-3 p-2 rounded-md dark:bg-gray-600">
-            <View className="flex-row items-center gap-1">
-              <Avatar
-                size={40}
-                rounded
-                source={post?.citeUserImg ? { uri: post?.citeUserImg } : null}
-                title={post?.name && post?.name[0].toUpperCase()}
-                containerStyle={{
-                  backgroundColor: getColorFromName(post?.name),
-                }} // Consistent color per user
-                avatarStyle={{
-                  borderRadius: 5, // This affects the actual image
-                }}
-              />
-              <View className="flex-row  w-full mx-auto">
-                <Text
-                  className="text-gray-800  font-bold max-w-24 min-w-12 dark:text-white"
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                >
-                  {post?.fromUser}
-                </Text>
-                <Text
-                  className="text-gray-800 font-bold max-w-24 min-w-12 dark:text-white"
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                >
-                  {post?.fromlastname}
-                </Text>
-                <Text
-                  className="text-gray-600 max-w-24 min-w-12 dark:text-white "
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                >
-                  {" "}
-                  @{post?.fromNickname}
-                </Text>
-              </View>
-            </View>
+            <Link href={`/(userProfile)/${post?.Uid}`}>
+              <Pressable className="flex-row items-center gap-1">
+                <Avatar
+                  size={40}
+                  source={post?.citeUserImg ? { uri: post?.citeUserImg } : null}
+                  title={post?.name && post?.name[0].toUpperCase()}
+                  containerStyle={{
+                    backgroundColor: getColorFromName(post?.name),
+                    borderRadius: 5, // Adjust this value for more or less roundness
+                  }} // Consistent color per user
+                  avatarStyle={{
+                    borderRadius: 5, // This affects the actual image
+                  }}
+                />
+                <View className="flex-row  w-full mx-auto">
+                  <Text
+                    className="text-gray-800  font-bold max-w-24 min-w-12 dark:text-white"
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    {post?.fromUser}
+                  </Text>
+                  <Text
+                    className="text-gray-800 font-bold max-w-24 min-w-12 dark:text-white"
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    {post?.fromlastname}
+                  </Text>
+                  <Text
+                    className="text-gray-600 max-w-24 min-w-12 dark:text-white "
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    {" "}
+                    @{post?.fromNickname}
+                  </Text>
+                </View>
+              </Pressable>
+            </Link>
 
             {loading ? (
               <ActivityIndicator />
@@ -663,13 +669,13 @@ async function deletePost() {
             )}
 
             <View className="w-full">
-              <Text className="ml-12 dark:text-white ">{post?.text}</Text>
+              <Text className=" dark:text-white ">{post?.text}</Text>
             </View>
           </View>
         </View>
       ) : (
         <>
-          <View className="ml-12 mb-4 gap-3">
+          <View className="mx-2 mb-4 gap-3">
             <Link href={`/ward/${id}`}>
               <Text className="text-md dark:text-white ">{post?.text}</Text>
             </Link>
@@ -713,7 +719,7 @@ async function deletePost() {
 
                   <Pressable
                     className="absolute w-full h-full "
-                    onPress={() => router.push(`/const/${id}`)}
+                    onPress={() => router.push(`/ward/${id}`)}
                   >
                     <Pressable
                       onPress={() => setIsMuted(!isMuted)}
@@ -731,7 +737,7 @@ async function deletePost() {
 
               {/* Image Handling */}
               {post?.images && (
-                <Link href={`/const/${id}`}>
+                <Link href={`/ward/${id}`}>
                   <Image
                     source={{ uri: post.images }}
                     style={{
@@ -759,7 +765,7 @@ async function deletePost() {
                     openBottomSheet();
                   }
             }
-            className="flex-row items-center p-3"
+            className="flex-row items-center p-4"
           >
             <Ionicons
               name="chatbubble-ellipses-outline"
@@ -768,7 +774,7 @@ async function deletePost() {
             />
             <View>
               <Text className="dark:text-white">
-                {comments.length > 0 ? formatNumber(comments.length) : ""}
+                {comments?.length > 0 ? formatNumber(comments?.length) : ""}
               </Text>
             </View>
           </Pressable>
@@ -778,7 +784,7 @@ async function deletePost() {
           {loading ? (
             <ActivityIndicator color="blue" />
           ) : (
-            <Pressable onPress={repost} className="p-3">
+            <Pressable onPress={repost} className="p-4">
               <Feather
                 name="corner-up-left"
                 size={20}
@@ -790,7 +796,7 @@ async function deletePost() {
 
         <Popover
           from={
-            <TouchableOpacity className="p-3">
+            <TouchableOpacity className="p-4">
               <Feather
                 name="edit"
                 size={20}
@@ -823,7 +829,7 @@ async function deletePost() {
 
         <TouchableOpacity
           onPress={likePost}
-          className="flex-row items-center gap-2"
+          className="flex-row items-center gap-2 p-4"
         >
           <AntDesign
             name={hasLiked ? "heart" : "hearto"}

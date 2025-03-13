@@ -475,10 +475,16 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
   useEffect(() => {
     checkBookmark();
   }, [pstId, userId]);
+  
+  const uid = post?.uid;
+
 
   return (
     <View className="mb-1 rounded-md  border-gray-200  shadow-md bg-white  dark:bg-gray-700">
-      <View className="flex-row items-center gap-1 p-2">
+      <Pressable
+        className="flex-row items-center gap-1 p-2 "
+        onPress={() => router.push(`/(userProfile)/${uid}`)}
+      >
         <Avatar
           size={40}
           source={post?.userImg && { uri: post?.userImg }}
@@ -532,9 +538,9 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
             </Text>
           </View>
         </View>
-        <View className="flex-row items-center ml-auto  p-4">
+        <View className="flex-row items-center ml-auto gap-2">
           {user?.id === post?.uid && (
-            <Pressable onPress={deletePost}>
+            <Pressable onPress={deletePost} className="p-4">
               <Feather
                 name="trash-2"
                 size={20}
@@ -569,7 +575,7 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
             </Pressable>
           </Popover>
         </View>
-      </View>
+      </Pressable>
 
       {post?.citeInput ? (
         <View className="gap-3">
@@ -577,44 +583,46 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
             <Text className="ml-12 dark:text-white">{post?.citeInput}</Text>
           </Link>
           <View className="bg-gray-100 ml-20 gap-3 p-2 rounded-md dark:bg-gray-600">
-            <View className="flex-row items-center gap-1">
-              <Avatar
-                size={40}
-                rounded
-                source={post?.citeUserImg ? { uri: post?.citeUserImg } : null}
-                title={post?.name && post?.name[0].toUpperCase()}
-                containerStyle={{
-                  backgroundColor: getColorFromName(post?.name),
-                }} // Consistent color per user
-                avatarStyle={{
-                  borderRadius: 5, // This affects the actual image
-                }}
-              />
-              <View className="flex-row  w-full mx-auto">
-                <Text
-                  className="text-gray-800  font-bold max-w-24 min-w-12 dark:text-white"
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                >
-                  {post?.fromUser}
-                </Text>
-                <Text
-                  className="text-gray-800 font-bold max-w-24 min-w-12 dark:text-white"
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                >
-                  {post?.fromlastname}
-                </Text>
-                <Text
-                  className="text-gray-600 max-w-24 min-w-12 dark:text-white "
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                >
-                  {" "}
-                  @{post?.fromNickname}
-                </Text>
-              </View>
-            </View>
+            <Link href={`/(userProfile)/${post?.Uid}`}>
+              <Pressable className="flex-row items-center gap-1">
+                <Avatar
+                  size={40}
+                  source={post?.citeUserImg ? { uri: post?.citeUserImg } : null}
+                  title={post?.name && post?.name[0].toUpperCase()}
+                  containerStyle={{
+                    backgroundColor: getColorFromName(post?.name),
+                    borderRadius: 5, // Adjust this value for more or less roundness
+                  }} // Consistent color per user
+                  avatarStyle={{
+                    borderRadius: 5, // This affects the actual image
+                  }}
+                />
+                <View className="flex-row  w-full mx-auto">
+                  <Text
+                    className="text-gray-800  font-bold max-w-24 min-w-12 dark:text-white"
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    {post?.fromUser}
+                  </Text>
+                  <Text
+                    className="text-gray-800 font-bold max-w-24 min-w-12 dark:text-white"
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    {post?.fromlastname}
+                  </Text>
+                  <Text
+                    className="text-gray-600 max-w-24 min-w-12 dark:text-white "
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    {" "}
+                    @{post?.fromNickname}
+                  </Text>
+                </View>
+              </Pressable>
+            </Link>
 
             {loading ? (
               <ActivityIndicator />
@@ -682,13 +690,13 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
             )}
 
             <View className="w-full">
-              <Text className="ml-12 dark:text-white ">{post?.text}</Text>
+              <Text className=" dark:text-white ">{post?.text}</Text>
             </View>
           </View>
         </View>
       ) : (
         <>
-          <View className="ml-12 mb-4 gap-3">
+          <View className="mx-2 mb-4 gap-3">
             <Link href={`/const/${id}`}>
               <Text className="text-md dark:text-white ">{post?.text}</Text>
             </Link>
@@ -787,7 +795,7 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
             />
             <View>
               <Text className="dark:text-white">
-                {comments.length > 0 ? formatNumber(comments.length) : ""}
+                {comments?.length > 0 ? formatNumber(comments?.length) : ""}
               </Text>
             </View>
           </Pressable>
@@ -840,9 +848,9 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
           </View>
         </Popover>
 
-        <Pressable
+        <TouchableOpacity
           onPress={likePost}
-          className="flex-row items-center gap-2  p-4"
+          className="flex-row items-center gap-2 p-4"
         >
           <AntDesign
             name={hasLiked ? "heart" : "hearto"}
@@ -858,7 +866,7 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
               </Text>
             </View>
           )}
-        </Pressable>
+        </TouchableOpacity>
         <View className="flex-row items-center gap-2">
           <Feather
             name="eye"

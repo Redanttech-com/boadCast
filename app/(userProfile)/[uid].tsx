@@ -24,7 +24,7 @@ import {
   FontAwesome,
   MaterialCommunityIcons,
 } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { Avatar } from "react-native-elements";
 import { useUser } from "@clerk/clerk-expo";
 import { StatusBar } from "expo-status-bar";
@@ -48,6 +48,7 @@ const Profile = ({ bookmarks }) => {
   const imageSize = (screenWidth - 40) / numColumns; // Adjust width dynamically
   const [backImg, setBackImg] = useState(null);
   const [userImg, setUserImg] = useState(null);
+  const { uid } = useLocalSearchParams();
 
   const pickMedia = useCallback(async (type) => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -66,7 +67,7 @@ const Profile = ({ bookmarks }) => {
   useEffect(() => {
     const fetchUserData = async () => {
       if (!user?.id) return;
-      const q = query(collection(db, "userPosts"), where("uid", "==", user.id));
+      const q = query(collection(db, "userPosts"), where("uid", "==", uid));
       const querySnapshot = await getDocs(q);
       if (!querySnapshot.empty) {
         setUserData(querySnapshot.docs[0].data());
@@ -121,18 +122,18 @@ const Profile = ({ bookmarks }) => {
   useEffect(() => {
     const fetchUserData = async () => {
       if (!user?.id && !userData) return;
-      const q = query(collection(db, "national"), where("uid", "==", user?.id));
+      const q = query(collection(db, "national"), where("uid", "==", uid));
       const q2 = query(
         collection(db, "county", userData?.county, "posts"),
-        where("uid", "==", user.id)
+        where("uid", "==", uid)
       );
       const q3 = query(
         collection(db, "constituency", userData?.constituency, "posts"),
-        where("uid", "==", user.id)
+        where("uid", "==", uid)
       );
       const q4 = query(
         collection(db, "ward", userData?.ward, "posts"),
-        where("uid", "==", user.id)
+        where("uid", "==", uid)
       );
 
       const [snapshot1, snapshot2, snapshot3, snapshot4] = await Promise.all([
@@ -168,15 +169,15 @@ const Profile = ({ bookmarks }) => {
 
   // Fetch followers & following in one useEffect
   useEffect(() => {
-    if (!userData?.uid) return;
+    if (!uid) return;
 
     const followingQuery = query(
       collection(db, "following"),
-      where("followerId", "==", userData.uid)
+      where("followerId", "==", uid)
     );
     const followerQuery = query(
       collection(db, "following"),
-      where("followingId", "==", userData.uid)
+      where("followingId", "==", uid)
     );
 
     const unsubscribeFollowing = onSnapshot(followingQuery, (snapshot) => {
@@ -191,7 +192,7 @@ const Profile = ({ bookmarks }) => {
       unsubscribeFollowing();
       unsubscribeFollowers();
     };
-  }, [userData?.uid]);
+  }, [uid]);
 
   const getColorFromName = (name) => {
     if (!name) return "#ccc"; // Default color if no name exists
@@ -223,10 +224,7 @@ const Profile = ({ bookmarks }) => {
   useEffect(() => {
     const fetchUserData = async () => {
       if (userData) {
-        const q = query(
-          collection(db, "userPosts"),
-          where("uid", "==", userData?.uid)
-        );
+        const q = query(collection(db, "userPosts"), where("uid", "==", uid));
         const querySnapshot = await getDocs(q);
         if (!querySnapshot.empty) {
           const userData = querySnapshot.docs[0].data(); // Store the document data
@@ -287,10 +285,10 @@ const Profile = ({ bookmarks }) => {
   );
 
   return (
-    <View className="flex-1 relative  dark:bg-gray-800 ">
+    <View className="flex-1 relative  dark:bg-gray-800 mt-20">
       <StatusBar style="auto" />
       {/* Background Image */}
-    
+
       <View className="mt-5 justify-center items-center">
         <Avatar
           size={100}
@@ -316,12 +314,18 @@ const Profile = ({ bookmarks }) => {
           <Text className="font-bold text-slate-900 dark:text-white">
             {userData?.name}
           </Text>
-          <Pressable
-            onPress={() => router.push('/(user)')}
-            className="border p-2 rounded-md dark:border-white"
-          >
-            <Text className="dark:text-white">Edit profile</Text>
-          </Pressable>
+          {user?.id === uid ? (
+            <Pressable
+              onPress={() => router.push("/(user)")}
+              className="border p-2 rounded-md dark:border-white"
+            >
+              <Text className="dark:text-white">Edit profile</Text>
+            </Pressable>
+          ) : (
+            <Pressable className="border p-2 rounded-md dark:border-white">
+              <Text className="dark:text-white">Edit profile</Text>
+            </Pressable>
+          )}
           <Pressable className="border p-2 rounded-md dark:border-white">
             <Text className="dark:text-white">View Catalogue</Text>
           </Pressable>
@@ -333,16 +337,33 @@ const Profile = ({ bookmarks }) => {
               {formatNumber(posts?.length)} posts
             </Text>
           </Pressable>
-          <Pressable onPress={() => router.push("/(follow)/follow")}>
-            <Text className="dark:text-white">
-              {formatNumber(followerCount)} followers
-            </Text>
-          </Pressable>
-          <Pressable onPress={() => router.push("/(follow)/follow")}>
-            <Text className="dark:text-white">
-              {formatNumber(followingCount)} following
-            </Text>
-          </Pressable>
+          {user?.id === uid ? (
+            <Pressable onPress={() => router.push("/(follow)/follow")}>
+              <Text className="dark:text-white">
+                {formatNumber(followerCount)} followers
+              </Text>
+            </Pressable>
+          ) : (
+            <Pressable>
+              <Text className="dark:text-white">
+                {formatNumber(followerCount)} followers
+              </Text>
+            </Pressable>
+          )}
+
+          {user?.id === uid ? (
+            <Pressable onPress={() => router.push("/(follow)/follow")}>
+              <Text className="dark:text-white">
+                {formatNumber(followerCount)} following
+              </Text>
+            </Pressable>
+          ) : (
+            <Pressable>
+              <Text className="dark:text-white">
+                {formatNumber(followerCount)} following
+              </Text>
+            </Pressable>
+          )}
         </View>
         {/* Profile Menu */}
         <View className="border-t-hairline border-gray-200 flex-row justify-between items-center">

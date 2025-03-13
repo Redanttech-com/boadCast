@@ -176,15 +176,21 @@ const Status = () => {
           />
         </View>
 
-        <View className="flex-row mt-4 justify-center gap-3">
-          <Pressable onPress={() => pickMedia("Images")}>
+        <View className="flex-row  justify-center gap-1">
+          <Pressable
+            onPress={() => pickMedia("Images")}
+            className="p-4 rounded-full border-gray-400 border-2 items-center"
+          >
             <Ionicons
               name="image-outline"
               size={24}
               color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
             />
           </Pressable>
-          <Pressable onPress={() => pickMedia("Videos")}>
+          <Pressable
+            onPress={() => pickMedia("Videos")}
+            className="p-4 rounded-full border-gray-400 border-2 items-center"
+          >
             <Ionicons
               name="videocam-outline"
               size={24}
@@ -199,7 +205,7 @@ const Status = () => {
                 <Video
                   source={{ uri: media.uri }}
                   style={{ width: "100%", height: 300 }}
-                  useNativeControls={false}
+                  useNativeControls={true}
                   isLooping
                   shouldPlay
                   resizeMode={ResizeMode.CONTAIN}

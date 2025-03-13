@@ -78,7 +78,7 @@ const MediaSize = () => {
   const [post, setPost] = useState(null);
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
   const bottomSheetRef = useRef(null);
-  const snapPoints = useMemo(() => ["100%", "100%"], []);
+  const snapPoints = useMemo(() => ["80%", "80%"], []);
   const openBottomSheet = useCallback(() => setIsBottomSheetOpen(true), []);
   const [userData, setUserData] = useState(null);
   const colorScheme = useColorScheme();
@@ -503,7 +503,7 @@ const MediaSize = () => {
   }
 
   return (
-    <SafeAreaView className="flex-1 rounded-md  border-gray-200  shadow-md bg-white  dark:bg-gray-800">
+    <SafeAreaView className="flex-1 border-gray-200  shadow-md bg-white  dark:bg-gray-800">
       <ScrollView>
         <StatusBar style="auto" />
         <View className="flex-row items-center gap-1 p-2">

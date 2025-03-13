@@ -191,6 +191,16 @@ export default function nationalInput() {
     <SafeAreaView className="flex-1 bg-white dark:bg-gray-800 ">
       <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
       <View className="flex-row items-center p-4 gap-5 pt-42">
+        <Pressable
+          onPress={() => router.push("/(drawer)/(tabs)")}
+          className="p-3 rounded-full"
+        >
+          <Ionicons
+            name="arrow-back"
+            size={24}
+            color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
+          />
+        </Pressable>
         <Avatar
           size={40}
           source={userData?.userImg && { uri: userData?.userImg }}
@@ -221,7 +231,7 @@ export default function nationalInput() {
           multiline
           numberOfLines={3}
           style={{
-            width: "80%",  // 80% of the screen width  
+            width: "80%", // 80% of the screen width
             padding: 15,
             borderRadius: 10,
             borderWidth: 1,
@@ -239,7 +249,6 @@ export default function nationalInput() {
           >
             <Text className="text-white text-center font-bold">Cast</Text>
           </Pressable>
-         
         )}
       </View>
       <View className="flex-row mt-4 gap-1  justify-between w-full items-center">

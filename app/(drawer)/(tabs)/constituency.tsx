@@ -7,9 +7,10 @@ import { View } from "react-native";
 
 const constituency = () => {
   return (
-    <View className="flex-1 dark:bg-gray-800 bg-white">
-      <Feed />
-    </View>
+    <SafeAreaView className="flex-1 dark:bg-gray-800" edges={["bottom"]}>
+      <StatusBar style="auto" />
+      <Feed className="flex-1" />
+    </SafeAreaView>
   );
 };
 

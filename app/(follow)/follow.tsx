@@ -230,6 +230,7 @@ const FollowersScreen = () => {
           size={24}
           color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
           onPress={() => router.push("/(drawer)/profile")}
+          className="p-3 rounded-full"
         />
         <Pressable
           onPress={() => setActiveTab("followers")}

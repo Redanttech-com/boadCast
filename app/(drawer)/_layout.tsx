@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { createDrawerNavigator } from "@react-navigation/drawer";
-import { router, useRouter, withLayoutContext } from "expo-router";
+import { router, useRouter, useSegments, withLayoutContext } from "expo-router";
 import {
   DrawerContentScrollView,
   DrawerItemList,
@@ -108,6 +108,7 @@ function CustomDrawerContent(props) {
             avatarStyle={{
               borderRadius: 5, // This affects the actual image
             }}
+            onPress={() => router.push("/(drawer)/profile")}
           />
           <View>
             <Text
@@ -139,12 +140,104 @@ function CustomDrawerContent(props) {
 
 // Drawer Layout
 export default function DrawerLayout() {
-  const colorScheme = useColorScheme();
+   const [userData, setUserData] = useState(null);
+   const { user } = useUser();
+   const [loading, setLoading] = useState(true);
+   // Detect system theme
+   const colorScheme = useColorScheme();
+   useEffect(() => {
+     const fetchUserData = async () => {
+       if (!user?.id) return;
+       const q = query(
+         collection(db, "userPosts"),
+         where("uid", "==", user.id)
+       );
+       const querySnapshot = await getDocs(q);
+       if (!querySnapshot.empty) {
+         setUserData(querySnapshot.docs[0].data());
+       }
+     };
+     fetchUserData();
+     setLoading(false);
+   }, [user]);
+   
+  const segments = useSegments(); // Get current active route segments
+  const currentScreen = segments[segments.length - 1] || "BroadCast"; // Get the last segment (current screen)
+
+  const [userLocation, setUserLocation] = useState({
+    county: "",
+    constituency: "",
+    ward: "",
+  });
+
+  // Fetch user data from Firebase (Replace with Supabase if needed)
+  useEffect(() => {
+    const fetchUserLocation = async () => {
+      if (!user?.id) return;
+      const q = query(collection(db, "userPosts"), where("uid", "==", user.id));
+      const querySnapshot = await getDocs(q);
+      if (!querySnapshot.empty) {
+        const userData = querySnapshot.docs[0].data();
+        setUserLocation({
+          county: userData.county || "Unknown County",
+          constituency: userData.constituency || "Unknown Constituency",
+          ward: userData.ward || "Unknown Ward",
+        });
+      }
+    };
+    fetchUserLocation();
+  }, [user]);
+
+   const getColorFromName = (name) => {
+     if (!name) return "#ccc"; // Default color if no name exists
+
+     // Generate a hash number from the name
+     let hash = 0;
+     for (let i = 0; i < name.length; i++) {
+       hash = name.charCodeAt(i) + ((hash << 5) - hash);
+     }
+
+     // Predefined colors for better visuals
+     const colors = [
+       "#FF5733",
+       "#33FF57",
+       "#3357FF",
+       "#F1C40F",
+       "#8E44AD",
+       "#E74C3C",
+       "#2ECC71",
+       "#1ABC9C",
+       "#3498DB",
+     ];
+
+     // Pick a color consistently based on the hash value
+     return colors[Math.abs(hash) % colors.length];
+   };
+  // Function to determine screen title & icon dynamically
+
+  const getScreenOptions = () => {
+    switch (currentScreen) {
+      case "county":
+        return { title: `${userLocation.county} County` };
+      case "constituency":
+        return { title: `${userLocation.constituency} Constituency` };
+      case "ward":
+        return { title: `${userLocation.ward} Ward` };
+      default:
+        return { title: "National" };
+    }
+  };
+
+  const { title } = getScreenOptions();
   return (
     <Drawer
       screenOptions={{
         headerShown: true,
         headerTransparent: false,
+        headerStyle: {
+          backgroundColor: colorScheme === "dark" ? "#1F2937" : "#FFFFFF", // Dark mode header background
+        },
+        headerTintColor: colorScheme === "dark" ? "#FFFFFF" : "#000000", // Text color in header
         drawerStyle: {
           backgroundColor: colorScheme === "dark" ? "#1F2937" : "#FFFFFF", // Dark mode background
         },
@@ -156,9 +249,26 @@ export default function DrawerLayout() {
       <Drawer.Screen
         name="(tabs)"
         options={{
-          title: "BroadCast",
+          title: title,
           drawerIcon: ({ size, color }) => (
             <Ionicons name="home" size={size} color={color} />
+          ),
+          headerRight: () => (
+            <View className="flex-row items-center gap-2 px-4">
+              <Avatar
+                size={40}
+                source={userData?.userImg && { uri: userData?.userImg }}
+                title={userData?.name && userData?.name[0].toUpperCase()}
+                containerStyle={{
+                  backgroundColor: getColorFromName(userData?.name),
+                  borderRadius: 5,
+                  marginTop: 2,
+                }} // Consistent color per user
+                avatarStyle={{
+                  borderRadius: 5, // This affects the actual image
+                }}
+              />
+            </View>
           ),
         }}
       />
@@ -184,20 +294,18 @@ export default function DrawerLayout() {
       <Drawer.Screen
         name="(chats)"
         options={{
-            title: "Chats",
-            drawerIcon: ({ size, color }) => (
-              <MaterialIcons name="message" size={size} color={color} />
-            ),
-            headerRight: () => (
-              <Pressable
-                onPress={() => 
-                  router.push("/(drawer)/(chats)/users")
-                }
-                className="mr-5"
-              >
-                <Ionicons name="people" size={24} color="black" />
-              </Pressable>
-            ),
+          title: "Chats",
+          drawerIcon: ({ size, color }) => (
+            <MaterialIcons name="message" size={size} color={color} />
+          ),
+          headerRight: () => (
+            <Pressable
+              onPress={() => router.push("/(drawer)/(chats)/users")}
+              className="mr-5"
+            >
+              <Ionicons name="people" size={24} color="gray" />
+            </Pressable>
+          ),
         }}
       />
       <Drawer.Screen
