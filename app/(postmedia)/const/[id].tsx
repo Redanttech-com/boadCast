@@ -17,6 +17,7 @@ import {
   Button,
   useWindowDimensions,
   ScrollView,
+  Modal,
 } from "react-native";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import Feather from "@expo/vector-icons/Feather";
@@ -85,6 +86,7 @@ const MediaSize = () => {
   const [mediaSize, setMediaSize] = useState({ width: "100%", height: 600 });
   const { width } = useWindowDimensions();
   const [isPaused, setIsPaused] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
 
   const togglePlayback = async () => {
     if (videoRef.current) {
@@ -251,7 +253,15 @@ const MediaSize = () => {
                   ...(postData.video && { video: postData.video }),
                 };
 
-                await addDoc(collection(db, "constituency", userData?.constituency, "posts"), newPostData);
+                await addDoc(
+                  collection(
+                    db,
+                    "constituency",
+                    userData?.constituency,
+                    "posts"
+                  ),
+                  newPostData
+                );
                 console.log("Post successfully reposted.");
               } catch (error) {
                 console.error("Error reposting the post:", error);
@@ -346,7 +356,9 @@ const MediaSize = () => {
               await Promise.all(deleteLikesPromises);
 
               // Delete the post document
-              await deleteDoc(doc(db, "constituency", userData?.constituency, "posts", id));
+              await deleteDoc(
+                doc(db, "constituency", userData?.constituency, "posts", id)
+              );
 
               // Delete the video associated with the post, if it exists
               const vidRef = ref(storage, `constituency/${id}/video`);
@@ -504,34 +516,33 @@ const MediaSize = () => {
 
   return (
     <SafeAreaView className="flex-1 border-gray-200  shadow-md bg-white  dark:bg-gray-800">
-      <ScrollView>
-        <StatusBar style="auto" />
-        <View className="flex-row items-center gap-1 p-2">
-          <View className="mr-10">
-            <Ionicons
-              name="arrow-back"
-              size={24}
-              color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
-              onPress={() => router.push("/(drawer)/(tabs)/constituency")}
-            />
-          </View>
-          <Avatar
-            size={40}
-            rounded
-            source={post?.userImg && { uri: post?.userImg }}
-            title={post?.name && post?.name[0].toUpperCase()}
-            containerStyle={{ backgroundColor: getColorFromName(post?.name) }} // Consistent color per user
+      <StatusBar style="auto" />
+      <View className="flex-row items-center gap-1 p-2">
+        <View className="mr-10">
+          <Ionicons
+            name="arrow-back"
+            size={24}
+            color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
+            onPress={() => router.push("/(constituencydrawer)/(tabs)")}
           />
-          <View className="flex-row gap-2 items-center ">
-            <Text
-              className="text-md max-w-20 min-w-12 font-bold dark:text-white  "
-              numberOfLines={1}
-              ellipsizeMode="tail"
-            >
-              {post?.name}
-            </Text>
+        </View>
+        <Avatar
+          size={40}
+          rounded
+          source={post?.userImg && { uri: post?.userImg }}
+          title={post?.name && post?.name[0].toUpperCase()}
+          containerStyle={{ backgroundColor: getColorFromName(post?.name) }} // Consistent color per user
+        />
+        <View className="flex-row gap-2 items-center ">
+          <Text
+            className="text-md max-w-20 min-w-12 font-bold dark:text-white  "
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
+            {post?.name}
+          </Text>
 
-            {/* <Text
+          {/* <Text
             className="text-md max-w-20 min-w-12 font-bold"
             numberOfLines={1}
             ellipsizeMode="tail"
@@ -539,50 +550,50 @@ const MediaSize = () => {
             {post?.lastname}
           </Text> */}
 
+          <Text
+            className="text-md max-w-20 min-w-12 text-gray-400 dark:text-white "
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
+            @{post?.nickname}
+          </Text>
+
+          <View className="flex-row items-center gap-2  bg-gray-100 rounded-full p-2 dark:bg-gray-600">
+            <MaterialCommunityIcons
+              name="clock-check-outline"
+              size={14}
+              color="gray"
+            />
             <Text
-              className="text-md max-w-20 min-w-12 text-gray-400 dark:text-white "
+              className="text-gray-400 max-w-18 min-w-18 "
               numberOfLines={1}
               ellipsizeMode="tail"
             >
-              @{post?.nickname}
+              {moment(post?.timestamp?.toDate()).fromNow(true)}
             </Text>
-
-            <View className="flex-row items-center gap-2  bg-gray-100 rounded-full p-2 dark:bg-gray-600">
-              <MaterialCommunityIcons
-                name="clock-check-outline"
-                size={14}
-                color="gray"
-              />
-              <Text
-                className="text-gray-400 max-w-18 min-w-18 "
-                numberOfLines={1}
-                ellipsizeMode="tail"
-              >
-                {moment(post?.timestamp?.toDate()).fromNow(true)}
-              </Text>
-            </View>
           </View>
-          <View className="flex-row items-center ml-auto gap-2">
-            {user?.id === post?.uid && (
-              <Pressable onPress={deletePost}>
-                <Feather
-                  name="trash-2"
-                  size={20}
-                  color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
-                />
-              </Pressable>
-            )}
-
-            <TouchableOpacity>
+        </View>
+        <View className="flex-row items-center ml-auto gap-2">
+          {user?.id === post?.uid && (
+            <Pressable onPress={deletePost}>
               <Feather
-                name="more-horizontal"
+                name="trash-2"
                 size={20}
                 color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
               />
-            </TouchableOpacity>
-          </View>
-        </View>
+            </Pressable>
+          )}
 
+          <TouchableOpacity>
+            <Feather
+              name="more-horizontal"
+              size={20}
+              color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
+            />
+          </TouchableOpacity>
+        </View>
+      </View>
+      <ScrollView>
         {post?.citeInput ? (
           <View className="gap-3">
             <Text className="ml-12 dark:text-white">{post?.citeInput}</Text>
@@ -780,7 +791,7 @@ const MediaSize = () => {
           </>
         )}
       </ScrollView>
-      <View className="absolute bottom-0 left-0 right-0 bg-white dark:bg-gray-800 p-5 flex-row items-center justify-between">
+      <View className="bottom-0 left-0 right-0 bg-white dark:bg-gray-800  flex-row items-center justify-between">
         <TouchableOpacity>
           <Pressable
             onPress={
@@ -820,40 +831,50 @@ const MediaSize = () => {
           )}
         </View>
 
-        <Popover
-          from={
-            <TouchableOpacity className="p-3">
-              <Feather
-                name="edit"
-                size={20}
-                color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
-              />
-            </TouchableOpacity>
-          }
+        <TouchableOpacity className="p-4" onPress={() => setModalVisible(true)}>
+          <Feather
+            name="edit"
+            size={20}
+            color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
+          />
+        </TouchableOpacity>
+        <Modal
+          visible={modalVisible}
+          transparent={true}
+          animationType="slide"
+          onRequestClose={() => setModalVisible(false)}
         >
-          <View className="p-4 min-w-96 bg-white dark:bg-slate-900 rounded-md shadow-md">
-            <TextInput
-              onChangeText={setCiteInput}
-              value={citeInput}
-              placeholder="Cite this post..."
-              placeholderTextColor={
-                colorScheme === "dark" ? "#FFFFFF" : "#808080"
-              }
-              className="w-full p-2 border border-gray-300 rounded-md min-w-96"
-              style={{
-                color: colorScheme === "dark" ? "#FFFFFF" : "#000000",
-              }}
-            />
-            <Pressable
-              className="mt-4 p-3 bg-blue-700 rounded-md w-full flex items-center min-w-96"
-              onPress={cite}
-            >
-              <Text className="text-white font-semibold dark:text-white">
-                {loading ? "Citing..." : "Cite"}
-              </Text>
-            </Pressable>
+          <View className="flex-1 justify-center items-center bg-black/50">
+            <View className="p-4 min-w-96 bg-white dark:bg-slate-900 rounded-md shadow-md">
+              <TextInput
+                onChangeText={setCiteInput}
+                value={citeInput}
+                placeholder="Cite this cast..."
+                placeholderTextColor={
+                  colorScheme === "dark" ? "#FFFFFF" : "#808080"
+                }
+                className="w-full p-2 border border-gray-300 rounded-md min-w-96"
+                style={{
+                  color: colorScheme === "dark" ? "#FFFFFF" : "#000000",
+                }}
+              />
+              <Pressable
+                className="mt-4 p-3 bg-blue-700 rounded-md w-full flex items-center min-w-96"
+                onPress={cite}
+              >
+                <Text className="text-white font-semibold dark:text-white">
+                  {loading ? "Citing..." : "Cite"}
+                </Text>
+              </Pressable>
+              <Pressable
+                className="mt-2 p-2 w-full items-center"
+                onPress={() => setModalVisible(false)}
+              >
+                <Text className="text-red-500 font-semibold">Cancel</Text>
+              </Pressable>
+            </View>
           </View>
-        </Popover>
+        </Modal>
 
         <TouchableOpacity
           onPress={likePost}

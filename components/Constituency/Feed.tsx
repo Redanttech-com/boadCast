@@ -68,9 +68,6 @@ const Feed = () => {
 
   const [loading, setLoading] = useState(false);
   const [media, setMedia] = useState({ uri: null, type: null });
-  const [isMuted, setIsMuted] = useState(true);
-  const [isPaused, setIsPaused] = useState(false);
-  const { width } = useWindowDimensions();
 
   const pickMedia = useCallback(async (type: "Images" | "Videos") => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -291,15 +288,15 @@ const Feed = () => {
     itemVisiblePercentThreshold: 50, // Define what percentage of the item should be visible to count as visible
   };
 
-  // if (loadingPosts) {
-  //   return (
-  //     <View className="flex-1 justify-center items-center dark:bg-gray-800">
-  //       <ActivityIndicator
-  //         color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
-  //       />
-  //     </View>
-  //   );
-  // }
+  if (loadingPosts) {
+    return (
+      <View className="flex-1 justify-center items-center dark:bg-gray-800">
+        <ActivityIndicator
+          color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
+        />
+      </View>
+    );
+  }
 
   return (
     <View className="flex-1  dark:bg-gray-800">
@@ -324,29 +321,6 @@ const Feed = () => {
         onViewableItemsChanged={onViewableItemsChanged}
         viewabilityConfig={viewabilityConfig}
       />
-
-      <TouchableOpacity
-        style={{
-          position: "absolute",
-          bottom: 70, // Adjusted to be behind input field
-          right: 20,
-          backgroundColor: "gray",
-          width: 56,
-          height: 56,
-          borderRadius: 50,
-          justifyContent: "center",
-          alignItems: "center",
-          elevation: 5, // Android shadow
-          shadowColor: "gray", // iOS shadow
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.3,
-          shadowRadius: 4,
-          zIndex: 100, // Ensures it is behind input
-        }}
-        onPress={() => router.push("/(inputs)/constituencyInput")}
-      >
-        <AntDesign name="plus" size={24} color="white" />
-      </TouchableOpacity>
 
       <BottomSheet
         ref={bottomSheetRef}

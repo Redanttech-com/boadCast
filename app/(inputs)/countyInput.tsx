@@ -137,6 +137,7 @@ const countyInput = () => {
     setInput("");
     setMedia({ uri: null, type: null });
     setLoading(false);
+     router.push("/(countydrawer)/(tabs)");
   };
 
   const getColorFromName = (name) => {
@@ -168,7 +169,10 @@ const countyInput = () => {
       <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
       <View className="w-full  items-center mt-4">
         <View className="flex-row items-center justify-between w-full px-4">
-          <Pressable onPress={() => router.push("/(drawer)/(tabs)/county")} className="p-3 rounded-full">
+          <Pressable
+            onPress={() => router.push("/(countydrawer)/(tabs)")}
+            className="p-3 rounded-full"
+          >
             <Ionicons
               name="arrow-back"
               size={24}
@@ -211,16 +215,19 @@ const countyInput = () => {
             }}
           />
 
-          {loading ? (
-            <ActivityIndicator size="small" color="blue" />
-          ) : (
-            <Pressable
-              onPress={sendPost}
-              className="w-80%  ml-auto bg-blue-500 p-4 rounded-md"
-            >
+          <Pressable
+            onPress={sendPost}
+            className="w-80%  ml-auto bg-blue-500 p-4 rounded-md"
+          >
+            {loading ? (
+              <ActivityIndicator
+                size="small"
+                color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
+              />
+            ) : (
               <Text className="text-white text-center font-bold">Cast</Text>
-            </Pressable>
-          )}
+            )}
+          </Pressable>
         </View>
         <View className="flex-row mt-4 justify-center gap-3">
           <Pressable
@@ -243,7 +250,6 @@ const countyInput = () => {
               color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
             />
           </Pressable>
-
         </View>
       </View>
       {media?.uri && (

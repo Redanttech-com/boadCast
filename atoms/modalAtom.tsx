@@ -5,6 +5,11 @@ export const modalComment = atom({
   default: "id",
 });
 
+// export const modalBookmark = atom({
+//   key: "modalBookmark",
+//   default: "id",
+// });
+
 export const modalWardComment = atom({
   key: "modalWardComment",
   default: "id",

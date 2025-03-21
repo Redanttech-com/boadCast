@@ -1,10 +1,9 @@
-import { View, Text } from "react-native";
-import React from "react";
+import React, { useState, useEffect } from "react";
+import Feed from "@/components/Constituency/Feed";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Feed from "@/components/Ward/Feed";
 import { StatusBar } from "expo-status-bar";
 
-const Ward = () => {
+const HomeScreen = () => {
   return (
     <SafeAreaView className="flex-1 dark:bg-gray-800" edges={["bottom"]}>
       <StatusBar style="auto" />
@@ -13,4 +12,4 @@ const Ward = () => {
   );
 };
 
-export default Ward;
+export default HomeScreen;

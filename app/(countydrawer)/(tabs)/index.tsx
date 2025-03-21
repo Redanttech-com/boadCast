@@ -1,11 +1,9 @@
-
-import React from "react";
+import React, { useState, useEffect } from "react";
+import Feed from "@/components/County/Feed";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Feed from "@/components/Constituency/Feed";
 import { StatusBar } from "expo-status-bar";
-import { View } from "react-native";
 
-const constituency = () => {
+const HomeScreen = () => {
   return (
     <SafeAreaView className="flex-1 dark:bg-gray-800" edges={["bottom"]}>
       <StatusBar style="auto" />
@@ -14,4 +12,4 @@ const constituency = () => {
   );
 };
 
-export default constituency;
+export default HomeScreen;

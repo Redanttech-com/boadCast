@@ -109,7 +109,7 @@ function ProductFeed() {
   };
 
   return (
-    <View className=" bg-gray-100 dark:bg-gray-800 flex-1">
+    <View className=" bg-gray-100 dark:bg-gray-800 flex-1 ">
       {loading ? (
         <View
           style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
@@ -177,7 +177,7 @@ function ProductFeed() {
                       selectedCategory === category ? "#4caf50" : "#333",
                     paddingVertical: 8,
                     paddingHorizontal: 12,
-                    margin: 5,  
+                    margin: 5,
                     borderRadius: 5,
                     minHeight: 40,
                     justifyContent: "center",
@@ -213,7 +213,12 @@ function ProductFeed() {
               }
             }}
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ marginBottom: 10, paddingVertical: 50 }}
+            contentContainerStyle={{
+              paddingBottom: 10,
+              alignSelf: "center",
+              marginBottom: 10,
+            }}
+            numColumns={3}
             ListEmptyComponent={
               <View
                 style={{

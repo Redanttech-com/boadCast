@@ -14,6 +14,7 @@ import {
   Pressable,
   Alert,
   TextInput,
+  Modal,
 } from "react-native";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import Feather from "@expo/vector-icons/Feather";
@@ -66,6 +67,13 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
   const [userData, setUserData] = useState(null);
   const { width } = useWindowDimensions();
   const [isBookmarked, setIsBookmarked] = useState({});
+  const [modalVisible, setModalVisible] = useState(false);
+  const [bookmarkVisible, setBookmarkVisible] = useState(false);
+
+  const handleBookmark = () => {
+    toggleBookmark();
+    setBookmarkVisible(false); // Close modal after action
+  };
 
   useEffect(() => {
     if (post?.images) {
@@ -95,12 +103,7 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
       return;
     }
     const unsubscribe = onSnapshot(
-      collection(
-        db,
-        "constituency",
-        id,
-        "comments"
-      ),
+      collection(db, "constituency", id, "comments"),
       (snapshot) => setComments(snapshot.docs)
     );
 
@@ -162,7 +165,7 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
     if (post) {
       Alert.alert(
         "Recast Confirmation",
-        "Are you sure you want to recast this?...",
+        "Are you sure you want to recast this?",
         [
           {
             text: "Cancel",
@@ -264,15 +267,15 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
   }, [id, userData?.uid]);
 
   //delete post
- async function deletePost() {
+  async function deletePost() {
     if (!id) {
       console.log("No post document reference available to delete.");
       return;
     }
 
     Alert.alert(
-      "Delete Post",
-      "Are you sure you want to delete this post? This action cannot be undone.",
+      "Delete Cast",
+      "Are you sure you want to delete this cast? This action cannot be undone.",
       [
         {
           text: "Cancel",
@@ -284,14 +287,27 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
           onPress: async () => {
             try {
               // Reference to comments under the post
-              const commentsRef = collection(db, "constituency", id, "comments");
-              const commentsSnapshot = await getDocs(commentsRef);
-              const constituencyLikesRef = collection(db, "constituency", id, "likes");
-
-              const constituencyLikesSnapshot = await getDocs(constituencyLikesRef);
-              const deleteconstituencyLikes = constituencyLikesSnapshot.docs.map(
-                (likeDoc) => deleteDoc(likeDoc.ref)
+              const commentsRef = collection(
+                db,
+                "constituency",
+                id,
+                "comments"
               );
+              const commentsSnapshot = await getDocs(commentsRef);
+              const constituencyLikesRef = collection(
+                db,
+                "constituency",
+                id,
+                "likes"
+              );
+
+              const constituencyLikesSnapshot = await getDocs(
+                constituencyLikesRef
+              );
+              const deleteconstituencyLikes =
+                constituencyLikesSnapshot.docs.map((likeDoc) =>
+                  deleteDoc(likeDoc.ref)
+                );
 
               // Iterate through each comment to delete its likes and the comment itself
               const deleteCommentPromises = commentsSnapshot.docs.map(
@@ -299,7 +315,12 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
                   const commentId = commentDoc.id;
 
                   // Reference to likes inside the comment
-                  const likesRef = collection(db, "constituency", commentId, "likes");
+                  const likesRef = collection(
+                    db,
+                    "constituency",
+                    commentId,
+                    "likes"
+                  );
                   const likesSnapshot = await getDocs(likesRef);
 
                   // Delete all likes inside the comment
@@ -320,7 +341,9 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
               await Promise.all(deleteCommentPromises);
 
               // Finally, delete the main post
-              await deleteDoc(doc(db, "constituency", userData?.constituency, "posts", id));
+              await deleteDoc(
+                doc(db, "constituency", userData?.constituency, "posts", id)
+              );
 
               console.log("Post, comments, and likes deleted successfully!");
             } catch (error) {
@@ -475,12 +498,11 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
   useEffect(() => {
     checkBookmark();
   }, [pstId, userId]);
-  
+
   const uid = post?.uid;
 
-
   return (
-    <View className="mb-1 rounded-md  border-gray-200  shadow-md bg-white  dark:bg-gray-700">
+    <View className="mb-[0.5px] rounded-md  border-gray-200  shadow-md bg-white  dark:bg-gray-700">
       <Pressable
         className="flex-row items-center gap-1 p-2 "
         onPress={() => router.push(`/(userProfile)/${uid}`)}
@@ -549,31 +571,55 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
             </Pressable>
           )}
 
-          <Popover
-            from={
-              <TouchableOpacity className="p-3">
-                <Feather
-                  name="more-horizontal"
-                  size={20}
-                  color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
-                />
-              </TouchableOpacity>
-            }
-          >
-            <Pressable
-              style={{ alignItems: "center", padding: 10 }}
-              onPress={toggleBookmark}
+          <>
+            <TouchableOpacity
+              className="p-3"
+              onPress={() => setBookmarkVisible(true)}
             >
-              {isBookmarked[pstId] ? (
-                <Feather name="bookmark" size={24} color="blue" />
-              ) : (
-                <Feather name="bookmark" size={24} color="gray" />
-              )}
-              <Text style={{ marginTop: 5 }}>
-                {isBookmarked[pstId] ? "Remove Bookmark" : "Add Bookmark"}
-              </Text>
-            </Pressable>
-          </Popover>
+              <Feather
+                name="more-horizontal"
+                size={20}
+                color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
+              />
+            </TouchableOpacity>
+
+            <Modal
+              visible={bookmarkVisible}
+              transparent
+              animationType="fade"
+              onRequestClose={() => setBookmarkVisible(false)}
+            >
+              <View className="flex-1 justify-end items-center bg-black/40">
+                <View className="bg-white dark:bg-slate-900 w-full p-4 rounded-t-2xl">
+                  <Pressable
+                    onPress={handleBookmark}
+                    className="flex-row items-center space-x-2 p-4"
+                  >
+                    <Feather
+                      name="bookmark"
+                      size={24}
+                      color={isBookmarked[pstId] ? "blue" : "gray"}
+                    />
+                    <Text
+                      className="text-base"
+                      style={{
+                        color: colorScheme === "dark" ? "#FFFFFF" : "#000000",
+                      }}
+                    >
+                      {isBookmarked[pstId] ? "Remove Bookmark" : "Add Bookmark"}
+                    </Text>
+                  </Pressable>
+
+                  <Pressable
+                    onPress={() => setBookmarkVisible(false)}
+                    className="items-center p-4"
+                  >
+                    <Text className="text-red-500 font-semibold">Cancel</Text>
+                  </Pressable>
+                </View>
+              </View>
+            </Modal>
+          </>
         </View>
       </Pressable>
 
@@ -647,12 +693,12 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
                       ref={videoRef}
                       source={{ uri: post?.videos }}
                       style={{
-                        width: mediaSize.width,
-                        height: mediaSize.height,
+                        width: "100%",
+                        height: 420,
                       }}
                       isLooping
                       shouldPlay={!isPaused}
-                      resizeMode={ResizeMode.CONTAIN}
+                      resizeMode={ResizeMode.COVER}
                       isMuted={isMuted}
                       className="relative"
                     />
@@ -678,10 +724,9 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
                       source={{ uri: post.images }}
                       style={{
                         width: mediaSize.width,
-                        height: mediaSize.height,
-                        alignSelf: "center",
+                        height: 420,
                       }}
-                      resizeMode={ResizeMode.CONTAIN}
+                      resizeMode={ResizeMode.COVER}
                       className="w-full"
                     />
                   </Link>
@@ -696,12 +741,12 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
         </View>
       ) : (
         <>
-          <View className="mx-2 mb-4 gap-3">
+          <View className="mx-2 mb-1 gap-3">
             <Link href={`/const/${id}`}>
               <Text className="text-md dark:text-white ">{post?.text}</Text>
             </Link>
             {post?.fromNickname && (
-              <Text className="text-gray-500 mb-3">
+              <Text className="text-gray-500">
                 Reposted by @{post?.fromNickname}
               </Text>
             )}
@@ -712,47 +757,14 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
             <View className="bg-gray-100 rounded-md dark:bg-gray-800 w-screen">
               {/* Video Handling */}
               {post?.videos && (
-                <View
-                  onLayout={(event) => {
-                    const { width: videoWidth } = event.nativeEvent.layout;
-                    const videoHeight = videoWidth * 0.56; // Default 16:9 ratio
-                    const minHeight = 300; // Minimum height for videos
-
-                    setMediaSize({
-                      width: "100%",
-                      height: videoHeight > minHeight ? videoHeight : minHeight, // Ensure the video height is at least the minimum value
-                    });
-                  }}
-                >
+                <View style={{ width: "100%" }}>
                   <Video
                     ref={videoRef}
                     source={{ uri: post?.videos }}
-                    style={{
-                      width: "100%",
-                      height: 300,
-                    }}
-                    isLooping
-                    shouldPlay={!isPaused}
+                    style={{ width: "100%", height: 420 }}
+                    useNativeControls
                     resizeMode={ResizeMode.COVER}
-                    isMuted={isMuted}
-                    className="h-96"
                   />
-
-                  <Pressable
-                    className="absolute w-full h-full "
-                    onPress={() => router.push(`/const/${id}`)}
-                  >
-                    <Pressable
-                      onPress={() => setIsMuted(!isMuted)}
-                      className=" w-10 h-10 ml-auto mt-auto mr-4"
-                    >
-                      <FontAwesome5
-                        name={isMuted ? "volume-mute" : "volume-down"}
-                        size={24}
-                        color={colorScheme === "dark" ? "#FFFFFF" : "#1F2937"}
-                      />
-                    </Pressable>
-                  </Pressable>
                 </View>
               )}
 
@@ -761,11 +773,7 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
                 <Link href={`/const/${id}`}>
                   <Image
                     source={{ uri: post.images }}
-                    style={{
-                      width: "100%",
-                      height: 300,
-                      alignSelf: "center",
-                    }}
+                    style={{ width: "100%", height: 420 }}
                     resizeMode={ResizeMode.COVER}
                   />
                 </Link>
@@ -775,7 +783,7 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
         </>
       )}
 
-      <View className="items-center justify-between  flex-row m-5 ">
+      <View className="items-center justify-between  flex-row ">
         <TouchableOpacity>
           <Pressable
             onPress={
@@ -815,38 +823,50 @@ const Posts = ({ post, id, openBottomSheet, isPaused }) => {
           )}
         </View>
 
-        <Popover
-          from={
-            <TouchableOpacity className="p-4">
-              <Feather
-                name="edit"
-                size={20}
-                color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
-              />
-            </TouchableOpacity>
-          }
+        <TouchableOpacity className="p-4" onPress={() => setModalVisible(true)}>
+          <Feather
+            name="edit"
+            size={20}
+            color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
+          />
+        </TouchableOpacity>
+        <Modal
+          visible={modalVisible}
+          transparent={true}
+          animationType="slide"
+          onRequestClose={() => setModalVisible(false)}
         >
-          <View className="p-4  min-w-96 bg-white dark:bg-slate-900 rounded-md shadow-md">
-            <TextInput
-              onChangeText={setCiteInput}
-              value={citeInput}
-              placeholder="Cite this post..."
-              placeholderTextColor={
-                colorScheme === "dark" ? "#FFFFFF" : "#808080"
-              }
-              className="w-full p-2 border border-gray-300 rounded-md   min-w-96"
-              style={{ color: colorScheme === "dark" ? "#FFFFFF" : "#000000" }}
-            />
-            <Pressable
-              className="mt-4 p-3 bg-blue-700 rounded-md w-full flex items-center   min-w-96"
-              onPress={cite}
-            >
-              <Text className="text-white font-semibold dark:text-white">
-                {loading ? "Citing..." : "Cite"}
-              </Text>
-            </Pressable>
+          <View className="flex-1 justify-center items-center bg-black/50">
+            <View className="p-4 min-w-96 bg-white dark:bg-slate-900 rounded-md shadow-md">
+              <TextInput
+                onChangeText={setCiteInput}
+                value={citeInput}
+                placeholder="Cite this post..."
+                placeholderTextColor={
+                  colorScheme === "dark" ? "#FFFFFF" : "#808080"
+                }
+                className="w-full p-2 border border-gray-300 rounded-md min-w-96"
+                style={{
+                  color: colorScheme === "dark" ? "#FFFFFF" : "#000000",
+                }}
+              />
+              <Pressable
+                className="mt-4 p-3 bg-blue-700 rounded-md w-full flex items-center min-w-96"
+                onPress={cite}
+              >
+                <Text className="text-white font-semibold dark:text-white">
+                  {loading ? "Citing..." : "Cite"}
+                </Text>
+              </Pressable>
+              <Pressable
+                className="mt-2 p-2 w-full items-center"
+                onPress={() => setModalVisible(false)}
+              >
+                <Text className="text-red-500 font-semibold">Cancel</Text>
+              </Pressable>
+            </View>
           </View>
-        </Popover>
+        </Modal>
 
         <TouchableOpacity
           onPress={likePost}

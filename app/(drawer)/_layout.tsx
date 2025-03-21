@@ -140,34 +140,31 @@ function CustomDrawerContent(props) {
 
 // Drawer Layout
 export default function DrawerLayout() {
-   const [userData, setUserData] = useState(null);
-   const { user } = useUser();
-   const [loading, setLoading] = useState(true);
-   // Detect system theme
-   const colorScheme = useColorScheme();
-   useEffect(() => {
-     const fetchUserData = async () => {
-       if (!user?.id) return;
-       const q = query(
-         collection(db, "userPosts"),
-         where("uid", "==", user.id)
-       );
-       const querySnapshot = await getDocs(q);
-       if (!querySnapshot.empty) {
-         setUserData(querySnapshot.docs[0].data());
-       }
-     };
-     fetchUserData();
-     setLoading(false);
-   }, [user]);
-   
+  const [userData, setUserData] = useState(null);
+  const { user } = useUser();
+  const [loading, setLoading] = useState(true);
+  // Detect system theme
+  const colorScheme = useColorScheme();
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (!user?.id) return;
+      const q = query(collection(db, "userPosts"), where("uid", "==", user.id));
+      const querySnapshot = await getDocs(q);
+      if (!querySnapshot.empty) {
+        setUserData(querySnapshot.docs[0].data());
+      }
+    };
+    fetchUserData();
+    setLoading(false);
+  }, [user]);
+
   const segments = useSegments(); // Get current active route segments
   const currentScreen = segments[segments.length - 1] || "BroadCast"; // Get the last segment (current screen)
 
   const [userLocation, setUserLocation] = useState({
-    county: "",
-    constituency: "",
-    ward: "",
+    market: "",
+    news: "",
+    profile: "",
   });
 
   // Fetch user data from Firebase (Replace with Supabase if needed)
@@ -188,47 +185,65 @@ export default function DrawerLayout() {
     fetchUserLocation();
   }, [user]);
 
-   const getColorFromName = (name) => {
-     if (!name) return "#ccc"; // Default color if no name exists
+  const getColorFromName = (name) => {
+    if (!name) return "#ccc"; // Default color if no name exists
 
-     // Generate a hash number from the name
-     let hash = 0;
-     for (let i = 0; i < name.length; i++) {
-       hash = name.charCodeAt(i) + ((hash << 5) - hash);
-     }
+    // Generate a hash number from the name
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+      hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
 
-     // Predefined colors for better visuals
-     const colors = [
-       "#FF5733",
-       "#33FF57",
-       "#3357FF",
-       "#F1C40F",
-       "#8E44AD",
-       "#E74C3C",
-       "#2ECC71",
-       "#1ABC9C",
-       "#3498DB",
-     ];
+    // Predefined colors for better visuals
+    const colors = [
+      "#FF5733",
+      "#33FF57",
+      "#3357FF",
+      "#F1C40F",
+      "#8E44AD",
+      "#E74C3C",
+      "#2ECC71",
+      "#1ABC9C",
+      "#3498DB",
+    ];
 
-     // Pick a color consistently based on the hash value
-     return colors[Math.abs(hash) % colors.length];
-   };
+    // Pick a color consistently based on the hash value
+    return colors[Math.abs(hash) % colors.length];
+  };
   // Function to determine screen title & icon dynamically
 
   const getScreenOptions = () => {
     switch (currentScreen) {
+      case "market":
+        return { title: "Market" };
+      case "news":
+        return { title: "News" };
+      case "profile":
+        return { title: "My Profile" };
       case "county":
-        return { title: `${userLocation.county} County` };
+        return {
+          title: `${userLocation.county} County`,
+          icon: <Feather name="map" size={24} color="black" />,
+        };
       case "constituency":
-        return { title: `${userLocation.constituency} Constituency` };
+        return {
+          title: `${userLocation.constituency} Constituency`,
+          icon: <Feather name="flag" size={24} color="black" />,
+        };
       case "ward":
-        return { title: `${userLocation.ward} Ward` };
+        return {
+          title: `${userLocation.ward} Ward`,
+          icon: <Feather name="map-pin" size={24} color="black" />,
+        };
       default:
-        return { title: "National" };
+        return {
+          title: "Home",
+          icon: <Feather name="globe" size={24} color="black" />,
+        };
     }
   };
 
-  const { title } = getScreenOptions();
+  const { title, icon } = getScreenOptions();
   return (
     <Drawer
       screenOptions={{
@@ -272,6 +287,8 @@ export default function DrawerLayout() {
           ),
         }}
       />
+      
+
       <Drawer.Screen
         name="market"
         options={{
@@ -284,7 +301,7 @@ export default function DrawerLayout() {
               onPress={() => router.push("/(Products)/ProductForm")}
               className="mr-5"
             >
-              <Text className="border dark:border-gray-500 p-3 rounded-md font-bold ">
+              <Text className="border dark:border-gray-500 p-3 rounded-md font-bold dark:text-white">
                 Sell
               </Text>
             </Pressable>

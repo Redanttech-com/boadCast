@@ -1,11 +1,24 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, TouchableOpacity, Image, FlatList } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Image,
+  FlatList,
+  Dimensions,
+} from "react-native";
 import { useUserInfo } from "@/components/UserContext";
 import { db } from "@/firebase";
 import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ResizeMode, Video } from "expo-av";
 import { StatusBar } from "expo-status-bar";
+
+// Screen width for dynamic item sizing
+const screenWidth = Dimensions.get("window").width;
+const itemSpacing = 6;
+const numColumns = 3;
+const itemWidth = (screenWidth - itemSpacing * (numColumns + 1)) / numColumns;
 
 const Media = () => {
   const [activeTab, setActiveTab] = useState("national");
@@ -16,29 +29,26 @@ const Media = () => {
 
   const { userDetails } = useUserInfo();
 
-  // Fetch posts when userDetails change
-
   useEffect(() => {
     if (!userDetails) return;
 
     let unsubNational, unsubCounty, unsubConstituency, unsubWard;
 
-    if (userDetails?.county) {
-      const countyQuery = query(
-        collection(db, "national"),
-        orderBy("timestamp", "desc")
+    // 🔥 National
+    const nationalQuery = query(
+      collection(db, "national"),
+      orderBy("timestamp", "desc")
+    );
+    unsubNational = onSnapshot(nationalQuery, (snapshot) => {
+      setNationalPosts(
+        snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
       );
-      unsubCounty = onSnapshot(countyQuery, (snapshot) => {
-        setNationalPosts(
-          snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
-        );
-      });
-    }
+    });
 
-    // 🔥 Fetch County Posts
+    // 🔥 County
     if (userDetails?.county) {
       const countyQuery = query(
-        collection(db, "county", userDetails?.county, "posts"),
+        collection(db, "county", userDetails.county, "posts"),
         orderBy("timestamp", "desc")
       );
       unsubCounty = onSnapshot(countyQuery, (snapshot) => {
@@ -48,10 +58,10 @@ const Media = () => {
       });
     }
 
-    // 🔥 Fetch Constituency Posts
+    // 🔥 Constituency
     if (userDetails?.constituency) {
       const constituencyQuery = query(
-        collection(db, "constituency", userDetails?.constituency, "posts"),
+        collection(db, "constituency", userDetails.constituency, "posts"),
         orderBy("timestamp", "desc")
       );
       unsubConstituency = onSnapshot(constituencyQuery, (snapshot) => {
@@ -61,10 +71,10 @@ const Media = () => {
       });
     }
 
-    // 🔥 Fetch Ward Posts
+    // 🔥 Ward
     if (userDetails?.ward) {
       const wardQuery = query(
-        collection(db, "ward", userDetails?.ward, "posts"),
+        collection(db, "ward", userDetails.ward, "posts"),
         orderBy("timestamp", "desc")
       );
       unsubWard = onSnapshot(wardQuery, (snapshot) => {
@@ -84,63 +94,78 @@ const Media = () => {
 
   // ✅ Render each post
   const renderPost = ({ item }) => {
-    // Only render items that contain images or videos
     if (!item.images && !item.videos) return null;
 
     return (
-      <View className="flex-row items-center justify-between m-1 dark:bg-gray-600 rounded-sm">
-        <View className="flex-row">
-          {item.images ? (
-            <Image
-              source={{ uri: item.images }}
-              style={{ height: 180, width: 180 }}
-            />
-          ) : (
-            <Video
-              source={{ uri: item.videos }}
-              style={{ height: 180, width: 180 }}
-              shouldPlay
-              isMuted
-            />
-          )}
-          <Text className="absolute text-white font-bold bg-gray-500 w-fit">
-            {item.name}
-          </Text>
-        </View>
+      <View
+        style={{
+          width: itemWidth,
+          margin: itemSpacing / 2,
+          backgroundColor: "#4B5563",
+          borderRadius: 8,
+          overflow: "hidden",
+        }}
+      >
+        {item.images ? (
+          <Image
+            source={{ uri: item.images }}
+            style={{ height: 150, width: "100%" }}
+            resizeMode="cover"
+          />
+        ) : (
+          <Video
+            source={{ uri: item.videos }}
+            style={{ height: 150, width: "100%" }}
+            shouldPlay
+            isMuted
+            resizeMode={ResizeMode.COVER}
+          />
+        )}
+        <Text
+          style={{
+            position: "absolute",
+            bottom: 5,
+            left: 5,
+            color: "#fff",
+            backgroundColor: "rgba(0,0,0,0.4)",
+            paddingHorizontal: 6,
+            borderRadius: 4,
+            fontWeight: "bold",
+            fontSize: 12,
+          }}
+        >
+          {item.name}
+        </Text>
       </View>
     );
   };
 
-  // ✅ Render the active tab's content
-  const renderTabContent = (data) => (
-    <FlatList
-      data={data}
-      keyExtractor={(item) => item.id}
-      renderItem={renderPost}
-      numColumns={2}
-      showsVerticalScrollIndicator={false}
-      contentContainerStyle={{
-        paddingBottom: 10,
-        alignSelf: "center",
-        marginBottom: 10,
-      }}
-      ListEmptyComponent={
-        <View className="flex-1 items-center justify-center">
-          <Text className="dark:text-white">No Posts</Text>
-        </View>
-      }
-    />
-  );
+  // ✅ Render content by active tab
+  const getActivePosts = () => {
+    switch (activeTab) {
+      case "national":
+        return nationalPosts;
+      case "county":
+        return countyPosts;
+      case "constituency":
+        return constituencyPosts;
+      case "ward":
+        return wardPosts;
+      default:
+        return [];
+    }
+  };
 
   return (
-    <SafeAreaView className="flex-1 gap-2  dark:bg-gray-800" edges={["bottom"]}>
+    <SafeAreaView className="flex-1 dark:bg-gray-800" edges={["bottom"]}>
       <StatusBar style="auto" />
+
       {/* 🔥 Tab Selector */}
-      <View className="flex-row justify-between p-3 px-5 bg-gray-200 dark:bg-gray-700  items-center">
+      <View className="flex-row justify-between px-5 py-3 bg-gray-200 dark:bg-gray-700">
         {["national", "county", "constituency", "ward"].map((tab) => (
           <TouchableOpacity key={tab} onPress={() => setActiveTab(tab)}>
             <Text
-              className={`text-xl dark:text-white ${
+              className={`text-base dark:text-white ${
                 activeTab === tab ? "underline font-bold text-blue-950" : ""
               }`}
             >
@@ -150,13 +175,22 @@ const Media = () => {
         ))}
       </View>
 
-      {/* 🔥 Post List */}
-      <View>
-        {activeTab === "national" && renderTabContent(nationalPosts)}
-        {activeTab === "county" && renderTabContent(countyPosts)}
-        {activeTab === "constituency" && renderTabContent(constituencyPosts)}
-        {activeTab === "ward" && renderTabContent(wardPosts)}
-      </View>
+      {/* 🔥 Posts */}
+      <FlatList
+        data={getActivePosts()}
+        keyExtractor={(item) => item.id}
+        renderItem={renderPost}
+        numColumns={numColumns}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{
+          padding: itemSpacing,
+        }}
+        ListEmptyComponent={
+          <View className="flex-1 items-center justify-center mt-10">
+            <Text className="dark:text-white">No Posts</Text>
+          </View>
+        }
+      />
     </SafeAreaView>
   );
 };

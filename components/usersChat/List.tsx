@@ -52,7 +52,7 @@ const List = ({userChat}) => {
   };
 
   return (
-    <View className="pb-2">
+    <View className="pb-[0.5px]">
       <Pressable
         onPress={onPress}
         className="p-5 bg-gray-100 rounded-md dark:bg-gray-600"

@@ -13,9 +13,6 @@ import {
   TextInput,
   Pressable,
   Alert,
-  useWindowDimensions,
-  Modal,
-  TouchableOpacity,
 } from "react-native";
 import {
   addDoc,
@@ -42,15 +39,8 @@ import { modalComment } from "@/atoms/modalAtom";
 import { useUser } from "@clerk/clerk-expo";
 import Comments from "./Comments";
 import { router } from "expo-router";
-import * as ImagePicker from "expo-image-picker";
-import { StatusBar } from "expo-status-bar";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { Avatar } from "react-native-elements";
-import { Image } from "react-native";
 import StatusFeed from "@/app/(status)/StatusFeed";
-import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
-import { ResizeMode, Video } from "expo-av";
 
 const Feed = () => {
   const [loadingPosts, setLoadingPosts] = useState(true);
@@ -64,17 +54,9 @@ const Feed = () => {
   const { formatNumber } = useUserInfo();
   const snapPoints = useMemo(() => ["100%", "100%"], []);
   const openBottomSheet = useCallback(() => setIsBottomSheetOpen(true), []);
-  const [loading, setLoading] = useState(false);
-  const [media, setMedia] = useState({ uri: null, type: null });
-  const [modalVisible, setModalVisible] = useState(false);
-  const [selectedLevel, setSelectedLevel] = useState("");
   const { user } = useUser();
   const [userData, setUserData] = useState(null);
   const colorScheme = useColorScheme();
-  const [isModalVisible, setISModalVisible] = useState(true);
-  const [isMuted, setIsMuted] = useState(true);
-  const [isPaused, setIsPaused] = useState(false);
-  const { width } = useWindowDimensions();
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -268,29 +250,6 @@ const Feed = () => {
         viewabilityConfig={viewabilityConfig}
       />
 
-      <TouchableOpacity
-        style={{
-          position: "absolute",
-          bottom: 70, // Adjusted to be behind input field
-          right: 20,
-          backgroundColor: "gray",
-          width: 56,
-          height: 56,
-          borderRadius: 50,
-          justifyContent: "center",
-          alignItems: "center",
-          elevation: 5, // Android shadow
-          shadowColor: "gray", // iOS shadow
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.3,
-          shadowRadius: 4,
-          zIndex: 100, // Ensures it is behind input
-        }}
-        onPress={() => router.push("/(inputs)/nationalInput")}
-      >
-        <AntDesign name="plus" size={24} color="white" />
-      </TouchableOpacity>
-
       <BottomSheet
         ref={bottomSheetRef}
         index={isBottomSheetOpen ? 1 : -1}
@@ -340,7 +299,7 @@ const Feed = () => {
           )}
         </View>
 
-        <BottomSheetView className="px-4 z-50  fixed dark:bg-gray-800">
+        <BottomSheetView className="px-4 z-50 fixed dark:bg-gray-800">
           <View className="flex-row items-center justify-between px-4 mb-1 border rounded-full border-gray-500 ">
             <TextInput
               placeholder="Comment"

@@ -17,6 +17,7 @@ import {
   Button,
   useWindowDimensions,
   ScrollView,
+  Modal,
 } from "react-native";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import Feather from "@expo/vector-icons/Feather";
@@ -85,6 +86,15 @@ const MediaSize = () => {
   const [mediaSize, setMediaSize] = useState({ width: "100%", height: 600 });
   const { width } = useWindowDimensions();
   const [isPaused, setIsPaused] = useState(false);
+  const [isBookmarked, setIsBookmarked] = useState({});
+
+  const [modalVisible, setModalVisible] = useState(false);
+  const [bookmarkVisible, setBookmarkVisible] = useState(false);
+
+  const handleBookmark = () => {
+    toggleBookmark();
+    setBookmarkVisible(false); // Close modal after action
+  };
 
   const togglePlayback = async () => {
     if (videoRef.current) {
@@ -215,7 +225,7 @@ const MediaSize = () => {
     if (post) {
       Alert.alert(
         "Recast Confirmation",
-        "Are you sure you want to repost this? It will appear on your profile.",
+        "Are you sure you want to recast this cast?",
         [
           {
             text: "Cancel",
@@ -314,8 +324,8 @@ const MediaSize = () => {
     }
 
     Alert.alert(
-      "Delete Post",
-      "Are you sure you want to delete this post? This action cannot be undone.",
+      "Delete Cast",
+      "Are you sure you want to delete this cast? This action cannot be undone.",
       [
         {
           text: "Cancel",
@@ -496,36 +506,92 @@ const MediaSize = () => {
     }
   }
 
+  const userId = userData?.uid;
+  const pstId = post?.id;
+  // Toggle bookmark
+  const checkBookmark = async () => {
+    if (!userId || !pstId) return;
+    try {
+      const docRef = doc(db, `bookmarks/${userId}/bookmarks`, pstId);
+      const docSnap = await getDoc(docRef);
+      setIsBookmarked((prev) => ({
+        ...prev,
+        [pstId]: docSnap.exists(),
+      }));
+    } catch (error) {
+      console.error("Error checking bookmark status:", error);
+    }
+  };
+
+  const toggleBookmark = async () => {
+    if (!userId || !pstId) return;
+    try {
+      const collectionRef = collection(db, `bookmarks/${userId}/bookmarks`);
+      const docRef = doc(collectionRef, pstId);
+
+      if (isBookmarked[pstId]) {
+        // Remove bookmark
+        await deleteDoc(docRef);
+        setIsBookmarked((prev) => ({
+          ...prev,
+          [pstId]: false,
+        }));
+      } else {
+        // Add bookmark
+        const images = post?.images || [];
+        const videos = post?.videos || null;
+
+        // Add new document to the collection
+        const bookmarkData = { pstId, timestamp: Date.now() };
+        if (images.length) bookmarkData.images = images;
+        if (videos) bookmarkData.videos = videos;
+
+        await setDoc(docRef, bookmarkData); // Use setDoc to ensure consistent doc IDs
+        setIsBookmarked((prev) => ({
+          ...prev,
+          [pstId]: true,
+        }));
+      }
+    } catch (error) {
+      console.error("Error toggling bookmark:", error);
+    }
+  };
+
+  useEffect(() => {
+    checkBookmark();
+  }, [pstId, userId]);
+
+  const uid = post?.uid;
+
   return (
     <SafeAreaView className="flex-1  border-gray-200  shadow-md bg-white  dark:bg-gray-800">
-      <ScrollView>
-        <StatusBar style="auto" />
-        <View className="flex-row items-center gap-1 p-2">
-          <View className="mr-10">
-            <Ionicons
-              name="arrow-back"
-              size={24}
-              color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
-              onPress={() => router.push("/(drawer)/(tabs)")}
-            />
-          </View>
-          <Avatar
-            size={40}
-            rounded
-            source={post?.userImg && { uri: post?.userImg }}
-            title={post?.name && post?.name[0].toUpperCase()}
-            containerStyle={{ backgroundColor: getColorFromName(post?.name) }} // Consistent color per user
+      <StatusBar style="auto" />
+      <View className="flex-row items-center gap-1 p-2">
+        <View className="mr-10">
+          <Ionicons
+            name="arrow-back"
+            size={24}
+            color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
+            onPress={() => router.push("/(drawer)/(tabs)")}
           />
-          <View className="flex-row gap-2 items-center ">
-            <Text
-              className="text-md max-w-20 min-w-12 font-bold dark:text-white  "
-              numberOfLines={1}
-              ellipsizeMode="tail"
-            >
-              {post?.name}
-            </Text>
+        </View>
+        <Avatar
+          size={40}
+          rounded
+          source={post?.userImg && { uri: post?.userImg }}
+          title={post?.name && post?.name[0].toUpperCase()}
+          containerStyle={{ backgroundColor: getColorFromName(post?.name) }} // Consistent color per user
+        />
+        <View className="flex-row gap-2 items-center ">
+          <Text
+            className="text-md max-w-20 min-w-12 font-bold dark:text-white  "
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
+            {post?.name}
+          </Text>
 
-            {/* <Text
+          {/* <Text
             className="text-md max-w-20 min-w-12 font-bold"
             numberOfLines={1}
             ellipsizeMode="tail"
@@ -533,50 +599,92 @@ const MediaSize = () => {
             {post?.lastname}
           </Text> */}
 
+          <Text
+            className="text-md max-w-20 min-w-12 text-gray-400 dark:text-white "
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
+            @{post?.nickname}
+          </Text>
+
+          <View className="flex-row items-center gap-2  bg-gray-100 rounded-full p-2 dark:bg-gray-600">
+            <MaterialCommunityIcons
+              name="clock-check-outline"
+              size={14}
+              color="gray"
+            />
             <Text
-              className="text-md max-w-20 min-w-12 text-gray-400 dark:text-white "
+              className="text-gray-400 max-w-18 min-w-18 "
               numberOfLines={1}
               ellipsizeMode="tail"
             >
-              @{post?.nickname}
+              {moment(post?.timestamp?.toDate()).fromNow(true)}
             </Text>
-
-            <View className="flex-row items-center gap-2  bg-gray-100 rounded-full p-2 dark:bg-gray-600">
-              <MaterialCommunityIcons
-                name="clock-check-outline"
-                size={14}
-                color="gray"
-              />
-              <Text
-                className="text-gray-400 max-w-18 min-w-18 "
-                numberOfLines={1}
-                ellipsizeMode="tail"
-              >
-                {moment(post?.timestamp?.toDate()).fromNow(true)}
-              </Text>
-            </View>
           </View>
-          <View className="flex-row items-center ml-auto gap-2">
-            {user?.id === post?.uid && (
-              <Pressable onPress={deletePost}>
-                <Feather
-                  name="trash-2"
-                  size={20}
-                  color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
-                />
-              </Pressable>
-            )}
+        </View>
+        <View className="flex-row items-center ml-auto gap-2">
+          {user?.id === post?.uid && (
+            <Pressable onPress={deletePost}>
+              <Feather
+                name="trash-2"
+                size={20}
+                color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
+              />
+            </Pressable>
+          )}
 
-            <TouchableOpacity>
+          <>
+            <TouchableOpacity
+              className="p-3"
+              // onPress={() => setBookmarkVisible(true)}
+            >
               <Feather
                 name="more-horizontal"
                 size={20}
                 color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
               />
             </TouchableOpacity>
-          </View>
-        </View>
 
+            {/* <Modal
+              visible={bookmarkVisible}
+              transparent
+              animationType="fade"
+              onRequestClose={() => setBookmarkVisible(false)}
+            >
+              <View className="flex-1 justify-end items-center bg-black/40">
+                <View className="bg-white dark:bg-slate-900 w-full p-4 rounded-t-2xl">
+                  <Pressable
+                    onPress={handleBookmark}
+                    className="flex-row items-center space-x-2 p-4"
+                  >
+                    <Feather
+                      name="bookmark"
+                      size={24}
+                      color={isBookmarked[pstId] ? "blue" : "gray"}
+                    />
+                    <Text
+                      className="text-base"
+                      style={{
+                        color: colorScheme === "dark" ? "#FFFFFF" : "#000000",
+                      }}
+                    >
+                      {isBookmarked[pstId] ? "Remove Bookmark" : "Add Bookmark"}
+                    </Text>
+                  </Pressable>
+
+                  <Pressable
+                    onPress={() => setBookmarkVisible(false)}
+                    className="items-center p-4"
+                  >
+                    <Text className="text-red-500 font-semibold">Cancel</Text>
+                  </Pressable>
+                </View>
+              </View>
+            </Modal> */}
+          </>
+        </View>
+      </View>
+      <ScrollView>
         {post?.citeInput ? (
           <View className="gap-3">
             <Text className="ml-12 dark:text-white">{post?.citeInput}</Text>
@@ -643,26 +751,11 @@ const MediaSize = () => {
                           width: mediaSize.width,
                           height: mediaSize.height,
                         }}
-                        isLooping
+                        useNativeControls
                         shouldPlay={!isPaused}
                         resizeMode={ResizeMode.CONTAIN}
-                        isMuted={isMuted}
                         className="relative"
                       />
-                      <Pressable
-                        onPress={() => setIsMuted(!isMuted)}
-                        className="absolute flex-1 w-full h-full"
-                      >
-                        <View className="ml-auto mt-auto m-2">
-                          <FontAwesome5
-                            name={isMuted ? "volume-mute" : "volume-down"}
-                            size={24}
-                            color={
-                              colorScheme === "dark" ? "#FFFFFF" : "#1F2937"
-                            }
-                          />
-                        </View>
-                      </Pressable>
                     </View>
                   )}
 
@@ -703,24 +796,9 @@ const MediaSize = () => {
               <View className="bg-gray-100 rounded-md dark:bg-gray-800 w-screen">
                 {/* Video Handling */}
                 {post?.videos && (
-                  <View
-                    onLayout={(event) => {
-                      const { width: videoWidth } = event.nativeEvent.layout;
-                      const videoHeight = videoWidth * 0.56; // 16:9 ratio
-                      const minHeight = 700; // Minimum height for videos
-
-                      setMediaSize({
-                        width: "100%",
-                        height:
-                          videoHeight > minHeight ? videoHeight : minHeight,
-                      });
-                    }}
-                  >
+                  <View>
                     {/* Video Component */}
-                    <Pressable
-                      className="relative w-full h-full"
-                      onPress={togglePlayback}
-                    >
+                    <Pressable className="relative w-full h-full">
                       <Video
                         ref={videoRef}
                         source={{ uri: post?.videos }}
@@ -728,31 +806,13 @@ const MediaSize = () => {
                           width: mediaSize.width,
                           height: mediaSize.height,
                         }}
-                        isLooping
-                        shouldPlay={!isPaused}
+                        useNativeControls
                         resizeMode={ResizeMode.CONTAIN}
-                        isMuted={isMuted}
                         className="relative"
                       />
 
                       {/* Mute/Unmute Button */}
-                      <Pressable
-                        onPress={() => setIsMuted(!isMuted)}
-                        className="absolute bottom-4 right-4 p-2 bg-gray-800 rounded-full"
-                      >
-                        <FontAwesome5
-                          name={isMuted ? "volume-mute" : "volume-down"}
-                          size={20}
-                          color={colorScheme === "dark" ? "#FFFFFF" : "#1F2937"}
-                        />
-                      </Pressable>
                     </Pressable>
-
-                    {/* Navigate on separate click */}
-                    <Pressable
-                      className="absolute top-0 left-0 w-full h-full"
-                      onPress={() => router.push(`/view/${id}`)}
-                    />
                   </View>
                 )}
 
@@ -774,7 +834,7 @@ const MediaSize = () => {
           </>
         )}
       </ScrollView>
-      <View className="absolute bottom-0 left-0 right-0 bg-white dark:bg-gray-800 p-5 flex-row items-center justify-between">
+      <View className="bottom-0 left-0 right-0 bg-white dark:bg-gray-800  flex-row items-center justify-between">
         <TouchableOpacity>
           <Pressable
             onPress={
@@ -814,40 +874,50 @@ const MediaSize = () => {
           )}
         </View>
 
-        <Popover
-          from={
-            <TouchableOpacity className="p-3">
-              <Feather
-                name="edit"
-                size={20}
-                color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
-              />
-            </TouchableOpacity>
-          }
+        <TouchableOpacity className="p-4" onPress={() => setModalVisible(true)}>
+          <Feather
+            name="edit"
+            size={20}
+            color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
+          />
+        </TouchableOpacity>
+        <Modal
+          visible={modalVisible}
+          transparent={true}
+          animationType="slide"
+          onRequestClose={() => setModalVisible(false)}
         >
-          <View className="p-4 min-w-96 bg-white dark:bg-slate-900 rounded-md shadow-md">
-            <TextInput
-              onChangeText={setCiteInput}
-              value={citeInput}
-              placeholder="Cite this post..."
-              placeholderTextColor={
-                colorScheme === "dark" ? "#FFFFFF" : "#808080"
-              }
-              className="w-full p-2 border border-gray-300 rounded-md min-w-96"
-              style={{
-                color: colorScheme === "dark" ? "#FFFFFF" : "#000000",
-              }}
-            />
-            <Pressable
-              className="mt-4 p-3 bg-blue-700 rounded-md w-full flex items-center min-w-96"
-              onPress={cite}
-            >
-              <Text className="text-white font-semibold dark:text-white">
-                {loading ? "Citing..." : "Cite"}
-              </Text>
-            </Pressable>
+          <View className="flex-1 justify-center items-center bg-black/50">
+            <View className="p-4 min-w-96 bg-white dark:bg-slate-900 rounded-md shadow-md">
+              <TextInput
+                onChangeText={setCiteInput}
+                value={citeInput}
+                placeholder="Cite this post..."
+                placeholderTextColor={
+                  colorScheme === "dark" ? "#FFFFFF" : "#808080"
+                }
+                className="w-full p-2 border border-gray-300 rounded-md min-w-96"
+                style={{
+                  color: colorScheme === "dark" ? "#FFFFFF" : "#000000",
+                }}
+              />
+              <Pressable
+                className="mt-4 p-3 bg-blue-700 rounded-md w-full flex items-center min-w-96"
+                onPress={cite}
+              >
+                <Text className="text-white font-semibold dark:text-white">
+                  {loading ? "Citing..." : "Cite"}
+                </Text>
+              </Pressable>
+              <Pressable
+                className="mt-2 p-2 w-full items-center"
+                onPress={() => setModalVisible(false)}
+              >
+                <Text className="text-red-500 font-semibold">Cancel</Text>
+              </Pressable>
+            </View>
           </View>
-        </Popover>
+        </Modal>
 
         <TouchableOpacity
           onPress={likePost}
@@ -963,5 +1033,3 @@ const MediaSize = () => {
 };
 
 export default MediaSize;
-
-

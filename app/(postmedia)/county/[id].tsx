@@ -57,6 +57,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { FontAwesome5 } from "@expo/vector-icons";
 import Comments from "@/components/County/Comments";
+import { Modal } from "react-native";
 
 const MediaSize = () => {
   const { id } = useLocalSearchParams();
@@ -85,6 +86,9 @@ const MediaSize = () => {
   const [mediaSize, setMediaSize] = useState({ width: "100%", height: 600 });
   const { width } = useWindowDimensions();
   const [isPaused, setIsPaused] = useState(false);
+  const [isBookmarked, setIsBookmarked] = useState({});
+    
+    const [modalVisible, setModalVisible] = useState(false);
 
   const togglePlayback = async () => {
     if (videoRef.current) {
@@ -317,8 +321,8 @@ const MediaSize = () => {
     }
 
     Alert.alert(
-      "Delete Post",
-      "Are you sure you want to delete this post? This action cannot be undone.",
+      "Delete Cast",
+      "Are you sure you want to delete this cast? This action cannot be undone.",
       [
         {
           text: "Cancel",
@@ -499,34 +503,33 @@ const MediaSize = () => {
 
   return (
     <SafeAreaView className="flex-1 border-gray-200  shadow-md bg-white  dark:bg-gray-800">
-      <ScrollView>
-        <StatusBar style="auto" />
-        <View className="flex-row items-center gap-1 p-2">
-          <View className="mr-10">
-            <Ionicons
-              name="arrow-back"
-              size={24}
-              color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
-              onPress={() => router.push("/(drawer)/(tabs)/county")}
-            />
-          </View>
-          <Avatar
-            size={40}
-            rounded
-            source={post?.userImg && { uri: post?.userImg }}
-            title={post?.name && post?.name[0].toUpperCase()}
-            containerStyle={{ backgroundColor: getColorFromName(post?.name) }} // Consistent color per user
+      <StatusBar style="auto" />
+      <View className="flex-row items-center gap-1 p-2">
+        <View className="mr-10">
+          <Ionicons
+            name="arrow-back"
+            size={24}
+            color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
+            onPress={() => router.push("/(countydrawer)/(tabs)")}
           />
-          <View className="flex-row gap-2 items-center ">
-            <Text
-              className="text-md max-w-20 min-w-12 font-bold dark:text-white  "
-              numberOfLines={1}
-              ellipsizeMode="tail"
-            >
-              {post?.name}
-            </Text>
+        </View>
+        <Avatar
+          size={40}
+          rounded
+          source={post?.userImg && { uri: post?.userImg }}
+          title={post?.name && post?.name[0].toUpperCase()}
+          containerStyle={{ backgroundColor: getColorFromName(post?.name) }} // Consistent color per user
+        />
+        <View className="flex-row gap-2 items-center ">
+          <Text
+            className="text-md max-w-20 min-w-12 font-bold dark:text-white  "
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
+            {post?.name}
+          </Text>
 
-            {/* <Text
+          {/* <Text
             className="text-md max-w-20 min-w-12 font-bold"
             numberOfLines={1}
             ellipsizeMode="tail"
@@ -534,50 +537,50 @@ const MediaSize = () => {
             {post?.lastname}
           </Text> */}
 
+          <Text
+            className="text-md max-w-20 min-w-12 text-gray-400 dark:text-white "
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
+            @{post?.nickname}
+          </Text>
+
+          <View className="flex-row items-center gap-2  bg-gray-100 rounded-full p-2 dark:bg-gray-600">
+            <MaterialCommunityIcons
+              name="clock-check-outline"
+              size={14}
+              color="gray"
+            />
             <Text
-              className="text-md max-w-20 min-w-12 text-gray-400 dark:text-white "
+              className="text-gray-400 max-w-18 min-w-18 "
               numberOfLines={1}
               ellipsizeMode="tail"
             >
-              @{post?.nickname}
+              {moment(post?.timestamp?.toDate()).fromNow(true)}
             </Text>
-
-            <View className="flex-row items-center gap-2  bg-gray-100 rounded-full p-2 dark:bg-gray-600">
-              <MaterialCommunityIcons
-                name="clock-check-outline"
-                size={14}
-                color="gray"
-              />
-              <Text
-                className="text-gray-400 max-w-18 min-w-18 "
-                numberOfLines={1}
-                ellipsizeMode="tail"
-              >
-                {moment(post?.timestamp?.toDate()).fromNow(true)}
-              </Text>
-            </View>
           </View>
-          <View className="flex-row items-center ml-auto gap-2">
-            {user?.id === post?.uid && (
-              <Pressable onPress={deletePost}>
-                <Feather
-                  name="trash-2"
-                  size={20}
-                  color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
-                />
-              </Pressable>
-            )}
-
-            <TouchableOpacity>
+        </View>
+        <View className="flex-row items-center ml-auto gap-2">
+          {user?.id === post?.uid && (
+            <Pressable onPress={deletePost}>
               <Feather
-                name="more-horizontal"
+                name="trash-2"
                 size={20}
                 color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
               />
-            </TouchableOpacity>
-          </View>
-        </View>
+            </Pressable>
+          )}
 
+          <TouchableOpacity>
+            <Feather
+              name="more-horizontal"
+              size={20}
+              color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
+            />
+          </TouchableOpacity>
+        </View>
+      </View>
+      <ScrollView>
         {post?.citeInput ? (
           <View className="gap-3">
             <Text className="ml-12 dark:text-white">{post?.citeInput}</Text>
@@ -649,7 +652,6 @@ const MediaSize = () => {
                         resizeMode={ResizeMode.CONTAIN}
                         className="relative"
                       />
-                      
                     </View>
                   )}
 
@@ -734,8 +736,6 @@ const MediaSize = () => {
                         />
                       </Pressable>
                     </Pressable>
-
-                
                   </View>
                 )}
 
@@ -756,191 +756,206 @@ const MediaSize = () => {
             )}
           </>
         )}
-      </ScrollView>
-      <View className="absolute bottom-0 left-0 right-0 bg-white dark:bg-gray-800 p-5 flex-row items-center justify-between">
-        <TouchableOpacity>
-          <Pressable
-            onPress={
-              !user?.id
-                ? () => router.push("/(auth)")
-                : () => {
-                    setPostID(id);
-                    openBottomSheet();
-                  }
-            }
-            className="flex-row items-center p-3"
+</ScrollView>
+        <View className="bottom-0 left-0 right-0 bg-white dark:bg-gray-800 flex-row items-center justify-between">
+          <TouchableOpacity>
+            <Pressable
+              onPress={
+                !user?.id
+                  ? () => router.push("/(auth)")
+                  : () => {
+                      setPostID(id);
+                      openBottomSheet();
+                    }
+              }
+              className="flex-row items-center p-3"
+            >
+              <Ionicons
+                name="chatbubble-ellipses-outline"
+                size={24}
+                color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
+              />
+              <View>
+                <Text className="dark:text-white">
+                  {comments?.length > 0 ? formatNumber(comments?.length) : ""}
+                </Text>
+              </View>
+            </Pressable>
+          </TouchableOpacity>
+
+          <View>
+            {loading ? (
+              <ActivityIndicator color="blue" />
+            ) : (
+              <Pressable onPress={repost} className="p-3">
+                <Feather
+                  name="corner-up-left"
+                  size={20}
+                  color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
+                />
+              </Pressable>
+            )}
+          </View>
+
+          <TouchableOpacity
+            className="p-4"
+            onPress={() => setModalVisible(true)}
           >
-            <Ionicons
-              name="chatbubble-ellipses-outline"
-              size={24}
+            <Feather
+              name="edit"
+              size={20}
               color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
             />
-            <View>
-              <Text className="dark:text-white">
-                {comments?.length > 0 ? formatNumber(comments?.length) : ""}
-              </Text>
+          </TouchableOpacity>
+          <Modal
+            visible={modalVisible}
+            transparent={true}
+            animationType="slide"
+            onRequestClose={() => setModalVisible(false)}
+          >
+            <View className="flex-1 justify-center items-center bg-black/50">
+              <View className="p-4 min-w-96 bg-white dark:bg-slate-900 rounded-md shadow-md">
+                <TextInput
+                  onChangeText={setCiteInput}
+                  value={citeInput}
+                  placeholder="Cite this cast..."
+                  placeholderTextColor={
+                    colorScheme === "dark" ? "#FFFFFF" : "#808080"
+                  }
+                  className="w-full p-2 border border-gray-300 rounded-md min-w-96"
+                  style={{
+                    color: colorScheme === "dark" ? "#FFFFFF" : "#000000",
+                  }}
+                />
+                <Pressable
+                  className="mt-4 p-3 bg-blue-700 rounded-md w-full flex items-center min-w-96"
+                  onPress={cite}
+                >
+                  <Text className="text-white font-semibold dark:text-white">
+                    {loading ? "Citing..." : "Cite"}
+                  </Text>
+                </Pressable>
+                <Pressable
+                  className="mt-2 p-2 w-full items-center"
+                  onPress={() => setModalVisible(false)}
+                >
+                  <Text className="text-red-500 font-semibold">Cancel</Text>
+                </Pressable>
+              </View>
             </View>
-          </Pressable>
-        </TouchableOpacity>
+          </Modal>
 
-        <View>
-          {loading ? (
-            <ActivityIndicator color="blue" />
-          ) : (
-            <Pressable onPress={repost} className="p-3">
-              <Feather
-                name="corner-up-left"
-                size={20}
-                color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
-              />
-            </Pressable>
-          )}
-        </View>
-
-        <Popover
-          from={
-            <TouchableOpacity className="p-3">
-              <Feather
-                name="edit"
-                size={20}
-                color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
-              />
-            </TouchableOpacity>
-          }
-        >
-          <View className="p-4 min-w-96 bg-white dark:bg-slate-900 rounded-md shadow-md">
-            <TextInput
-              onChangeText={setCiteInput}
-              value={citeInput}
-              placeholder="Cite this post..."
-              placeholderTextColor={
-                colorScheme === "dark" ? "#FFFFFF" : "#808080"
+          <TouchableOpacity
+            onPress={likePost}
+            className="flex-row items-center gap-2"
+          >
+            <AntDesign
+              name={hasLiked ? "heart" : "hearto"}
+              size={20}
+              color={
+                hasLiked ? "red" : colorScheme === "dark" ? "white" : "black"
               }
-              className="w-full p-2 border border-gray-300 rounded-md min-w-96"
-              style={{
-                color: colorScheme === "dark" ? "#FFFFFF" : "#000000",
-              }}
             />
-            <Pressable
-              className="mt-4 p-3 bg-blue-700 rounded-md w-full flex items-center min-w-96"
-              onPress={cite}
-            >
-              <Text className="text-white font-semibold dark:text-white">
-                {loading ? "Citing..." : "Cite"}
-              </Text>
-            </Pressable>
+            {likes.length > 0 && (
+              <View>
+                <Text className="dark:text-white">
+                  {formatNumber(likes.length)}
+                </Text>
+              </View>
+            )}
+          </TouchableOpacity>
+
+          <View className="flex-row items-center gap-2">
+            <Feather
+              name="eye"
+              size={20}
+              color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
+            />
+            <Text>{formatNumber(post?.views)}</Text>
           </View>
-        </Popover>
 
-        <TouchableOpacity
-          onPress={likePost}
-          className="flex-row items-center gap-2"
-        >
-          <AntDesign
-            name={hasLiked ? "heart" : "hearto"}
-            size={20}
-            color={
-              hasLiked ? "red" : colorScheme === "dark" ? "white" : "black"
-            }
-          />
-          {likes.length > 0 && (
-            <View>
-              <Text className="dark:text-white">
-                {formatNumber(likes.length)}
-              </Text>
-            </View>
-          )}
-        </TouchableOpacity>
-
-        <View className="flex-row items-center gap-2">
-          <Feather
-            name="eye"
-            size={20}
-            color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
-          />
-          <Text>{formatNumber(post?.views)}</Text>
+          <TouchableOpacity className="p-3">
+            <AntDesign
+              name="sharealt"
+              size={20}
+              color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
+            />
+          </TouchableOpacity>
         </View>
 
-        <TouchableOpacity className="p-3">
-          <AntDesign
-            name="sharealt"
-            size={20}
-            color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
-          />
-        </TouchableOpacity>
-      </View>
-
-      <BottomSheet
-        ref={bottomSheetRef}
-        index={isBottomSheetOpen ? 1 : -1}
-        snapPoints={snapPoints}
-        onChange={(index) => setIsBottomSheetOpen(index >= 1)}
-        enablePanDownToClose={true}
-      >
-        {/* Header Title */}
-        <View
-          className={`${
-            loadingComments
-              ? "hidden"
-              : "p-4 border-b border-hairline dark:border-gray-700 border-gray-300 flex-row items-center justify-center dark:bg-gray-800"
-          }`}
+        <BottomSheet
+          ref={bottomSheetRef}
+          index={isBottomSheetOpen ? 1 : -1}
+          snapPoints={snapPoints}
+          onChange={(index) => setIsBottomSheetOpen(index >= 1)}
+          enablePanDownToClose={true}
         >
-          {/* <View></View> */}
-          <Text className="text-lg font-bold text-center dark:text-white ">
-            Comments ({formatNumber(comments.length)})
-          </Text>
-          {/* <Pressable
+          {/* Header Title */}
+          <View
+            className={`${
+              loadingComments
+                ? "hidden"
+                : "p-4 border-b border-hairline dark:border-gray-700 border-gray-300 flex-row items-center justify-center dark:bg-gray-800"
+            }`}
+          >
+            {/* <View></View> */}
+            <Text className="text-lg font-bold text-center dark:text-white ">
+              Comments ({formatNumber(comments.length)})
+            </Text>
+            {/* <Pressable
           className=""
         >
           <Feather name="x" size={28} color="black" />
         </Pressable> */}
-        </View>
-
-        <View className="flex-1 bg-gray-50 dark:bg-gray-800  z-50 dark:text-white">
-          {loadingComments ? (
-            <View className="hidden w-full h-full justify-center items-center flex-1">
-              <ActivityIndicator size="large" color="#0000ff" />
-            </View>
-          ) : (
-            <BottomSheetFlashList
-              data={comments}
-              keyExtractor={(item) => item.id}
-              estimatedItemSize={100}
-              renderItem={({ item }) => (
-                <Comments comment={item} id={item.id} />
-              )}
-              showsVerticalScrollIndicator={false}
-              ListEmptyComponent={
-                <View className="flex-1 justify-center items-center">
-                  <Text className="dark:text-white">No comments available</Text>
-                </View>
-              }
-            />
-          )}
-        </View>
-
-        <BottomSheetView className="px-4 z-50  bg-white   fixed dark:bg-gray-800">
-          <View className="flex-row items-center justify-between px-4 mb-1 border rounded-full border-gray-500 ">
-            <TextInput
-              placeholder="Comment"
-              placeholderTextColor={
-                colorScheme === "dark" ? "#FFFFFF" : "#808080"
-              } // Light gray for light mode, white for dark mode
-              value={input}
-              onChangeText={setInput}
-              className="flex-1 rounded-full p-3 dark:text-white "
-            />
-
-            <Pressable onPress={sendComment}>
-              <Ionicons
-                name="send"
-                color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
-                size={24}
-              />
-            </Pressable>
           </View>
-        </BottomSheetView>
-      </BottomSheet>
+
+          <View className="flex-1 bg-gray-50 dark:bg-gray-800  z-50 dark:text-white">
+            {loadingComments ? (
+              <View className="hidden w-full h-full justify-center items-center flex-1">
+                <ActivityIndicator size="large" color="#0000ff" />
+              </View>
+            ) : (
+              <BottomSheetFlashList
+                data={comments}
+                keyExtractor={(item) => item.id}
+                estimatedItemSize={100}
+                renderItem={({ item }) => (
+                  <Comments comment={item} id={item.id} />
+                )}
+                showsVerticalScrollIndicator={false}
+                ListEmptyComponent={
+                  <View className="flex-1 justify-center items-center">
+                    <Text className="dark:text-white">
+                      No comments available
+                    </Text>
+                  </View>
+                }
+              />
+            )}
+          </View>
+
+          <BottomSheetView className="px-4 z-50  fixed dark:bg-gray-800">
+            <View className="flex-row items-center justify-between px-4 mb-1 border rounded-full border-gray-500 ">
+              <TextInput
+                placeholder="Comment"
+                placeholderTextColor={
+                  colorScheme === "dark" ? "#FFFFFF" : "#808080"
+                } // Light gray for light mode, white for dark mode
+                value={input}
+                onChangeText={setInput}
+                className="flex-1 rounded-full p-3 dark:text-white "
+              />
+
+              <Pressable onPress={sendComment}>
+                <Ionicons
+                  name="send"
+                  color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
+                  size={24}
+                />
+              </Pressable>
+            </View>
+          </BottomSheetView>
+        </BottomSheet>
     </SafeAreaView>
   );
 };

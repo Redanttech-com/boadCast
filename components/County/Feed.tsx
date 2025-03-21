@@ -12,10 +12,7 @@ import {
   Text,
   TextInput,
   Pressable,
-  KeyboardAvoidingView,
   Alert,
-  Image,
-  useWindowDimensions,
 } from "react-native";
 import {
   addDoc,
@@ -34,7 +31,7 @@ import BottomSheet, {
   BottomSheetFlashList,
   BottomSheetView,
 } from "@gorhom/bottom-sheet";
-import { AntDesign, Feather, FontAwesome, Ionicons } from "@expo/vector-icons";
+import {  Ionicons } from "@expo/vector-icons";
 import { useUserInfo } from "@/components/UserContext";
 import { useRecoilState } from "recoil";
 import { modalCountyComment } from "@/atoms/modalAtom";
@@ -42,12 +39,7 @@ import { useUser } from "@clerk/clerk-expo";
 import Comments from "./Comments";
 import { router } from "expo-router";
 import { useColorScheme } from "@/hooks/useColorScheme.web";
-import { ResizeMode, Video } from "expo-av";
-import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { db, storage } from "@/firebase";
-import * as ImagePicker from "expo-image-picker";
-import { Avatar } from "react-native-elements";
-import { TouchableOpacity } from "react-native";
 
 const Feed = () => {
   const [loadingPosts, setLoadingPosts] = useState(false);
@@ -60,14 +52,9 @@ const Feed = () => {
   const [postID] = useRecoilState(modalCountyComment);
   const { user } = useUser();
   const { formatNumber } = useUserInfo();
-  const [isMuted, setIsMuted] = useState(true);
-  const [isPaused, setIsPaused] = useState(false);
-  const { width } = useWindowDimensions();
   const snapPoints = useMemo(() => ["100%", "100%"], []);
   const openBottomSheet = useCallback(() => setIsBottomSheetOpen(true), []);
   const [userData, setUserData] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [media, setMedia] = useState({ uri: null, type: null });
   const colorScheme = useColorScheme();
 
   useEffect(() => {
@@ -224,15 +211,15 @@ const Feed = () => {
     itemVisiblePercentThreshold: 50, // Define what percentage of the item should be visible to count as visible
   };
 
-  // if (loadingPosts) {
-  //   return (
-  //     <View className="flex-1 justify-center items-center dark:bg-gray-800">
-  //       <ActivityIndicator
-  //         color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
-  //       />
-  //     </View>
-  //   );
-  // }
+  if (loadingPosts) {
+    return (
+      <View className="flex-1 justify-center items-center dark:bg-gray-800">
+        <ActivityIndicator
+          color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
+        />
+      </View>
+    );
+  }
 
   return (
     <View className="flex-1 dark:bg-gray-800">
@@ -257,29 +244,6 @@ const Feed = () => {
         onViewableItemsChanged={onViewableItemsChanged}
         viewabilityConfig={viewabilityConfig}
       />
-      <TouchableOpacity
-        style={{
-          position: "absolute",
-          bottom: 70, // Adjusted to be behind input field
-          right: 20,
-          backgroundColor: "gray",
-          width: 56,
-          height: 56,
-          borderRadius: 50,
-          justifyContent: "center",
-          alignItems: "center",
-          elevation: 5, // Android shadow
-          shadowColor: "gray", // iOS shadow
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.3,
-          shadowRadius: 4,
-          zIndex: 100, // Ensures it is behind input
-        }}
-        onPress={() => router.push("/(inputs)/countyInput")}
-      >
-        <AntDesign name="plus" size={24} color="white" />
-      </TouchableOpacity>
-
       <BottomSheet
         ref={bottomSheetRef}
         index={isBottomSheetOpen ? 1 : -1}

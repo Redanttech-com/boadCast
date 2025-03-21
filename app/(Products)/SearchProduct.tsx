@@ -9,7 +9,7 @@ const SearchProduct = ({ id, item, product }) => {
   };
 
   return (
-    <ScrollView className="mb-2">
+    <View className="mb-2 m-1">
       <Pressable
         onPress={handlePress}
         className="dark:bg-gray-600 rounded-md"
@@ -19,7 +19,7 @@ const SearchProduct = ({ id, item, product }) => {
             source={{ uri: item.image }}
             style={{
               width: "100%",
-              height: 200,
+              height: 100,
               borderTopLeftRadius: 10,
               borderTopRightRadius: 10,
             }}
@@ -29,13 +29,13 @@ const SearchProduct = ({ id, item, product }) => {
             <Text className="dark:text-white font-bold">
               {item.productname || "Unknown"}
             </Text>
-            <Text className="dark:text-white text-xl">
+            <Text className="dark:text-white text-sm">
               Price: KES {Number(item.cost).toLocaleString("en-KE")}
             </Text>
           </View>
         </View>
       </Pressable>
-    </ScrollView>
+    </View>
   );
 };
 

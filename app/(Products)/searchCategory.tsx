@@ -9,7 +9,7 @@ const SearchCategory = ({ id, item }) => {
   };
 
   return (
-    <ScrollView className="mb-2">
+    <View className="mb-2 m-1">
       <Pressable
         onPress={handlePress}
         style={{
@@ -23,7 +23,7 @@ const SearchCategory = ({ id, item }) => {
             source={{ uri: item.image }}
             style={{
               width: "100%",
-              height: 200,
+              height: 100,
               borderTopLeftRadius: 10,
               borderTopRightRadius: 10,
             }}
@@ -39,7 +39,7 @@ const SearchCategory = ({ id, item }) => {
           </View>
         </View>
       </Pressable>
-    </ScrollView>
+    </View>
   );
 };
 

@@ -17,6 +17,7 @@ import {
   Button,
   useWindowDimensions,
   ScrollView,
+  Modal,
 } from "react-native";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import Feather from "@expo/vector-icons/Feather";
@@ -85,6 +86,8 @@ const MediaSize = () => {
   const [mediaSize, setMediaSize] = useState({ width: "100%", height: 600 });
   const { width } = useWindowDimensions();
   const [isPaused, setIsPaused] = useState(false);
+    const [modalVisible, setModalVisible] = useState(false);
+  
 
   const togglePlayback = async () => {
     if (videoRef.current) {
@@ -504,7 +507,7 @@ const MediaSize = () => {
               name="arrow-back"
               size={24}
               color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
-              onPress={() => router.push("/(drawer)/(tabs)/ward")}
+              onPress={() => router.push("/(warddrawer)/(tabs)")}
             />
           </View>
           <Avatar
@@ -751,7 +754,7 @@ const MediaSize = () => {
           </>
         )}
       </ScrollView>
-      <View className="absolute bottom-0 left-0 right-0 bg-white dark:bg-gray-800 p-5 flex-row items-center justify-between">
+      <View className="bottom-0 left-0 right-0 bg-white dark:bg-gray-800 flex-row items-center justify-between">
         <TouchableOpacity>
           <Pressable
             onPress={
@@ -791,40 +794,50 @@ const MediaSize = () => {
           )}
         </View>
 
-        <Popover
-          from={
-            <TouchableOpacity className="p-3">
-              <Feather
-                name="edit"
-                size={20}
-                color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
-              />
-            </TouchableOpacity>
-          }
+        <TouchableOpacity className="p-4" onPress={() => setModalVisible(true)}>
+          <Feather
+            name="edit"
+            size={20}
+            color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
+          />
+        </TouchableOpacity>
+        <Modal
+          visible={modalVisible}
+          transparent={true}
+          animationType="slide"
+          onRequestClose={() => setModalVisible(false)}
         >
-          <View className="p-4 min-w-96 bg-white dark:bg-slate-900 rounded-md shadow-md">
-            <TextInput
-              onChangeText={setCiteInput}
-              value={citeInput}
-              placeholder="Cite this post..."
-              placeholderTextColor={
-                colorScheme === "dark" ? "#FFFFFF" : "#808080"
-              }
-              className="w-full p-2 border border-gray-300 rounded-md min-w-96"
-              style={{
-                color: colorScheme === "dark" ? "#FFFFFF" : "#000000",
-              }}
-            />
-            <Pressable
-              className="mt-4 p-3 bg-blue-700 rounded-md w-full flex items-center min-w-96"
-              onPress={cite}
-            >
-              <Text className="text-white font-semibold dark:text-white">
-                {loading ? "Citing..." : "Cite"}
-              </Text>
-            </Pressable>
+          <View className="flex-1 justify-center items-center bg-black/50">
+            <View className="p-4 min-w-96 bg-white dark:bg-slate-900 rounded-md shadow-md">
+              <TextInput
+                onChangeText={setCiteInput}
+                value={citeInput}
+                placeholder="Cite this cast..."
+                placeholderTextColor={
+                  colorScheme === "dark" ? "#FFFFFF" : "#808080"
+                }
+                className="w-full p-2 border border-gray-300 rounded-md min-w-96"
+                style={{
+                  color: colorScheme === "dark" ? "#FFFFFF" : "#000000",
+                }}
+              />
+              <Pressable
+                className="mt-4 p-3 bg-blue-700 rounded-md w-full flex items-center min-w-96"
+                onPress={cite}
+              >
+                <Text className="text-white font-semibold dark:text-white">
+                  {loading ? "Citing..." : "Cite"}
+                </Text>
+              </Pressable>
+              <Pressable
+                className="mt-2 p-2 w-full items-center"
+                onPress={() => setModalVisible(false)}
+              >
+                <Text className="text-red-500 font-semibold">Cancel</Text>
+              </Pressable>
+            </View>
           </View>
-        </Popover>
+        </Modal>
 
         <TouchableOpacity
           onPress={likePost}

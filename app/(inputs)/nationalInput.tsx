@@ -240,16 +240,19 @@ export default function nationalInput() {
           }}
         />
 
-        {loading ? (
-          <ActivityIndicator size="small" color="blue" />
-        ) : (
-          <Pressable
-            onPress={sendNational}
-            className="w-80%  ml-auto bg-blue-500 p-4 rounded-md"
-          >
+        <Pressable
+          onPress={sendNational}
+          className="w-80%  ml-auto bg-blue-500 p-4 rounded-md"
+        >
+          {loading ? (
+            <ActivityIndicator
+              size="small"
+              color={colorScheme === "dark" ? "#FFFFFF" : "#000000"}
+            />
+          ) : (
             <Text className="text-white text-center font-bold">Cast</Text>
-          </Pressable>
-        )}
+          )}
+        </Pressable>
       </View>
       <View className="flex-row mt-4 gap-1  justify-between w-full items-center">
         <View className="flex-row  justify-center gap-1">
@@ -323,10 +326,10 @@ export default function nationalInput() {
             <Image
               source={{ uri: media.uri }}
               style={{
-                width: width,
+                width: "100%",
                 height: 400, // 4:3 aspect ratio
               }}
-              resizeMode={ResizeMode.COVER}
+              resizeMode={ResizeMode.CONTAIN}
             />
           )}
 
